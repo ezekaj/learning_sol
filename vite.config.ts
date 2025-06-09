@@ -1,6 +1,6 @@
 
 import path from 'path';
-import { URL, fileURLToPath } from 'url'; // Import URL and fileURLToPath
+import { fileURLToPath } from 'url';
 import { defineConfig, loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
     const __dirname = path.dirname(__filename);
 
     return {
+      base: '/learning_sol/',
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
