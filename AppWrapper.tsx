@@ -7,7 +7,7 @@ import ConfirmationModal from './components/ConfirmationModal';
 type CurrentView = 'landing' | 'mainApp';
 
 const AppWrapper: React.FC = () => {
-  const [currentView, setCurrentView] = useState<CurrentView>('landing');
+  const [currentView, setCurrentView] = useState<CurrentView>('mainApp'); // Changed to start with mainApp
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
 
   useEffect(() => {
@@ -18,7 +18,7 @@ const AppWrapper: React.FC = () => {
     }
     // Cleanup function to remove class when component unmounts or view changes
     return () => {
-      document.body.className = ''; // Clear classes or set to a default if needed
+      document.body.className = 'bg-brand-bg-dark text-brand-text-primary'; // Set to app default
     };
   }, [currentView]);
 

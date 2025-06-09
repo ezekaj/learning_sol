@@ -11,7 +11,7 @@ import BotIcon from './components/icons/BotIcon';
 import { useProgress } from './hooks/useProgress';
 
 interface MainAppProps {
-  onLogout: () => void;
+  onLogout?: () => void; // Made optional
 }
 
 type MainView = 'modules' | 'achievements';
@@ -263,7 +263,7 @@ const MainApp: React.FC<MainAppProps> = ({ onLogout }) => {
               Reset Progress
             </button>
             <button
-              onClick={onLogout}
+              onClick={() => onLogout && onLogout()}
               className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded-md transition-colors"
               aria-label="Logout"
             >
