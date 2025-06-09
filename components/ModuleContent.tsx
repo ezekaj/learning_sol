@@ -106,6 +106,26 @@ const ModuleContent: React.FC<ModuleContentProps> = ({ module, isApiKeyMissing, 
           alt="Blockchain learning placeholder" 
           className="mt-8 rounded-lg shadow-xl mx-auto opacity-70 max-w-md w-full h-auto" 
         />
+        <p className="text-xs text-brand-text-muted text-center mt-2 opacity-60">
+          Photo by{" "}
+          <a 
+            href="https://unsplash.com/@eaterscollective" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="underline hover:text-brand-accent transition-colors"
+          >
+            Eaters Collective
+          </a>{" "}
+          on{" "}
+          <a 
+            href="https://unsplash.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="underline hover:text-brand-accent transition-colors"
+          >
+            Unsplash
+          </a>
+        </p>
       </div>
     );
   }
