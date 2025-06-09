@@ -103,10 +103,17 @@ To enable AI features, you need to:
 
 This project is open source and available under the [MIT License](LICENSE).
 
+### Third-Party Attributions
+
+- **Placeholder Image**: Photo by [Eaters Collective](https://unsplash.com/@eaterscollective) on [Unsplash](https://unsplash.com)
+- **YouTube Videos**: Embedded educational content used for fair use/educational purposes
+- **External Libraries**: React, TypeScript, Vite, and other dependencies used under their respective open source licenses
+
 ## 🆘 Support
 
 If you encounter any issues or have questions, please open an issue on GitHub.
 
 ---
 
-Built with ❤️ using React, TypeScript, and Vite
+Built with ❤️ using React, TypeScript, and Vite  
+© 2025 Ezekaj. Licensed under MIT License.
