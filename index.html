@@ -1,0 +1,462 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Site Title -->
+  <title>Solidity & Blockchain DevPath</title>
+
+  <!-- Basic SEO Meta Tags -->
+  <meta name="description" content="An interactive learning app for Solidity, smart contract development, and blockchain tools, powered by Gemini. Explore modules, understand concepts, and get your questions answered.">
+  <meta name="keywords" content="Solidity, Blockchain, Ethereum, Smart Contracts, Web3, Learning, Development, DevPath, Crypto, Gemini AI">
+  <meta name="author" content="Your Name or Project Name"> <!-- TODO: Replace with your name/project name -->
+
+  <!-- Favicon Links -->
+  <!-- TODO: Create these favicon files and place them in your public/root directory -->
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png"> <!-- 180x180px -->
+  <link rel="manifest" href="/site.webmanifest"> <!-- Optional: For PWA features -->
+
+  <!-- Open Graph Meta Tags (for Facebook, LinkedIn, etc.) -->
+  <!-- TODO: Replace YOUR_SITE_URL and YOUR_IMAGE_URL with actual values -->
+  <meta property="og:title" content="Solidity & Blockchain DevPath">
+  <meta property="og:description" content="An interactive learning app for Solidity, smart contract development, and blockchain tools, powered by Gemini. Explore modules, understand concepts, and get your questions answered.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://YOUR_SITE_URL.com"> 
+  <meta property="og:image" content="https://YOUR_SITE_URL.com/social-share-image.png"> <!-- Recommended: 1200x630px -->
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="Solidity & Blockchain DevPath">
+
+  <!-- Twitter Card Meta Tags -->
+  <!-- TODO: Replace YOUR_SITE_URL, YOUR_IMAGE_URL, and YOUR_TWITTER_HANDLE with actual values -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Solidity & Blockchain DevPath">
+  <meta name="twitter:description" content="An interactive learning app for Solidity, smart contract development, and blockchain tools, powered by Gemini. Explore modules, understand concepts, and get your questions answered.">
+  <meta name="twitter:image" content="https://YOUR_SITE_URL.com/social-share-image.png"> <!-- Recommended: 1200x630px -->
+  <meta name="twitter:site" content="@YOUR_TWITTER_HANDLE"> <!-- Optional: Your site's Twitter handle -->
+  <meta name="twitter:creator" content="@YOUR_TWITTER_HANDLE"> <!-- Optional: Your personal/creator Twitter handle -->
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            // Neutral Dark Theme Base
+            'brand-bg-dark': '#1A202C',    // Very Dark Gray/Charcoal (Main App Background) - Used for CSS var --brand-bg-dark-val
+            'brand-bg-medium': '#2D3748',  // Dark Gray (e.g., Sidebar, Modal Backgrounds) - Used for CSS var --brand-bg-medium-val
+            'brand-surface-1': '#262F3D',  // Slightly Lighter Gray (e.g., Card Backgrounds, Chat Input)
+            'brand-surface-2': '#1F2937',  // Another Dark Surface (e.g., Main Content Area BG)
+            
+            // Accent Purples (Used more sparingly)
+            'brand-primary': '#8B5CF6',     // Vibrant Purple (Primary Actions, Selected States) - Used for CSS var --brand-primary-val
+            'brand-secondary': '#A78BFA',   // Lighter Purple (Secondary Actions/Highlights)
+            'brand-accent': '#C4B5FD',      // Very Light Purple/Violet (Accents, Tags, Chat Bot Icon)
+
+            // Text Colors (High Contrast)
+            'brand-text-primary': '#F7FAFC', // Off-White (Main Text)
+            'brand-text-secondary': '#E2E8F0',// Light Gray (Secondary Text)
+            'brand-text-muted': '#A0AEC0',   // Medium Gray (Muted Text, Placeholders)
+
+            // Semantic Colors
+            'brand-error': '#E53E3E',       // Red for errors
+            'brand-success': '#38A169',     // Green for success
+            'brand-warning': '#DD6B20',     // Orange for warnings
+            'brand-info': '#3182CE',        // Blue for info
+            
+            // Aurora colors for landing page
+            'aurora-1': '#8B5CF6', // brand-primary
+            'aurora-2': '#EC4899', // pink-500
+            'aurora-3': '#10B981', // emerald-500
+            'aurora-4': '#3B82F6', // blue-500
+            'aurora-5': '#F59E0B', // amber-500
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Menlo', 'Monaco', 'Consolas', '"Liberation Mono"', '"Courier New"', 'monospace'],
+          },
+          animation: { 
+            'gradient-bg': 'gradientBackground 15s ease infinite',
+            'aurora-bg': 'auroraBackground 60s linear infinite',
+            'landing-title-animate': 'fadeInUp 0.8s ease-out forwards',
+            'draw-underline': 'drawUnderline 0.5s ease-out forwards',
+          },
+          keyframes: { 
+            gradientBackground: {
+              '0%, 100%': { backgroundPosition: '0% 50%' },
+              '50%': { backgroundPosition: '100% 50%' },
+            },
+            auroraBackground: {
+              '0%': { backgroundPosition: '0% 0%' },
+              '25%': { backgroundPosition: '100% 0%' },
+              '50%': { backgroundPosition: '100% 100%' },
+              '75%': { backgroundPosition: '0% 100%' },
+              '100%': { backgroundPosition: '0% 0%' },
+            },
+            fadeInUp: {
+              '0%': { opacity: '0', transform: 'translateY(20px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            drawUnderline: {
+              '0%': { width: '0%' },
+              '100%': { width: '100%' },
+            },
+          },
+        }
+      },
+      plugins: [],
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Menlo&family=Monaco&family=Consolas&family=Liberation+Mono&family=Courier+New&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand-bg-dark-val: #1A202C;
+      --brand-bg-medium-val: #2D3748;
+      --brand-surface-1-val: #262F3D;
+      --brand-primary-val: #8B5CF6;
+      --brand-secondary-val: #A78BFA; /* Added for button gradients */
+      --brand-accent-val: #C4B5FD;
+      --brand-text-primary-val: #F7FAFC;
+      --brand-text-muted-val: #A0AEC0;
+
+      --button-glow-color: var(--brand-primary-val);
+      --input-focus-glow-color: var(--brand-primary-val);
+      --sidebar-selected-glow-color: var(--brand-primary-val);
+      --code-block-border-color: rgba(139, 92, 246, 0.3); /* brand-primary with alpha */
+    }
+
+    body.app-body { /* Styles for main app view */
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(-45deg, #1A202C, #21293a, #2D3748, #1F2937);
+      background-size: 400% 400%;
+      animation: gradientBackground 25s ease infinite;
+      color: var(--brand-text-primary-val);
+    }
+    
+    body.landing-page-body {
+        font-family: 'Inter', sans-serif;
+        color: var(--brand-text-primary-val);
+        background: linear-gradient(125deg, 
+            var(--brand-colors-aurora-1, #8B5CF6), 
+            var(--brand-colors-aurora-2, #EC4899), 
+            var(--brand-colors-aurora-3, #10B981), 
+            var(--brand-colors-aurora-4, #3B82F6), 
+            var(--brand-colors-aurora-5, #F59E0B)
+        );
+        background-size: 500% 500%; /* Increased size for smoother/slower animation */
+        animation: auroraBackground 60s linear infinite; /* Slower animation */
+        overflow-x: hidden; /* Prevent horizontal scroll from animations */
+    }
+
+    @keyframes gradientBackground {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    @keyframes auroraBackground { /* For landing page body */
+      0% { background-position: 0% 0%; }
+      25% { background-position: 100% 0%; }
+      50% { background-position: 100% 100%; }
+      75% { background-position: 0% 100%; }
+      100% { background-position: 0% 0%; }
+    }
+
+    /* Custom scrollbar for webkit browsers (New Theme) */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--brand-bg-medium-val); 
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--brand-primary-val); 
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--brand-accent-val); 
+    }
+
+    /* For Firefox */
+    .scrollbar-thin {
+      scrollbar-width: thin;
+      scrollbar-color: var(--brand-primary-val) var(--brand-bg-medium-val); /* thumb track */
+    }
+
+    /* Sidebar Glassmorphism */
+    aside.bg-brand-bg-medium { 
+      background-color: rgba(45, 55, 72, 0.65) !important; 
+      backdrop-filter: blur(12px) saturate(150%);
+      -webkit-backdrop-filter: blur(12px) saturate(150%);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    div[role="dialog"] > div[class*="bg-brand-surface-1"] { 
+        background-color: rgba(38, 47, 61, 0.8) !important; 
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    /* General Interactive Element Styling (Applies to buttons, inputs in main app) */
+    button:not(.landing-button), .button-like {
+      transition: all 0.2s ease-in-out;
+    }
+    button:not(.landing-button):hover:not(:disabled), .button-like:hover {
+      transform: scale(1.03) translateY(-1px);
+      box-shadow: 0 4px 15px -3px rgba(0,0,0,0.2), 0 0 10px -3px var(--button-glow-color);
+    }
+    button:not(.landing-button):focus:not(:disabled), .button-like:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.4), 0 0 12px -2px var(--button-glow-color);
+    }
+    button:not(.landing-button):active:not(:disabled), .button-like:active {
+      transform: scale(0.98) translateY(0px);
+    }
+    button.bg-brand-primary:hover:not(:disabled) { --button-glow-color: #A78BFA; }
+    button.bg-red-600:hover:not(:disabled) { --button-glow-color: #E53E3E; }
+    
+    input[type="text"]:not(.landing-input), 
+    input[type="email"]:not(.landing-input), 
+    input[type="password"]:not(.landing-input) {
+      transition: all 0.2s ease-in-out;
+      border: 1px solid var(--brand-bg-medium-val); 
+    }
+    input[type="text"]:not(.landing-input):focus, 
+    input[type="email"]:not(.landing-input):focus, 
+    input[type="password"]:not(.landing-input):focus {
+      border-color: var(--brand-primary-val);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3), 0 0 10px -2px var(--input-focus-glow-color); 
+      outline: none;
+    }
+
+    /* Landing Page Specific Styles */
+    .landing-title-animate {
+      opacity: 0; /* Start hidden for animation */
+      animation: fadeInUp 0.8s ease-out forwards;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .glass-card {
+      background: rgba(26, 32, 44, 0.6); /* Darker, less transparent: brand-bg-dark at 60% */
+      backdrop-filter: blur(15px) saturate(180%);
+      -webkit-backdrop-filter: blur(15px) saturate(180%);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      animation: fadeInUp 0.8s ease-out 0.3s forwards; /* Added delay */
+      opacity: 0; /* Start hidden */
+    }
+
+    .landing-input {
+      background-color: rgba(45, 55, 72, 0.5); /* brand-bg-medium at 50% */
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--brand-text-primary-val);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .landing-input:focus {
+      outline: none;
+      border-color: var(--brand-primary-val);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.4);
+    }
+    .landing-input::placeholder { /* Style for explicit placeholder */
+      color: rgba(160, 174, 192, 0.7); /* brand-text-muted at 70% */
+    }
+    .landing-input:not(:placeholder-shown) + .landing-label,
+    .landing-input:focus + .landing-label {
+      transform: translateY(-1.75rem) translateX(-0.1rem) scale(0.8);
+      color: var(--brand-accent-val);
+      background-color: var(--brand-bg-dark-val); /* To cover the input line */
+      padding: 0 0.25rem;
+    }
+
+    .landing-label {
+      position: absolute;
+      color: var(--brand-text-muted-val);
+      transition: all 0.2s ease-out;
+      pointer-events: none; /* Allow clicks to pass through to input */
+    }
+
+    .landing-button {
+      background-image: linear-gradient(to right, var(--brand-primary-val) 0%, var(--brand-secondary-val) 50%, var(--brand-primary-val) 100%);
+      background-size: 200% auto;
+      color: white;
+      font-weight: 600;
+      padding: 0.875rem 1.5rem; /* 14px 24px */
+      border-radius: 0.5rem; /* 8px */
+      transition: all 0.3s ease-out;
+      box-shadow: 0 4px 15px 0 rgba(139, 92, 246, 0.3); /* shadow from brand-primary */
+      border: none;
+    }
+    .landing-button:hover {
+      background-position: right center; /* Change gradient direction */
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 20px 0 rgba(139, 92, 246, 0.4);
+    }
+    .landing-button:active {
+      transform: translateY(0px) scale(0.98);
+    }
+    
+    .landing-tab-button {
+      position: relative;
+      transition: color 0.3s ease;
+    }
+    .landing-tab-button.active-tab::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; /* Align with the parent's border-b */
+      left: 0;
+      height: 2px;
+      background-color: var(--brand-accent-val);
+      animation: drawUnderline 0.3s ease-out forwards;
+    }
+    @keyframes drawUnderline {
+      from { width: 0%; }
+      to { width: 100%; }
+    }
+
+    /* Enhanced Code Block Styling (targeting the structure in ModuleContent.tsx) */
+    div.relative.group.bg-brand-bg-dark { 
+      border: 1px solid var(--code-block-border-color);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 0 10px rgba(0,0,0,0.2);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    div.relative.group.bg-brand-bg-dark:hover {
+      border-color: var(--brand-primary-val);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.4), inset 0 0 15px var(--brand-primary-val);
+    }
+
+    /* Selected Sidebar Item Glow */
+    aside nav button[aria-current="page"] { 
+      box-shadow: 0 0 15px -3px var(--sidebar-selected-glow-color), 0 4px 10px -5px var(--sidebar-selected-glow-color);
+    }
+    
+    div[role="separator"][aria-label="Resize chat panel"]:hover {
+        background-color: var(--brand-primary-val) !important; 
+    }
+    div[role="separator"][aria-label="Resize chat panel"]:hover > div { 
+        background-color: var(--brand-text-primary-val) !important;
+        opacity: 1 !important;
+    }
+
+    .aspect-w-16.aspect-h-9 {
+      position: relative;
+      padding-bottom: 56.25%; 
+    }
+    .aspect-w-16.aspect-h-9 > * {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Base prose styles, enhanced for marked output */
+    .prose {
+      color: var(--brand-text-secondary); /* Tailwind text-gray-300 equivalent */
+      line-height: 1.7;
+    }
+    .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+      color: var(--brand-text-primary); /* Tailwind text-white equivalent */
+      font-weight: 600;
+      margin-top: 1.25em;
+      margin-bottom: 0.5em;
+    }
+    .prose h1 { font-size: 2em; }
+    .prose h2 { font-size: 1.5em; }
+    .prose h3 { font-size: 1.25em; }
+    .prose h4 { font-size: 1em; }
+    .prose p {
+      margin-top: 0.75em;
+      margin-bottom: 0.75em;
+    }
+    .prose strong {
+      color: var(--brand-text-primary); 
+    }
+    .prose a {
+      color: var(--brand-secondary); 
+      text-decoration: none;
+      transition: color 0.2s ease-in-out;
+    }
+    .prose a:hover {
+      color: var(--brand-accent); 
+      text-decoration: underline;
+    }
+    .prose ul, .prose ol {
+      margin-top: 0.75em;
+      margin-bottom: 0.75em;
+      padding-left: 1.5em;
+    }
+    .prose ul { list-style-type: disc; }
+    .prose ol { list-style-type: decimal; }
+    .prose li { margin-top: 0.25em; margin-bottom: 0.25em; }
+    .prose blockquote {
+      margin-top: 1em;
+      margin-bottom: 1em;
+      padding-left: 1em;
+      border-left: 0.25em solid var(--brand-bg-medium-val);
+      color: var(--brand-text-muted);
+      font-style: italic;
+    }
+    .prose code:not(pre code) { /* Inline code */
+       background-color: var(--brand-bg-medium-val) !important; 
+       color: var(--brand-accent-val); 
+       padding: 0.2em 0.4em;
+       margin: 0 0.1em;
+       font-size: 0.875em; 
+       border-radius: 0.25rem;
+       font-family: var(--font-mono, 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", monospace);
+    }
+    .prose pre { /* This is for marked-generated <pre> tags */
+      background-color: var(--brand-bg-dark) !important; /* Match custom code block style */
+      color: #E2E8F0 !important; /* Default code text color */
+      padding: 1em !important;
+      border-radius: 0.375rem !important; /* rounded-md */
+      overflow-x: auto !important;
+      font-family: var(--font-mono, 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", monospace);
+      border: 1px solid var(--code-block-border-color); /* Match custom block */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 0 10px rgba(0,0,0,0.2);
+      margin-top: 1em;
+      margin-bottom: 1em;
+    }
+    .prose pre code { /* Code inside marked-generated <pre> */
+        background-color: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 0.875em !important; /* Match existing pre code size */
+        border-radius: 0 !important;
+        color: inherit !important; /* Inherit from .prose pre */
+        white-space: pre-wrap !important; /* Ensure wrapping */
+        word-wrap: break-word !important; /* Ensure breaking long words */
+    }
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.3.0",
+    "marked": "https://esm.sh/marked@^13.0.0",
+    "path": "https://esm.sh/path@^0.12.7",
+    "url": "https://esm.sh/url@^0.11.4",
+    "vite": "https://esm.sh/vite@^6.3.5"
+  }
+}
+</script>
+<!-- <link rel="stylesheet" href="/index.css"> -->
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-brand-bg-dark text-brand-text-primary">
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
