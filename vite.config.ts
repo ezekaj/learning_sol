@@ -10,12 +10,19 @@ export default defineConfig(({ mode }) => {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
 
+    // Get API key from environment - check both possible names
+    const apiKey = env.GEMINI_API_KEY || process.env.GEMINI_API_KEY || env.API_KEY || process.env.API_KEY;
+
+    console.log('Vite build - API key status:', apiKey ? 'Present' : 'Missing');
+    console.log('Vite build - Mode:', mode);
+
     return {
       plugins: [react()],
       base: '/learning_sol/',
       define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+        'process.env.API_KEY': JSON.stringify(apiKey),
+        'process.env.GEMINI_API_KEY': JSON.stringify(apiKey),
+        'process.env.NODE_ENV': JSON.stringify(mode)
       },
       resolve: {
         alias: {
