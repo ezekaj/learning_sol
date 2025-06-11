@@ -2,7 +2,18 @@
 import { GoogleGenAI, Chat, GenerateContentResponse, HarmCategory, HarmBlockThreshold } from "@google/genai";
 
 // IMPORTANT: API_KEY is expected to be set in the environment.
-const API_KEY = process.env.API_KEY;
+// Try multiple possible environment variable names and sources
+const API_KEY = process.env.API_KEY ||
+                process.env.GEMINI_API_KEY ||
+                (window as any).__API_KEY__ ||
+                (globalThis as any).__API_KEY__;
+
+// Debug logging for API key detection
+console.log('Gemini Service - Environment check:');
+console.log('- process.env.API_KEY:', process.env.API_KEY ? 'Present' : 'Missing');
+console.log('- process.env.GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'Present' : 'Missing');
+console.log('- window.__API_KEY__:', (window as any).__API_KEY__ ? 'Present' : 'Missing');
+console.log('- Final API_KEY:', API_KEY ? 'Present' : 'Missing');
 
 let ai: GoogleGenAI | null = null;
 let initializationError: string | null = null;
