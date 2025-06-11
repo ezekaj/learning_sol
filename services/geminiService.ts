@@ -1,34 +1,27 @@
 
 import { GoogleGenAI, Chat, GenerateContentResponse, HarmCategory, HarmBlockThreshold } from "@google/genai";
+import { API_KEY, getValidatedApiKey } from '../src/config';
 
-// IMPORTANT: API_KEY is expected to be set in the environment.
-// Try multiple possible environment variable names and sources
-const API_KEY = process.env.API_KEY ||
-                process.env.GEMINI_API_KEY ||
-                (window as any).__API_KEY__ ||
-                (globalThis as any).__API_KEY__;
+// Get API key using our robust configuration system
+const GEMINI_API_KEY = API_KEY || getValidatedApiKey();
 
-// Debug logging for API key detection
-console.log('Gemini Service - Environment check:');
-console.log('- process.env.API_KEY:', process.env.API_KEY ? 'Present' : 'Missing');
-console.log('- process.env.GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'Present' : 'Missing');
-console.log('- window.__API_KEY__:', (window as any).__API_KEY__ ? 'Present' : 'Missing');
-console.log('- Final API_KEY:', API_KEY ? 'Present' : 'Missing');
+console.log('🔧 Gemini Service - Using configuration system');
+console.log('- API Key configured:', !!GEMINI_API_KEY);
 
 let ai: GoogleGenAI | null = null;
 let initializationError: string | null = null;
 
 // Wrap initialization in try-catch to prevent app crashes
 try {
-  if (API_KEY && API_KEY !== 'undefined' && API_KEY.trim() !== '') {
-    ai = new GoogleGenAI({ apiKey: API_KEY });
-    console.log("Gemini AI initialized successfully");
+  if (GEMINI_API_KEY && GEMINI_API_KEY !== 'undefined' && GEMINI_API_KEY.trim() !== '') {
+    ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+    console.log("✅ Gemini AI initialized successfully");
   } else {
-    console.warn("Gemini API Key not found or invalid. AI features will be limited or unavailable.");
-    initializationError = "API key not configured";
+    console.warn("❌ Gemini API Key not found or invalid. AI features will be limited or unavailable.");
+    initializationError = "Gemini API Key is not configured. AI features will be unavailable. Please ensure the API_KEY environment variable is correctly set and accessible.";
   }
 } catch (error) {
-  console.error("Failed to initialize Gemini AI:", error);
+  console.error("❌ Failed to initialize Gemini AI:", error);
   initializationError = `Initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
   ai = null;
 }

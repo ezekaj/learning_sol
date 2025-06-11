@@ -34,79 +34,13 @@
   <meta name="twitter:description" content="An interactive learning app for Solidity, smart contract development, and blockchain tools, powered by Gemini. Explore modules, understand concepts, and get your questions answered.">
   <meta name="twitter:image" content="https://ezekaj.github.io/learning_sol/social-share-image.png"> <!-- Recommended: 1200x630px -->
 
+  <!-- Tailwind CSS CDN (temporary for deployment) -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            // Neutral Dark Theme Base
-            'brand-bg-dark': '#1A202C',    // Very Dark Gray/Charcoal (Main App Background) - Used for CSS var --brand-bg-dark-val
-            'brand-bg-medium': '#2D3748',  // Dark Gray (e.g., Sidebar, Modal Backgrounds) - Used for CSS var --brand-bg-medium-val
-            'brand-surface-1': '#262F3D',  // Slightly Lighter Gray (e.g., Card Backgrounds, Chat Input)
-            'brand-surface-2': '#1F2937',  // Another Dark Surface (e.g., Main Content Area BG)
-            
-            // Accent Purples (Used more sparingly)
-            'brand-primary': '#8B5CF6',     // Vibrant Purple (Primary Actions, Selected States) - Used for CSS var --brand-primary-val
-            'brand-secondary': '#A78BFA',   // Lighter Purple (Secondary Actions/Highlights)
-            'brand-accent': '#C4B5FD',      // Very Light Purple/Violet (Accents, Tags, Chat Bot Icon)
-
-            // Text Colors (High Contrast)
-            'brand-text-primary': '#F7FAFC', // Off-White (Main Text)
-            'brand-text-secondary': '#E2E8F0',// Light Gray (Secondary Text)
-            'brand-text-muted': '#A0AEC0',   // Medium Gray (Muted Text, Placeholders)
-
-            // Semantic Colors
-            'brand-error': '#E53E3E',       // Red for errors
-            'brand-success': '#38A169',     // Green for success
-            'brand-warning': '#DD6B20',     // Orange for warnings
-            'brand-info': '#3182CE',        // Blue for info
-            
-            // Aurora colors for landing page
-            'aurora-1': '#8B5CF6', // brand-primary
-            'aurora-2': '#EC4899', // pink-500
-            'aurora-3': '#10B981', // emerald-500
-            'aurora-4': '#3B82F6', // blue-500
-            'aurora-5': '#F59E0B', // amber-500
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['Menlo', 'Monaco', 'Consolas', '"Liberation Mono"', '"Courier New"', 'monospace'],
-          },
-          animation: { 
-            'gradient-bg': 'gradientBackground 15s ease infinite',
-            'aurora-bg': 'auroraBackground 60s linear infinite',
-            'landing-title-animate': 'fadeInUp 0.8s ease-out forwards',
-            'draw-underline': 'drawUnderline 0.5s ease-out forwards',
-          },
-          keyframes: { 
-            gradientBackground: {
-              '0%, 100%': { backgroundPosition: '0% 50%' },
-              '50%': { backgroundPosition: '100% 50%' },
-            },
-            auroraBackground: {
-              '0%': { backgroundPosition: '0% 0%' },
-              '25%': { backgroundPosition: '100% 0%' },
-              '50%': { backgroundPosition: '100% 100%' },
-              '75%': { backgroundPosition: '0% 100%' },
-              '100%': { backgroundPosition: '0% 0%' },
-            },
-            fadeInUp: {
-              '0%': { opacity: '0', transform: 'translateY(20px)' },
-              '100%': { opacity: '1', transform: 'translateY(0)' },
-            },
-            drawUnderline: {
-              '0%': { width: '0%' },
-              '100%': { width: '100%' },
-            },
-          },
-        }
-      },
-      plugins: [],
-    }
-  </script>
+  <!-- Google Fonts preconnect for performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Menlo&family=Monaco&family=Consolas&family=Liberation+Mono&family=Courier+New&display=swap" rel="stylesheet">
+  <!-- Google Fonts import for performance -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Menlo&family=Monaco&family=Consolas&family=Liberation+Mono&family=Courier+New&display=swap" rel="stylesheet">
   <style>
     :root {
