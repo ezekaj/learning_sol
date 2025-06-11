@@ -1,15 +1,25 @@
 
-import { GoogleGenAI, Chat, GenerateContentResponse, Part, HarmCategory, HarmBlockThreshold } from "@google/genai";
-import { ChatMessageRole } from '../types';
+import { GoogleGenAI, Chat, GenerateContentResponse, HarmCategory, HarmBlockThreshold } from "@google/genai";
 
 // IMPORTANT: API_KEY is expected to be set in the environment.
 const API_KEY = process.env.API_KEY;
 
 let ai: GoogleGenAI | null = null;
-if (API_KEY) {
-  ai = new GoogleGenAI({ apiKey: API_KEY });
-} else {
-  console.error("Gemini API Key not found. AI features will be limited or unavailable. Ensure API_KEY environment variable is set.");
+let initializationError: string | null = null;
+
+// Wrap initialization in try-catch to prevent app crashes
+try {
+  if (API_KEY && API_KEY !== 'undefined' && API_KEY.trim() !== '') {
+    ai = new GoogleGenAI({ apiKey: API_KEY });
+    console.log("Gemini AI initialized successfully");
+  } else {
+    console.warn("Gemini API Key not found or invalid. AI features will be limited or unavailable.");
+    initializationError = "API key not configured";
+  }
+} catch (error) {
+  console.error("Failed to initialize Gemini AI:", error);
+  initializationError = `Initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+  ai = null;
 }
 
 let chat: Chat | null = null;
@@ -64,7 +74,7 @@ const safetySettings = [
 
 export const initializeChatForModule = async (moduleTitle: string, geminiPromptSeed?: string): Promise<string | null> => {
   if (!ai) {
-    return "Gemini AI Service not initialized. API Key may be missing.";
+    return initializationError || "Gemini AI Service not initialized. API Key may be missing.";
   }
 
   let systemInstruction = CHAT_SYSTEM_INSTRUCTION_BASE;
@@ -110,8 +120,8 @@ export const sendMessageToGeminiChat = async (message: string): Promise<string> 
   }
   
   try {
-    const response: GenerateContentResponse = await chat.sendMessage({ message: message }); // Non-null assertion for chat due to check above
-    return response.text;
+    const response: GenerateContentResponse = await chat.sendMessage({ message: message });
+    return response.text || "AI response was empty";
   } catch (error) {
     console.error("Error sending message to Gemini:", error);
     if (error instanceof Error) {
@@ -143,7 +153,7 @@ export const generateDiagramForConcept = async (prompt: string): Promise<{ base6
         // We'll rely on the API's error handling or response structure to indicate safety blocks.
     });
 
-    if (response.generatedImages && response.generatedImages.length > 0 && response.generatedImages[0].image.imageBytes) {
+    if (response.generatedImages && response.generatedImages.length > 0 && response.generatedImages[0]?.image?.imageBytes) {
         const base64ImageBytes = response.generatedImages[0].image.imageBytes;
         return { base64Image: `data:image/png;base64,${base64ImageBytes}` };
     } else {
@@ -205,7 +215,7 @@ export const getTopicExplanation = async (topic: string, details: string): Promi
         return `Error: AI could not generate a response. Reason: ${response.candidates[0].finishReason}. Please try again.`;
     }
     
-    return response.text;
+    return response.text || "AI response was empty";
   } catch (error) {
     console.error("Error getting topic explanation from Gemini:", error);
     if (error instanceof Error) {

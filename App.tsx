@@ -28,7 +28,7 @@ const MainApp: React.FC<MainAppProps> = ({ onLogout }) => {
   const [currentView, setCurrentView] = useState<MainView>('modules'); 
 
   const { completedModules, addCompletedModule, resetProgress } = useProgress();
-  const isApiKeyMissing = !process.env.API_KEY;
+  const isApiKeyMissing = !process.env.API_KEY || process.env.API_KEY === 'undefined';
 
   // State and refs for chat resizing
   const [chatHeightPx, setChatHeightPx] = useState<number>(DEFAULT_CHAT_HEIGHT_PX);

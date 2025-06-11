@@ -113,6 +113,12 @@ This project is open source and available under the [MIT License](LICENSE).
 
 If you encounter any issues or have questions, please open an issue on GitHub.
 
+### Contact Information
+
+- **GitHub**: [https://github.com/ezekaj](https://github.com/ezekaj)
+- **LinkedIn**: [https://www.linkedin.com/in/elvi-zekaj-240b10243/](https://www.linkedin.com/in/elvi-zekaj-240b10243/)
+- **Email**: [elvizekaj02@gmail.com](mailto:elvizekaj02@gmail.com)
+
 ---
 
 Built with ❤️ using React, TypeScript, and Vite  
