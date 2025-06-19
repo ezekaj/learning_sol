@@ -190,5 +190,146 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
   );
 };
 
-export { Progress, CircularProgress };
+// Learning Progress Component
+interface LearningProgressProps {
+  totalModules: number;
+  completedModules: number;
+  currentModule?: string;
+  className?: string;
+}
+
+const LearningProgress: React.FC<LearningProgressProps> = ({
+  totalModules,
+  completedModules,
+  currentModule,
+  className = '',
+}) => {
+  const percentage = (completedModules / totalModules) * 100;
+
+  return (
+    <div className={`space-y-3 ${className}`}>
+      <div className="flex justify-between items-center">
+        <h3 className="text-sm font-medium text-brand-text-primary">
+          Learning Progress
+        </h3>
+        <span className="text-sm text-brand-text-muted">
+          {completedModules} of {totalModules} modules
+        </span>
+      </div>
+
+      <Progress
+        value={completedModules}
+        max={totalModules}
+        variant="success"
+        animated={true}
+        className="h-2"
+      />
+
+      {currentModule && (
+        <p className="text-xs text-brand-text-muted">
+          Currently learning: <span className="text-brand-primary-400">{currentModule}</span>
+        </p>
+      )}
+
+      <div className="flex gap-4 text-xs">
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 bg-brand-success-500 rounded-full" />
+          <span className="text-brand-text-muted">Completed</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 bg-brand-bg-light rounded-full" />
+          <span className="text-brand-text-muted">Remaining</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Step Progress Component
+interface StepProgressProps {
+  steps: Array<{
+    id: string;
+    title: string;
+    completed: boolean;
+    current?: boolean;
+  }>;
+  orientation?: 'horizontal' | 'vertical';
+  className?: string;
+}
+
+const StepProgress: React.FC<StepProgressProps> = ({
+  steps,
+  orientation = 'horizontal',
+  className = '',
+}) => {
+  const isHorizontal = orientation === 'horizontal';
+
+  return (
+    <div className={`${isHorizontal ? 'flex items-center' : 'space-y-4'} ${className}`}>
+      {steps.map((step, index) => (
+        <div
+          key={step.id}
+          className={`flex items-center ${isHorizontal ? 'flex-row' : 'flex-col'} ${
+            index < steps.length - 1 ? (isHorizontal ? 'flex-1' : '') : ''
+          }`}
+        >
+          <div className="flex items-center">
+            <motion.div
+              className={`
+                w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
+                ${step.completed
+                  ? 'bg-brand-success-500 text-white'
+                  : step.current
+                  ? 'bg-brand-primary-500 text-white'
+                  : 'bg-brand-bg-light text-brand-text-muted'
+                }
+              `}
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              {step.completed ? (
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                index + 1
+              )}
+            </motion.div>
+
+            {!isHorizontal && (
+              <span className={`ml-3 text-sm font-medium ${
+                step.current ? 'text-brand-text-primary' : 'text-brand-text-muted'
+              }`}>
+                {step.title}
+              </span>
+            )}
+          </div>
+
+          {index < steps.length - 1 && (
+            <div className={`
+              ${isHorizontal
+                ? 'flex-1 h-0.5 mx-4'
+                : 'w-0.5 h-8 ml-4'
+              }
+              ${step.completed ? 'bg-brand-success-500' : 'bg-brand-bg-light'}
+            `} />
+          )}
+
+          {isHorizontal && (
+            <div className="mt-2">
+              <span className={`text-xs ${
+                step.current ? 'text-brand-text-primary' : 'text-brand-text-muted'
+              }`}>
+                {step.title}
+              </span>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export { Progress, CircularProgress, LearningProgress, StepProgress };
 export default Progress;

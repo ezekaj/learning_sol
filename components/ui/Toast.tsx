@@ -165,24 +165,76 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
 
 // Helper functions for common toast types
 export const toast = {
-  success: (title: string, description?: string) => ({
+  success: (title: string, description?: string, duration?: number) => ({
     title,
     description,
     variant: 'success' as const,
+    duration: duration || 4000,
   }),
-  error: (title: string, description?: string) => ({
+  error: (title: string, description?: string, duration?: number) => ({
     title,
     description,
     variant: 'error' as const,
+    duration: duration || 6000,
   }),
-  warning: (title: string, description?: string) => ({
+  warning: (title: string, description?: string, duration?: number) => ({
     title,
     description,
     variant: 'warning' as const,
+    duration: duration || 5000,
   }),
-  info: (title: string, description?: string) => ({
+  info: (title: string, description?: string, duration?: number) => ({
     title,
     description,
     variant: 'info' as const,
+    duration: duration || 4000,
   }),
+  loading: (title: string, description?: string) => ({
+    title,
+    description,
+    variant: 'default' as const,
+    duration: 0, // Don't auto-dismiss loading toasts
+  }),
+  promise: <T>(
+    promise: Promise<T>,
+    {
+      loading,
+      success,
+      error,
+    }: {
+      loading: string;
+      success: string | ((data: T) => string);
+      error: string | ((error: any) => string);
+    }
+  ) => {
+    const toastId = Math.random().toString(36).substr(2, 9);
+
+    // Show loading toast
+    const loadingToast = {
+      id: toastId,
+      title: loading,
+      variant: 'default' as const,
+      duration: 0,
+    };
+
+    return promise
+      .then((data) => {
+        const successMessage = typeof success === 'function' ? success(data) : success;
+        return {
+          id: toastId,
+          title: successMessage,
+          variant: 'success' as const,
+          duration: 4000,
+        };
+      })
+      .catch((err) => {
+        const errorMessage = typeof error === 'function' ? error(err) : error;
+        return {
+          id: toastId,
+          title: errorMessage,
+          variant: 'error' as const,
+          duration: 6000,
+        };
+      });
+  },
 };
