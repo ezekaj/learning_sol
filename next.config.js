@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
+  trailingSlash: true,
+  basePath: '/learning_sol',
+  assetPrefix: '/learning_sol/',
   experimental: {
     appDir: true,
     serverComponentsExternalPackages: ['@prisma/client'],
