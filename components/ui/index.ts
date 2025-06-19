@@ -32,6 +32,13 @@ export { default as PageTransition } from './PageTransition';
 export { default as Progress } from './Progress';
 export { default as Tooltip } from './Tooltip';
 
+// Advanced Animation Components
+export * from './GSAPAnimations';
+export * from './LottieAnimations';
+export * from './ThreeJSComponents';
+export * from './SVGAnimations';
+export * from './AnimationShowcase';
+
 // Glassmorphism & Neumorphism default exports
 export { default as GlassContainer } from './Glassmorphism';
 export { default as NeumorphicContainer } from './Neumorphism';
