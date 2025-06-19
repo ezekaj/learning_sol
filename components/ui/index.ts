@@ -1,5 +1,6 @@
 // Export all UI components
 export * from './Accessibility';
+export * from './Badge';
 export * from './Branding';
 export * from './Button';
 export * from './Card';
@@ -20,6 +21,7 @@ export * from './AdvancedAnimations';
 
 // Default exports
 export { default as SkipLink } from './Accessibility';
+export { default as Badge } from './Badge';
 export { default as Logo } from './Branding';
 export { default as Button } from './Button';
 export { default as Card } from './Card';
@@ -43,3 +45,10 @@ export * from './AnimationShowcase';
 export { default as GlassContainer } from './Glassmorphism';
 export { default as NeumorphicContainer } from './Neumorphism';
 export { default as GlassNeumorphDemo } from './GlassNeumorphDemo';
+
+// Learning Platform Components
+export { default as InteractiveCodeEditor } from '../learning/InteractiveCodeEditor';
+export { default as GamificationSystem } from '../learning/GamificationSystem';
+export { default as StructuredCurriculum } from '../learning/StructuredCurriculum';
+export { default as ProjectBasedLearning } from '../learning/ProjectBasedLearning';
+export { default as ComprehensiveLearningPlatform } from '../learning/ComprehensiveLearningPlatform';
