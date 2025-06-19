@@ -13,6 +13,11 @@ export * from './Progress';
 export * from './Toast';
 export * from './Tooltip';
 
+// Glassmorphism & Neumorphism components
+export * from './Glassmorphism';
+export * from './Neumorphism';
+export * from './AdvancedAnimations';
+
 // Default exports
 export { default as SkipLink } from './Accessibility';
 export { default as Logo } from './Branding';
@@ -26,3 +31,8 @@ export { default as OnboardingProvider } from './Onboarding';
 export { default as PageTransition } from './PageTransition';
 export { default as Progress } from './Progress';
 export { default as Tooltip } from './Tooltip';
+
+// Glassmorphism & Neumorphism default exports
+export { default as GlassContainer } from './Glassmorphism';
+export { default as NeumorphicContainer } from './Neumorphism';
+export { default as GlassNeumorphDemo } from './GlassNeumorphDemo';

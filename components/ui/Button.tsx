@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import { motion } from 'framer-motion';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'error' | 'ghost' | 'outline';
+  variant?: 'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'error' | 'ghost' | 'outline' | 'glass' | 'neomorphic';
   size?: 'sm' | 'md' | 'lg' | 'xl';
   loading?: boolean;
   leftIcon?: React.ReactNode;
@@ -12,6 +12,8 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   ripple?: boolean;
   glow?: boolean;
   className?: string;
+  glassIntensity?: 'light' | 'medium' | 'heavy';
+  glassTint?: 'neutral' | 'primary' | 'accent';
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
@@ -28,6 +30,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
   children,
   disabled,
   onClick,
+  glassIntensity = 'medium',
+  glassTint = 'neutral',
   ...props
 }, ref) => {
   // Base classes
@@ -37,6 +41,19 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
     disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none
     relative overflow-hidden
   `;
+
+  // Glass effect configurations
+  const glassBlur = {
+    light: 'backdrop-blur-sm',
+    medium: 'backdrop-blur-md',
+    heavy: 'backdrop-blur-lg',
+  };
+
+  const glassTints = {
+    neutral: 'bg-white/10 border-white/20 text-white hover:bg-white/20',
+    primary: 'bg-brand-primary-500/20 border-brand-primary-400/30 text-brand-primary-100 hover:bg-brand-primary-500/30',
+    accent: 'bg-brand-accent-500/20 border-brand-accent-400/30 text-brand-accent-100 hover:bg-brand-accent-500/30',
+  };
 
   // Variant classes
   const variantClasses = {
@@ -71,6 +88,16 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
     outline: `
       bg-transparent hover:bg-brand-primary-600 text-brand-primary-400 hover:text-white
       border border-brand-primary-500 focus:ring-brand-primary-500
+    `,
+    glass: `
+      ${glassTints[glassTint]} ${glassBlur[glassIntensity]} border shadow-lg
+      focus:ring-brand-primary-500 ${glow ? 'hover:shadow-glow' : ''}
+    `,
+    neomorphic: `
+      bg-gray-200 text-gray-800 shadow-[6px_6px_12px_rgba(0,0,0,0.15),-6px_-6px_12px_rgba(255,255,255,0.8)]
+      hover:shadow-[4px_4px_8px_rgba(0,0,0,0.15),-4px_-4px_8px_rgba(255,255,255,0.8)]
+      active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.15),inset_-4px_-4px_8px_rgba(255,255,255,0.8)]
+      focus:ring-brand-primary-500
     `,
   };
 
@@ -162,13 +189,18 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
         whileTap="tap"
         transition={{ duration: 0.1 }}
       >
+        {/* Glass shine effect for glass variant */}
+        {variant === 'glass' && (
+          <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg pointer-events-none" />
+        )}
+
         {/* Ripple effects */}
         {ripples.map(ripple => (
           <RippleEffect key={ripple.id} x={ripple.x} y={ripple.y} />
         ))}
 
         {/* Button content */}
-        <div className="flex items-center justify-center gap-inherit">
+        <div className={`flex items-center justify-center gap-inherit ${variant === 'glass' ? 'relative z-10' : ''}`}>
           {loading ? (
             <LoadingSpinner />
           ) : (
@@ -214,13 +246,18 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
       disabled={disabled || loading}
       onClick={handleClick}
     >
+      {/* Glass shine effect for glass variant */}
+      {variant === 'glass' && (
+        <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg pointer-events-none" />
+      )}
+
       {/* Ripple effects */}
       {ripples.map(ripple => (
         <RippleEffect key={ripple.id} x={ripple.x} y={ripple.y} />
       ))}
 
       {/* Button content */}
-      <div className="flex items-center justify-center gap-inherit">
+      <div className={`flex items-center justify-center gap-inherit ${variant === 'glass' ? 'relative z-10' : ''}`}>
         {loading ? (
           <LoadingSpinner />
         ) : (

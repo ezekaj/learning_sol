@@ -147,6 +147,12 @@ export default {
         'glow': '0 0 20px rgba(139, 92, 246, 0.3)',
         'glow-lg': '0 0 40px rgba(139, 92, 246, 0.4)',
         'inner-glow': 'inset 0 0 10px rgba(139, 92, 246, 0.2)',
+        // Neumorphism shadows
+        'neomorphic': '6px 6px 12px rgba(0,0,0,0.15), -6px -6px 12px rgba(255,255,255,0.8)',
+        'neomorphic-inset': 'inset 6px 6px 12px rgba(0,0,0,0.15), inset -6px -6px 12px rgba(255,255,255,0.8)',
+        'neomorphic-hover': '8px 8px 16px rgba(0,0,0,0.2), -8px -8px 16px rgba(255,255,255,0.9)',
+        'neomorphic-pressed': 'inset 4px 4px 8px rgba(0,0,0,0.15), inset -4px -4px 8px rgba(255,255,255,0.8)',
+        'neomorphic-flat': '2px 2px 6px rgba(0,0,0,0.1), -2px -2px 6px rgba(255,255,255,0.6)',
       },
       // Border radius
       borderRadius: {

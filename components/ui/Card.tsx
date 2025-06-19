@@ -6,9 +6,11 @@ interface CardProps {
   className?: string;
   hover?: boolean;
   clickable?: boolean;
-  variant?: 'default' | 'elevated' | 'outlined' | 'glass';
+  variant?: 'default' | 'elevated' | 'outlined' | 'glass' | 'neomorphic';
   padding?: 'none' | 'sm' | 'md' | 'lg';
   onClick?: () => void;
+  glassIntensity?: 'light' | 'medium' | 'heavy';
+  glassTint?: 'neutral' | 'primary' | 'accent';
 }
 
 interface CardHeaderProps {
@@ -34,14 +36,30 @@ const Card: React.FC<CardProps> = ({
   variant = 'default',
   padding = 'md',
   onClick,
+  glassIntensity = 'medium',
+  glassTint = 'neutral',
 }) => {
   const baseClasses = 'rounded-xl transition-all duration-200';
-  
+
+  // Glass effect configurations
+  const glassBlur = {
+    light: 'backdrop-blur-sm',
+    medium: 'backdrop-blur-md',
+    heavy: 'backdrop-blur-lg',
+  };
+
+  const glassTints = {
+    neutral: 'bg-white/10 border-white/20',
+    primary: 'bg-brand-primary-500/10 border-brand-primary-400/20',
+    accent: 'bg-brand-accent-500/10 border-brand-accent-400/20',
+  };
+
   const variantClasses = {
     default: 'bg-brand-bg-medium border border-brand-bg-light/20 shadow-lg',
     elevated: 'bg-brand-bg-medium shadow-2xl border border-brand-bg-light/10',
     outlined: 'bg-transparent border-2 border-brand-bg-light/30',
-    glass: 'bg-brand-bg-medium/80 backdrop-blur-md border border-brand-bg-light/20 shadow-lg',
+    glass: `${glassTints[glassTint]} ${glassBlur[glassIntensity]} shadow-lg`,
+    neomorphic: 'bg-gray-200 shadow-[8px_8px_16px_rgba(0,0,0,0.15),-8px_-8px_16px_rgba(255,255,255,0.8)]',
   };
 
   const paddingClasses = {
@@ -81,7 +99,15 @@ const Card: React.FC<CardProps> = ({
       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       onClick={onClick}
     >
-      {children}
+      {/* Glass shine effect for glass variant */}
+      {variant === 'glass' && (
+        <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-50 rounded-xl pointer-events-none" />
+      )}
+
+      {/* Content */}
+      <div className={variant === 'glass' ? 'relative z-10' : ''}>
+        {children}
+      </div>
     </motion.div>
   );
 };
