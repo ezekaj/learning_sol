@@ -30,6 +30,7 @@
     "framer-motion": "^12.18.1",
     "gsap": "^3.13.0",
     "lottie-react": "^2.4.1",
+    "lucide-react": "^0.518.0",
     "marked": "^13.0.0",
     "monaco-editor": "^0.52.2",
     "react": "^19.1.0",

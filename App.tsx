@@ -1,346 +1,306 @@
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import Sidebar from './components/Sidebar';
-import MobileNavigation from './components/MobileNavigation';
-import ModuleContent from './components/ModuleContent';
-import GeminiChat from './components/GeminiChat';
-import AchievementsPage from './components/AchievementsPage';
-import { LEARNING_MODULES } from './constants';
-import { LearningModule, ChatMessage, ChatMessageRole } from './types';
-import { initializeChatForModule, sendMessageToGeminiChat } from './services/geminiService';
-import BotIcon from './components/icons/BotIcon';
-import { useProgress } from './hooks/useProgress';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ComprehensiveLearningPlatform } from './components/learning/ComprehensiveLearningPlatform';
+import AnimationShowcase from './components/ui/AnimationShowcase';
+import GlassNeumorphDemo from './components/ui/GlassNeumorphDemo';
+import {
+  BookOpen,
+  Rocket,
+  Palette,
+  Zap,
+  Github,
 
-interface MainAppProps {
-  onLogout?: () => void; // Made optional
-}
+  Play,
+  Code,
+  Trophy,
+  Users
+} from 'lucide-react';
 
-type MainView = 'modules' | 'achievements';
+type DemoView = 'learning' | 'animations' | 'design' | 'overview';
 
-const MIN_CHAT_HEIGHT_PX = 150;
-const DEFAULT_CHAT_HEIGHT_PX = 300;
+const MainApp: React.FC = () => {
+  const [currentView, setCurrentView] = useState<DemoView>('overview');
 
-const MainApp: React.FC<MainAppProps> = ({ onLogout }) => {
-  const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [isLoadingAiResponse, setIsLoadingAiResponse] = useState(false);
-  const [currentModule, setCurrentModule] = useState<LearningModule | null>(null);
-  const [geminiServiceError, setGeminiServiceError] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<MainView>('modules'); 
-
-  const { completedModules, addCompletedModule, resetProgress } = useProgress();
-  const isApiKeyMissing = !process.env.API_KEY || process.env.API_KEY === 'undefined';
-
-  // State and refs for chat resizing
-  const [chatHeightPx, setChatHeightPx] = useState<number>(DEFAULT_CHAT_HEIGHT_PX);
-  const moduleChatContainerRef = useRef<HTMLDivElement>(null);
-  const isResizingChat = useRef(false);
-  const chatResizeStartY = useRef(0);
-  const chatInitialHeightOnResize = useRef(0);
-
-  useEffect(() => {
-    if (isApiKeyMissing) {
-      setGeminiServiceError("Gemini API Key is not configured. AI features will be unavailable. Please ensure the API_KEY environment variable is correctly set and accessible.");
-      console.error("Gemini API Key is missing. AI features disabled. Ensure API_KEY is set in your environment or build process.");
-    } else {
-      setGeminiServiceError(null); 
+  const navigationItems = [
+    {
+      id: 'overview',
+      label: 'Platform Overview',
+      icon: <BookOpen className="w-5 h-5" />,
+      description: 'Complete feature showcase'
+    },
+    {
+      id: 'learning',
+      label: 'Learning Platform',
+      icon: <Rocket className="w-5 h-5" />,
+      description: 'Interactive Solidity education'
+    },
+    {
+      id: 'animations',
+      label: 'Advanced Animations',
+      icon: <Zap className="w-5 h-5" />,
+      description: 'GSAP, Lottie, Three.js showcase'
+    },
+    {
+      id: 'design',
+      label: 'Modern Design',
+      icon: <Palette className="w-5 h-5" />,
+      description: 'Glassmorphism & Neumorphism'
     }
-  }, [isApiKeyMissing]);
+  ];
 
-  const handleQuizComplete = (moduleId: string) => {
-    addCompletedModule(moduleId);
-  };
-
-  const handleSelectModule = useCallback(async (id: string) => {
-    setCurrentView('modules'); 
-    setSelectedModuleId(id);
-    const module = LEARNING_MODULES.find(m => m.id === id) || null;
-    setCurrentModule(module);
-    setChatMessages([]); 
-
-    if (module && !isApiKeyMissing) {
-      setIsLoadingAiResponse(true);
-      const initError = await initializeChatForModule(module.title, module.geminiPromptSeed);
-      if (initError) {
-        setGeminiServiceError(initError);
-        setChatMessages(prev => [...prev, {
-          id: Date.now().toString(),
-          role: ChatMessageRole.ERROR,
-          text: `Error initializing AI assistant for this module: ${initError}`,
-          timestamp: new Date(),
-        }]);
-      } else {
-         setGeminiServiceError(null); 
-         setChatMessages([{
-            id: Date.now().toString(),
-            role: ChatMessageRole.MODEL,
-            text: `Hello! I'm ready to discuss "${module.title}". Ask me anything about this topic.`,
-            timestamp: new Date(),
-         }]);
-      }
-      setIsLoadingAiResponse(false);
-    } else if (isApiKeyMissing && module) {
-        setChatMessages([{
-            id: Date.now().toString(),
-            role: ChatMessageRole.ERROR,
-            text: "AI assistant is unavailable because the Gemini API Key is not configured.",
-            timestamp: new Date(),
-         }]);
+  const features = [
+    {
+      icon: <Code className="w-8 h-8 text-blue-400" />,
+      title: 'Interactive Code Editor',
+      description: 'Monaco Editor with Solidity syntax highlighting, real-time compilation, and auto-completion'
+    },
+    {
+      icon: <Trophy className="w-8 h-8 text-yellow-400" />,
+      title: 'Gamification System',
+      description: 'XP/levels, achievements, badges, leaderboards inspired by CryptoZombies'
+    },
+    {
+      icon: <BookOpen className="w-8 h-8 text-green-400" />,
+      title: 'Structured Curriculum',
+      description: 'Progressive learning paths from beginner to advanced with certificates'
+    },
+    {
+      icon: <Rocket className="w-8 h-8 text-purple-400" />,
+      title: 'Project-Based Learning',
+      description: 'Hands-on smart contract projects with testnet deployment'
+    },
+    {
+      icon: <Zap className="w-8 h-8 text-orange-400" />,
+      title: 'Advanced Animations',
+      description: 'GSAP, Lottie, Three.js for immersive blockchain visualizations'
+    },
+    {
+      icon: <Users className="w-8 h-8 text-pink-400" />,
+      title: 'Modern UX/UI',
+      description: 'Glassmorphism, neumorphism, and responsive design patterns'
     }
-  }, [isApiKeyMissing]); 
+  ];
 
-  useEffect(() => {
-    if (currentView === 'achievements') return; 
-
-    const firstBeginnerModule = LEARNING_MODULES.find(m => m.level === 'Beginner');
-    if (!selectedModuleId && !currentModule && !isApiKeyMissing) {
-        if (firstBeginnerModule) {
-            handleSelectModule(firstBeginnerModule.id);
-        } else {
-            const initGeneralChat = async () => {
-                setIsLoadingAiResponse(true);
-                const initError = await initializeChatForModule("General Blockchain Topics");
-                if (initError) {
-                    setGeminiServiceError(initError);
-                     setChatMessages([{
-                        id: Date.now().toString(),
-                        role: ChatMessageRole.ERROR,
-                        text: `Error initializing AI assistant: ${initError}`,
-                        timestamp: new Date(),
-                    }]);
-                } else {
-                    setGeminiServiceError(null);
-                    setChatMessages([{
-                        id: Date.now().toString(),
-                        role: ChatMessageRole.MODEL,
-                        text: "Welcome! Select a module or ask me any general questions about Solidity and Blockchain.",
-                        timestamp: new Date(),
-                    }]);
-                }
-                setIsLoadingAiResponse(false);
-            };
-            initGeneralChat();
-        }
-    } else if (isApiKeyMissing && !currentModule) {
-         setChatMessages([{
-            id: Date.now().toString(),
-            role: ChatMessageRole.ERROR,
-            text: "AI assistant is unavailable. Please configure the Gemini API Key. Select a module to view its content.",
-            timestamp: new Date(),
-         }]);
-    }
-  }, [isApiKeyMissing, selectedModuleId, currentModule, handleSelectModule, currentView]); 
-
-  const handleSendMessage = async (messageText: string) => {
-    if (isApiKeyMissing) {
-       setChatMessages(prev => [...prev, 
-        { id: Date.now().toString(), role: ChatMessageRole.USER, text: messageText, timestamp: new Date() },
-        { id: (Date.now()+1).toString(), role: ChatMessageRole.ERROR, text: "Cannot send message: Gemini API Key is not configured.", timestamp: new Date() }
-      ]);
-      return;
-    }
-    if (!messageText.trim()) return;
-
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      role: ChatMessageRole.USER,
-      text: messageText,
-      timestamp: new Date(),
-    };
-    setChatMessages(prevMessages => [...prevMessages, userMessage]);
-    setIsLoadingAiResponse(true);
-
-    try {
-      const responseText = await sendMessageToGeminiChat(messageText);
-      const aiMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: responseText.startsWith("Error:") || responseText.startsWith("Gemini AI Service not initialized") ? ChatMessageRole.ERROR : ChatMessageRole.MODEL,
-        text: responseText,
-        timestamp: new Date(),
-      };
-      setChatMessages(prevMessages => [...prevMessages, aiMessage]);
-    } catch (error) {
-      console.error("Failed to send message:", error);
-      const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: ChatMessageRole.ERROR,
-        text: "An unexpected error occurred. Please try again.",
-        timestamp: new Date(),
-      };
-      setChatMessages(prevMessages => [...prevMessages, errorMessage]);
-    } finally {
-      setIsLoadingAiResponse(false);
-    }
-  };
-
-  const switchToAchievementsView = () => {
-    setCurrentView('achievements');
-    setSelectedModuleId(null);
-    setCurrentModule(null);
-    setChatMessages([]);
-  };
-
-  const handleViewChange = (view: string) => {
-    if (view === 'achievements' || view === 'modules') {
-      setCurrentView(view as MainView);
-      if (view === 'achievements') {
-        setSelectedModuleId(null);
-        setCurrentModule(null);
-        setChatMessages([]);
-      }
-    }
-  };
-
-  // Chat Resize Handlers
-  const handleMouseDownOnResize = (e: React.MouseEvent) => {
-    e.preventDefault();
-    isResizingChat.current = true;
-    chatResizeStartY.current = e.clientY;
-    chatInitialHeightOnResize.current = chatHeightPx;
-    document.body.style.cursor = 'ns-resize';
-    document.body.style.userSelect = 'none';
-
-    window.addEventListener('mousemove', handleGlobalMouseMove);
-    window.addEventListener('mouseup', handleGlobalMouseUp);
-  };
-
-  const handleGlobalMouseMove = (e: MouseEvent) => {
-    if (!isResizingChat.current || !moduleChatContainerRef.current) return;
-
-    const deltaY = e.clientY - chatResizeStartY.current;
-    let newHeight = chatInitialHeightOnResize.current - deltaY; // Dragging up increases height
-
-    const parentHeight = moduleChatContainerRef.current.clientHeight;
-    const resizerHeight = 10; // Approximate height of the resizer bar
-    const maxChatHeight = parentHeight * 0.85 - resizerHeight;
-
-    if (newHeight < MIN_CHAT_HEIGHT_PX) newHeight = MIN_CHAT_HEIGHT_PX;
-    if (newHeight > maxChatHeight && maxChatHeight > MIN_CHAT_HEIGHT_PX) newHeight = maxChatHeight;
-    else if (newHeight > maxChatHeight) newHeight = parentHeight - resizerHeight - 20; // Fallback if maxChatHeight is too small
-
-    setChatHeightPx(newHeight);
-  };
-
-  const handleGlobalMouseUp = () => {
-    if (isResizingChat.current) {
-        isResizingChat.current = false;
-        document.body.style.cursor = 'default';
-        document.body.style.userSelect = 'auto';
-        window.removeEventListener('mousemove', handleGlobalMouseMove);
-        window.removeEventListener('mouseup', handleGlobalMouseUp);
-    }
-  };
-
-  // Cleanup global listeners on component unmount or if resizing is interrupted
-  useEffect(() => {
-    return () => {
-      if (isResizingChat.current) {
-        handleGlobalMouseUp(); // Call the existing cleanup logic
-      }
-    };
-  }, []);
-  
   return (
-    <div className="flex flex-col md:flex-row h-screen max-h-screen antialiased text-brand-text-primary bg-brand-bg-dark">
-      {/* Mobile Navigation */}
-      <MobileNavigation
-        modules={LEARNING_MODULES}
-        selectedModuleId={selectedModuleId}
-        onSelectModule={handleSelectModule}
-        completedModuleIds={completedModules}
-        currentView={currentView}
-        onViewChange={handleViewChange}
-        onLogout={onLogout}
-        onResetProgress={resetProgress}
-      />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+      {/* Navigation */}
+      <nav className="bg-black/30 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center space-x-2"
+              >
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <BookOpen className="w-5 h-5 text-white" />
+                </div>
+                <h1 className="text-xl font-bold text-white">Solana Learn</h1>
+              </motion.div>
+            </div>
 
-      {/* Desktop Sidebar */}
-      <div className="hidden md:block">
-        <Sidebar
-          modules={LEARNING_MODULES}
-          selectedModuleId={selectedModuleId}
-          onSelectModule={handleSelectModule}
-          completedModuleIds={completedModules}
-        />
-      </div>
-
-      <main className="flex-1 flex flex-col p-4 gap-4 overflow-hidden bg-brand-bg-dark pt-16 md:pt-4">
-        <div className="flex justify-between items-center flex-shrink-0">
-          {geminiServiceError && !currentModule && currentView === 'modules' && ( 
-              <div className="p-3 bg-red-700/80 border border-red-500 text-white rounded-md flex items-center gap-2 shadow-lg text-sm">
-                  <BotIcon className="w-6 h-6 text-red-300 shrink-0"/>
-                  <div>
-                      <h3 className="font-semibold text-xs">AI Assistant Config Error</h3>
-                      <p className="text-xs text-red-100">{geminiServiceError}</p>
-                  </div>
-              </div>
-          )}
-          <div className="ml-auto flex items-center space-x-3">
-            <button
-              onClick={switchToAchievementsView}
-              className="px-4 py-2 bg-brand-accent hover:bg-violet-500 text-white text-sm rounded-md transition-colors"
-              aria-label="View my achievements"
-            >
-              My Achievements
-            </button>
-            <button
-              onClick={resetProgress}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md transition-colors"
-              aria-label="Reset all learning progress"
-            >
-              Reset Progress
-            </button>
-            <button
-              onClick={() => onLogout && onLogout()}
-              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded-md transition-colors"
-              aria-label="Logout"
-            >
-              Logout
-            </button>
+            <div className="flex items-center space-x-4">
+              <a
+                href="https://github.com/ezekaj/learning_sol"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white"
+              >
+                <Github className="w-4 h-4" />
+                <span className="text-sm">GitHub</span>
+              </a>
+            </div>
           </div>
         </div>
+      </nav>
 
-        {currentView === 'modules' && (
-          <div ref={moduleChatContainerRef} className="flex-1 flex flex-col overflow-hidden rounded-lg bg-brand-surface-2 shadow-md">
-            <div className="flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-brand-bg-light scrollbar-track-brand-surface-1">
-                <ModuleContent 
-                  module={currentModule} 
-                  isApiKeyMissing={isApiKeyMissing}
-                  onQuizComplete={handleQuizComplete}
-                />
-            </div>
-            <div
-              onMouseDown={handleMouseDownOnResize}
-              className="h-2.5 bg-brand-bg-medium hover:bg-brand-primary cursor-ns-resize w-full flex-shrink-0 border-t border-b border-brand-bg-dark flex items-center justify-center"
-              aria-label="Resize chat panel"
-              role="separator"
-              aria-orientation="horizontal"
-            >
-              <div className="w-10 h-1 bg-brand-text-muted rounded-full opacity-50 group-hover:opacity-100"></div>
-            </div>
-            <div 
-                className="flex-shrink-0 bg-brand-surface-2"
-                style={{ height: `${chatHeightPx}px` }}
-            >
-                 <GeminiChat 
-                    chatMessages={chatMessages}
-                    onSendMessage={handleSendMessage}
-                    isLoading={isLoadingAiResponse}
-                    currentModuleTitle={currentModule?.title || (isApiKeyMissing ? "" : "General Topics")}
-                />
-            </div>
+      {/* Tab Navigation */}
+      <div className="bg-black/20 backdrop-blur-md border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex space-x-1 py-4">
+            {navigationItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setCurrentView(item.id as DemoView)}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+                  currentView === item.id
+                    ? 'bg-blue-600 text-white shadow-lg'
+                    : 'text-gray-300 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                {item.icon}
+                <div className="text-left">
+                  <div className="text-sm font-medium">{item.label}</div>
+                  <div className="text-xs opacity-75">{item.description}</div>
+                </div>
+              </button>
+            ))}
           </div>
-        )}
+        </div>
+      </div>
 
-        {currentView === 'achievements' && (
-           <div className="flex-grow overflow-y-auto rounded-lg shadow-lg bg-brand-surface-2 text-brand-text-secondary scrollbar-thin scrollbar-thumb-brand-bg-light scrollbar-track-brand-surface-1 p-6 md:p-8">
-             <AchievementsPage
-                completedModuleIds={completedModules}
-                allModules={LEARNING_MODULES}
-                onSwitchToModulesView={() => setCurrentView('modules')}
-              />
-           </div>
-        )}
+      {/* Content */}
+      <main className="relative">
+        <AnimatePresence mode="wait">
+          {currentView === 'overview' && (
+            <motion.div
+              key="overview"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+            >
+              {/* Hero Section */}
+              <div className="text-center mb-16">
+                <motion.h1
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-5xl font-bold text-white mb-6"
+                >
+                  Comprehensive Solidity Learning Platform
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto"
+                >
+                  A next-generation learning platform that combines interactive coding, gamification,
+                  advanced animations, and modern design patterns to create the ultimate Solidity education experience.
+                </motion.p>
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="flex flex-wrap justify-center gap-4"
+                >
+                  <button
+                    onClick={() => setCurrentView('learning')}
+                    className="flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  >
+                    <Play className="w-5 h-5" />
+                    <span>Try Learning Platform</span>
+                  </button>
+                  <button
+                    onClick={() => setCurrentView('animations')}
+                    className="flex items-center space-x-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                  >
+                    <Zap className="w-5 h-5" />
+                    <span>View Animations</span>
+                  </button>
+                </motion.div>
+              </div>
+
+              {/* Features Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+                {features.map((feature, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.8 + index * 0.1 }}
+                    className="p-6 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 hover:bg-white/20 transition-all duration-300"
+                  >
+                    <div className="flex items-center space-x-4 mb-4">
+                      {feature.icon}
+                      <h3 className="text-xl font-semibold text-white">{feature.title}</h3>
+                    </div>
+                    <p className="text-gray-300">{feature.description}</p>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Competitive Analysis */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.4 }}
+                className="bg-white/10 backdrop-blur-md rounded-lg border border-white/20 p-8"
+              >
+                <h2 className="text-3xl font-bold text-white mb-6 text-center">Platform Advantages</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
+                      <div>
+                        <h4 className="font-semibold text-white">vs CryptoZombies</h4>
+                        <p className="text-gray-300 text-sm">More comprehensive curriculum + advanced visualizations</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
+                      <div>
+                        <h4 className="font-semibold text-white">vs Alchemy University</h4>
+                        <p className="text-gray-300 text-sm">Enhanced gamification + interactive features</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
+                      <div>
+                        <h4 className="font-semibold text-white">vs Buildspace</h4>
+                        <p className="text-gray-300 text-sm">Stronger individual learning paths + community features</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
+                      <div>
+                        <h4 className="font-semibold text-white">vs OpenZeppelin Learn</h4>
+                        <p className="text-gray-300 text-sm">Broader scope with integrated security focus</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
+                      <div>
+                        <h4 className="font-semibold text-white">vs Solidity by Example</h4>
+                        <p className="text-gray-300 text-sm">Interactive environment + guided learning</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+
+          {currentView === 'learning' && (
+            <motion.div
+              key="learning"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <ComprehensiveLearningPlatform />
+            </motion.div>
+          )}
+
+          {currentView === 'animations' && (
+            <motion.div
+              key="animations"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="p-8"
+            >
+              <AnimationShowcase />
+            </motion.div>
+          )}
+
+          {currentView === 'design' && (
+            <motion.div
+              key="design"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="p-8"
+            >
+              <GlassNeumorphDemo />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );

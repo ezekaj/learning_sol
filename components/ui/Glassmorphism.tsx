@@ -134,7 +134,7 @@ const GlassCard: React.FC<GlassCardProps> = ({
           {footer}
         </div>
       )}
-    </GlassCard>
+    </GlassContainer>
   );
 };
 
