@@ -197,16 +197,13 @@ export const toast = {
   }),
   promise: <T>(
     promise: Promise<T>,
-    {
-      loading,
-      success,
-      error,
-    }: {
+    messages: {
       loading: string;
       success: string | ((data: T) => string);
       error: string | ((error: any) => string);
     }
   ) => {
+    const { loading, success, error } = messages;
     const toastId = Math.random().toString(36).substr(2, 9);
 
     // Show loading toast
