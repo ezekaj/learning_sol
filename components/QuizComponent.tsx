@@ -55,7 +55,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({ quizData, moduleId, onQui
   const isAttempted = showFeedback[currentQuestion.id];
   const selectedOptionId = selectedAnswers[currentQuestion.id];
 
-  const allQuestionsAttempted = quizData.questions.every(q => showFeedback[q.id]);
+  // const allQuestionsAttempted = quizData.questions.every(q => showFeedback[q.id]);
 
   if (!currentQuestion) {
     return <div className="text-brand-text-muted">Loading quiz...</div>;

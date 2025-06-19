@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Sidebar from './components/Sidebar';
+import MobileNavigation from './components/MobileNavigation';
 import ModuleContent from './components/ModuleContent';
 import GeminiChat from './components/GeminiChat';
 import AchievementsPage from './components/AchievementsPage';
@@ -174,9 +175,20 @@ const MainApp: React.FC<MainAppProps> = ({ onLogout }) => {
 
   const switchToAchievementsView = () => {
     setCurrentView('achievements');
-    setSelectedModuleId(null); 
+    setSelectedModuleId(null);
     setCurrentModule(null);
-    setChatMessages([]); 
+    setChatMessages([]);
+  };
+
+  const handleViewChange = (view: string) => {
+    if (view === 'achievements' || view === 'modules') {
+      setCurrentView(view as MainView);
+      if (view === 'achievements') {
+        setSelectedModuleId(null);
+        setCurrentModule(null);
+        setChatMessages([]);
+      }
+    }
   };
 
   // Chat Resize Handlers
@@ -230,13 +242,29 @@ const MainApp: React.FC<MainAppProps> = ({ onLogout }) => {
   
   return (
     <div className="flex flex-col md:flex-row h-screen max-h-screen antialiased text-brand-text-primary bg-brand-bg-dark">
-      <Sidebar 
-        modules={LEARNING_MODULES} 
-        selectedModuleId={selectedModuleId} 
+      {/* Mobile Navigation */}
+      <MobileNavigation
+        modules={LEARNING_MODULES}
+        selectedModuleId={selectedModuleId}
         onSelectModule={handleSelectModule}
         completedModuleIds={completedModules}
+        currentView={currentView}
+        onViewChange={handleViewChange}
+        onLogout={onLogout}
+        onResetProgress={resetProgress}
       />
-      <main className="flex-1 flex flex-col p-4 gap-4 overflow-hidden bg-brand-bg-dark">
+
+      {/* Desktop Sidebar */}
+      <div className="hidden md:block">
+        <Sidebar
+          modules={LEARNING_MODULES}
+          selectedModuleId={selectedModuleId}
+          onSelectModule={handleSelectModule}
+          completedModuleIds={completedModules}
+        />
+      </div>
+
+      <main className="flex-1 flex flex-col p-4 gap-4 overflow-hidden bg-brand-bg-dark pt-16 md:pt-4">
         <div className="flex justify-between items-center flex-shrink-0">
           {geminiServiceError && !currentModule && currentView === 'modules' && ( 
               <div className="p-3 bg-red-700/80 border border-red-500 text-white rounded-md flex items-center gap-2 shadow-lg text-sm">
