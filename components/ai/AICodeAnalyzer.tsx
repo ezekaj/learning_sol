@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Shield, Zap, AlertTriangle, CheckCircle, XCircle, 
-  TrendingUp, TrendingDown, Eye, Code, Target,
+import {
+  Shield, Zap, CheckCircle,
+  TrendingDown, Eye, Target,
   BarChart3, PieChart, Activity, Layers
 } from 'lucide-react';
 import { Button } from '../ui/button';

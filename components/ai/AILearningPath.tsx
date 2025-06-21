@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  BookOpen, Target, Clock, Star, CheckCircle, 
-  ArrowRight, Brain, Zap, Shield, Code2,
+import {
+  BookOpen, Target, Clock,
+  ArrowRight, Brain, Shield, Code2,
   TrendingUp, Award, Calendar, Users
 } from 'lucide-react';
 import { Button } from '../ui/button';

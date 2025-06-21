@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const leveledUp = newLevel > userProfile.currentLevel;
 
     // Update user profile
-    const _updatedProfile = await prisma.userProfile.update({
+    await prisma.userProfile.update({
       where: { userId: session.user.id },
       data: {
         totalXP: newTotalXP,

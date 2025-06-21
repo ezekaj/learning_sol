@@ -23,7 +23,7 @@ interface MainAppProps {
   onLogout?: () => void;
 }
 
-const MainApp: React.FC<MainAppProps> = ({ onLogout }) => {
+const MainApp: React.FC<MainAppProps> = ({ onLogout = () => {} }) => {
   const [currentView, setCurrentView] = useState<DemoView>('overview');
 
   const navigationItems = [

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Wand2, Code, Download, Copy, Play, Settings,
+import {
+  Wand2, Download, Copy, Settings,
   Zap, Shield, Coins, Users, FileText, Layers
 } from 'lucide-react';
 import { Button } from '../ui/button';
