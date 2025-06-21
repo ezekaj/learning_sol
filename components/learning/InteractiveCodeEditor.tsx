@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Save, Download, Upload, Settings, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
-import { Toast } from '../ui/toast';
+import CustomToast from '../ui/CustomToast';
 
 interface CompilationResult {
   success: boolean;
@@ -462,7 +462,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
       {/* Toast Notifications */}
       <AnimatePresence>
         {showToast && (
-          <Toast
+          <CustomToast
             message={toastMessage}
             type={toastType}
             onClose={() => setShowToast(false)}

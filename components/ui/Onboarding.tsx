@@ -249,7 +249,7 @@ const OnboardingTooltip: React.FC = () => {
       {currentStepData.action && (
         <Button
           onClick={currentStepData.action.onClick}
-          variant="accent"
+          variant="default"
           size="sm"
           className="mb-4 w-full"
         >

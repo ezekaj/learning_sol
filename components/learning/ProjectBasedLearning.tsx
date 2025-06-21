@@ -22,7 +22,7 @@ import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
 import { Badge } from '../ui/badge';
-import { Toast } from '../ui/toast';
+import CustomToast from '../ui/CustomToast';
 import InteractiveCodeEditor from './InteractiveCodeEditor';
 
 interface ProjectStep {
@@ -482,7 +482,7 @@ export const ProjectBasedLearning: React.FC<ProjectBasedLearningProps> = ({
       {/* Toast Notifications */}
       <AnimatePresence>
         {showToast && (
-          <Toast
+          <CustomToast
             message={toastMessage}
             type={toastType}
             onClose={() => setShowToast(false)}
