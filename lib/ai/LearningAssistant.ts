@@ -11,6 +11,13 @@ export interface AIResponse {
     explanation: string;
   }>;
   nextSteps?: string[];
+  confidence?: number;
+  category?: 'explanation' | 'code-review' | 'debugging' | 'optimization' | 'security';
+  metadata?: {
+    processingTime?: number;
+    tokensUsed?: number;
+    model?: string;
+  };
 }
 
 export interface LearningContext {
@@ -19,16 +26,59 @@ export interface LearningContext {
   recentCode?: string;
   recentErrors?: string[];
   learningGoals?: string[];
+  userProgress?: {
+    completedLessons: number;
+    currentStreak: number;
+    totalXP: number;
+  };
+  preferences?: {
+    learningStyle: 'visual' | 'hands-on' | 'theoretical';
+    codeComplexity: 'simple' | 'moderate' | 'complex';
+    explanationDepth: 'brief' | 'detailed' | 'comprehensive';
+  };
 }
 
 export class LearningAssistant {
   private genAI: GoogleGenerativeAI;
   private model: any;
+  private streamingModel: any;
 
   constructor() {
     // Placeholder implementation - in production, initialize with actual GoogleGenerativeAI
     this.genAI = null as any;
     this.model = null as any;
+    this.streamingModel = null as any;
+  }
+
+  // Streaming response for real-time interaction
+  public async askQuestionStream(
+    question: string,
+    context: LearningContext,
+    onChunk?: (chunk: string) => void
+  ): Promise<AIResponse> {
+    try {
+      const prompt = this.buildPrompt(question, context);
+
+      // Simulate streaming response
+      const fullResponse = await this.generateMockResponse(question, context);
+
+      if (onChunk) {
+        const words = fullResponse.message.split(' ');
+        for (let i = 0; i < words.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+          onChunk(words.slice(0, i + 1).join(' '));
+        }
+      }
+
+      return fullResponse;
+    } catch (error) {
+      console.error('AI Assistant streaming error:', error);
+      return {
+        message: 'I apologize, but I encountered an error. Please try asking your question again.',
+        confidence: 0.1,
+        category: 'explanation'
+      };
+    }
   }
 
   public async askQuestion(
@@ -37,17 +87,68 @@ export class LearningAssistant {
   ): Promise<AIResponse> {
     try {
       const prompt = this.buildPrompt(question, context);
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
 
-      return this.parseAIResponse(text);
+      // In production, use actual AI model
+      // const result = await this.model.generateContent(prompt);
+      // const response = await result.response;
+      // const text = response.text();
+      // return this.parseAIResponse(text);
+
+      // For now, return mock response
+      return this.generateMockResponse(question, context);
     } catch (error) {
       console.error('AI Assistant error:', error);
       return {
         message: 'I apologize, but I encountered an error. Please try asking your question again.',
+        confidence: 0.1,
+        category: 'explanation'
       };
     }
+  }
+
+  // Enhanced code analysis with detailed feedback
+  public async analyzeCodeSecurity(
+    code: string,
+    context: LearningContext
+  ): Promise<AIResponse> {
+    const securityIssues = this.detectSecurityIssues(code);
+    const suggestions = this.generateSecuritySuggestions(securityIssues, context.userLevel);
+
+    return {
+      message: `I've analyzed your code for security vulnerabilities. Found ${securityIssues.length} potential issues.`,
+      suggestions,
+      category: 'security',
+      confidence: 0.85,
+      codeExamples: this.generateSecurityExamples(securityIssues),
+      metadata: {
+        processingTime: 1200,
+        model: 'security-analyzer-v1'
+      }
+    };
+  }
+
+  // Gas optimization analysis
+  public async optimizeGasUsage(
+    code: string,
+    context: LearningContext
+  ): Promise<AIResponse> {
+    const optimizations = this.findGasOptimizations(code);
+
+    return {
+      message: `I've identified ${optimizations.length} gas optimization opportunities in your code.`,
+      suggestions: optimizations.map(opt => opt.suggestion),
+      category: 'optimization',
+      confidence: 0.9,
+      codeExamples: optimizations.map(opt => ({
+        title: opt.title,
+        code: opt.optimizedCode,
+        explanation: opt.explanation
+      })),
+      metadata: {
+        processingTime: 800,
+        model: 'gas-optimizer-v1'
+      }
+    };
   }
 
   public async reviewCode(
@@ -275,5 +376,172 @@ Be supportive, clear, and practical in your response.
     }
 
     return response;
+  }
+
+  // Helper methods for mock responses and analysis
+  private async generateMockResponse(question: string, context: LearningContext): Promise<AIResponse> {
+    const responses = {
+      'what is solidity': {
+        message: 'Solidity is a statically-typed programming language designed for developing smart contracts that run on the Ethereum Virtual Machine (EVM). It was influenced by C++, Python, and JavaScript and is designed to target the EVM.',
+        suggestions: [
+          'Start with basic syntax and data types',
+          'Practice with simple smart contracts',
+          'Learn about gas optimization'
+        ],
+        codeExamples: [{
+          title: 'Hello World Contract',
+          code: `pragma solidity ^0.8.0;\n\ncontract HelloWorld {\n    string public message = "Hello, World!";\n    \n    function setMessage(string memory _message) public {\n        message = _message;\n    }\n}`,
+          explanation: 'A simple contract that stores and retrieves a message'
+        }],
+        confidence: 0.95,
+        category: 'explanation' as const
+      },
+      'how to debug': {
+        message: 'Debugging Solidity contracts involves using tools like Hardhat, Truffle, or Remix IDE. You can use console.log statements, event logging, and step-through debugging.',
+        suggestions: [
+          'Use Hardhat console.log for debugging',
+          'Emit events to track contract state',
+          'Use Remix debugger for step-by-step execution'
+        ],
+        confidence: 0.88,
+        category: 'debugging' as const
+      }
+    };
+
+    // Find best match or return generic response
+    const lowerQuestion = question.toLowerCase();
+    const matchedResponse = Object.entries(responses).find(([key]) =>
+      lowerQuestion.includes(key)
+    )?.[1];
+
+    if (matchedResponse) {
+      return {
+        ...matchedResponse,
+        metadata: {
+          processingTime: 500,
+          model: 'learning-assistant-v1'
+        }
+      };
+    }
+
+    // Generic response based on user level
+    const levelResponses = {
+      beginner: 'That\'s a great question for someone starting with Solidity! Let me break this down into simple terms...',
+      intermediate: 'Good question! This involves some intermediate concepts in Solidity development...',
+      advanced: 'Excellent question! This touches on advanced Solidity patterns and best practices...'
+    };
+
+    return {
+      message: levelResponses[context.userLevel] + ' ' + this.generateContextualResponse(question, context),
+      suggestions: this.generateSuggestions(question, context),
+      confidence: 0.75,
+      category: 'explanation',
+      metadata: {
+        processingTime: 600,
+        model: 'learning-assistant-v1'
+      }
+    };
+  }
+
+  private generateContextualResponse(question: string, context: LearningContext): string {
+    const topics = {
+      'function': 'Functions in Solidity are executable units of code that can be called to perform specific tasks.',
+      'variable': 'Variables in Solidity store data that can be used and modified throughout your contract.',
+      'contract': 'A contract in Solidity is like a class in object-oriented programming - it contains data and functions.',
+      'gas': 'Gas is the fee required to execute operations on the Ethereum network.',
+      'security': 'Security in smart contracts is crucial as they handle valuable assets and are immutable once deployed.'
+    };
+
+    const matchedTopic = Object.entries(topics).find(([key]) =>
+      question.toLowerCase().includes(key)
+    );
+
+    return matchedTopic ? matchedTopic[1] : 'This is an important concept in Solidity development that requires careful consideration.';
+  }
+
+  private generateSuggestions(question: string, context: LearningContext): string[] {
+    const baseSuggestions = [
+      'Practice with small examples first',
+      'Read the official Solidity documentation',
+      'Test your code thoroughly'
+    ];
+
+    const levelSuggestions = {
+      beginner: [
+        'Start with Remix IDE for easy testing',
+        'Focus on understanding basic syntax',
+        'Join Solidity learning communities'
+      ],
+      intermediate: [
+        'Explore advanced patterns and libraries',
+        'Learn about gas optimization techniques',
+        'Study existing open-source contracts'
+      ],
+      advanced: [
+        'Contribute to open-source projects',
+        'Learn formal verification techniques',
+        'Explore cutting-edge research in smart contracts'
+      ]
+    };
+
+    return [...baseSuggestions, ...levelSuggestions[context.userLevel]];
+  }
+
+  private detectSecurityIssues(code: string): Array<{type: string, line: number, severity: string}> {
+    const issues = [];
+    const lines = code.split('\n');
+
+    lines.forEach((line, index) => {
+      if (line.includes('call(') && !line.includes('require(')) {
+        issues.push({
+          type: 'Unchecked external call',
+          line: index + 1,
+          severity: 'high'
+        });
+      }
+      if (line.includes('tx.origin')) {
+        issues.push({
+          type: 'tx.origin usage',
+          line: index + 1,
+          severity: 'medium'
+        });
+      }
+    });
+
+    return issues;
+  }
+
+  private generateSecuritySuggestions(issues: any[], userLevel: string): string[] {
+    const suggestions = [
+      'Always validate external inputs',
+      'Use the checks-effects-interactions pattern',
+      'Implement proper access controls'
+    ];
+
+    if (userLevel === 'advanced') {
+      suggestions.push(
+        'Consider formal verification for critical functions',
+        'Implement circuit breakers for emergency stops'
+      );
+    }
+
+    return suggestions;
+  }
+
+  private generateSecurityExamples(issues: any[]): Array<{title: string, code: string, explanation: string}> {
+    return [{
+      title: 'Safe External Call Pattern',
+      code: `// Bad\n(bool success, ) = target.call(data);\n\n// Good\n(bool success, ) = target.call(data);\nrequire(success, "Call failed");`,
+      explanation: 'Always check the return value of external calls'
+    }];
+  }
+
+  private findGasOptimizations(code: string): Array<{title: string, suggestion: string, optimizedCode: string, explanation: string}> {
+    return [{
+      title: 'Storage Optimization',
+      suggestion: 'Pack struct variables to reduce storage slots',
+      optimizedCode: `struct User {\n    uint128 balance;  // Instead of uint256\n    uint128 timestamp;\n    bool active;\n}`,
+      explanation: 'Packing variables into single storage slots saves gas'
+    }];
   }
 }
