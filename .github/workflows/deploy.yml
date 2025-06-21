@@ -51,7 +51,23 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: npm run build
-      
+
+    - name: Check for large files
+      run: |
+        echo "🔍 Checking for large files in build output..."
+        find ./out -type f -size +50M -exec ls -lh {} \; | while read line; do
+          echo "❌ Large file found: $line"
+          exit 1
+        done
+        echo "✅ No large files found in build output"
+
+    - name: Verify build output
+      run: |
+        echo "📊 Build output summary:"
+        du -sh ./out
+        echo "📁 Build output structure:"
+        find ./out -type f -name "*.js" -o -name "*.css" -o -name "*.html" | head -20
+
     - name: Setup Pages
       uses: actions/configure-pages@v4
 
