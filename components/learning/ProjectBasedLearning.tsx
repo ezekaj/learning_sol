@@ -223,6 +223,44 @@ export const ProjectBasedLearning: React.FC<ProjectBasedLearningProps> = ({
     setShowShareModal(true);
   };
 
+  const handleCloseShareModal = () => {
+    setShowShareModal(false);
+  };
+
+  const handleCopyShareLink = () => {
+    if (!project) return;
+
+    const shareUrl = `${window.location.origin}/projects/${project.id}`;
+    navigator.clipboard.writeText(shareUrl);
+    showToastMessage('Share link copied to clipboard!', 'success');
+  };
+
+  const handleShareToSocial = (platform: string) => {
+    if (!project) return;
+
+    const shareUrl = `${window.location.origin}/projects/${project.id}`;
+    const shareText = `Check out this awesome Solidity project: ${project.title}`;
+
+    let socialUrl = '';
+    switch (platform) {
+      case 'twitter':
+        socialUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+        break;
+      case 'linkedin':
+        socialUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+        break;
+      case 'discord':
+        // Copy to clipboard for Discord
+        navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+        showToastMessage('Share text copied for Discord!', 'success');
+        return;
+    }
+
+    if (socialUrl) {
+      window.open(socialUrl, '_blank');
+    }
+  };
+
   const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
     const completedSteps = project.steps.filter(s => s.completed).length;
     const progress = (completedSteps / project.steps.length) * 100;
@@ -613,6 +651,101 @@ export const ProjectBasedLearning: React.FC<ProjectBasedLearningProps> = ({
           </motion.div>
         )}
       </div>
+
+      {/* Share Modal */}
+      <AnimatePresence>
+        {showShareModal && project && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+            onClick={handleCloseShareModal}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-gray-900 border border-white/20 rounded-xl p-6 max-w-md w-full mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white">Share Project</h3>
+                <Button
+                  onClick={handleCloseShareModal}
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-medium text-white mb-2">Project Details</h4>
+                  <div className="p-3 bg-white/10 rounded-lg">
+                    <div className="text-sm text-white font-medium">{project.title}</div>
+                    <div className="text-xs text-gray-400">{project.description}</div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {project.steps.filter(s => s.completed).length}/{project.steps.length} steps completed
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-medium text-white mb-2">Share Link</h4>
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      value={`${window.location.origin}/projects/${project.id}`}
+                      readOnly
+                      className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded text-sm text-white"
+                    />
+                    <Button
+                      onClick={handleCopyShareLink}
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-medium text-white mb-2">Share on Social</h4>
+                  <div className="flex space-x-2">
+                    <Button
+                      onClick={() => handleShareToSocial('twitter')}
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 border-blue-500/50 text-blue-400"
+                    >
+                      Twitter
+                    </Button>
+                    <Button
+                      onClick={() => handleShareToSocial('linkedin')}
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 border-blue-600/50 text-blue-500"
+                    >
+                      LinkedIn
+                    </Button>
+                    <Button
+                      onClick={() => handleShareToSocial('discord')}
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 border-purple-500/50 text-purple-400"
+                    >
+                      Discord
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Toast Notifications */}
       <AnimatePresence>

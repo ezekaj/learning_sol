@@ -541,6 +541,28 @@ export const StructuredCurriculum: React.FC<StructuredCurriculumProps> = ({
             <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20">
               <h3 className="text-xl font-semibold text-white mb-6">Learning Progress</h3>
 
+              {/* Progress Summary using userProgress */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="p-4 bg-blue-500/20 rounded-lg border border-blue-500/50">
+                  <div className="text-2xl font-bold text-blue-400">
+                    {Object.values(userProgress).filter(p => p > 0).length}
+                  </div>
+                  <div className="text-sm text-blue-300">Modules Started</div>
+                </div>
+                <div className="p-4 bg-green-500/20 rounded-lg border border-green-500/50">
+                  <div className="text-2xl font-bold text-green-400">
+                    {Object.values(userProgress).filter(p => p >= 100).length}
+                  </div>
+                  <div className="text-sm text-green-300">Modules Completed</div>
+                </div>
+                <div className="p-4 bg-purple-500/20 rounded-lg border border-purple-500/50">
+                  <div className="text-2xl font-bold text-purple-400">
+                    {Math.round(Object.values(userProgress).reduce((acc, p) => acc + p, 0) / Object.keys(userProgress).length) || 0}%
+                  </div>
+                  <div className="text-sm text-purple-300">Average Progress</div>
+                </div>
+              </div>
+
               <div className="space-y-4">
                 {currentLearningPath.modules.map((module) => (
                   <div key={module.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
@@ -554,10 +576,22 @@ export const StructuredCurriculum: React.FC<StructuredCurriculumProps> = ({
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <Progress value={module.progress} className="w-24" />
+                      <Progress value={userProgress[module.id] || module.progress} className="w-24" />
                       <span className="text-sm text-gray-400 w-12">
-                        {Math.round(module.progress)}%
+                        {Math.round(userProgress[module.id] || module.progress)}%
                       </span>
+                      {/* Progress indicator using userProgress */}
+                      <div className="flex items-center space-x-1">
+                        {userProgress[module.id] > 75 && (
+                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                        )}
+                        {userProgress[module.id] > 50 && userProgress[module.id] <= 75 && (
+                          <div className="w-2 h-2 bg-yellow-400 rounded-full" />
+                        )}
+                        {userProgress[module.id] <= 50 && userProgress[module.id] > 0 && (
+                          <div className="w-2 h-2 bg-blue-400 rounded-full" />
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

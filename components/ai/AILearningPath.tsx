@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   BookOpen, Target, Clock,
   ArrowRight, Brain, Shield, Code2,
-  TrendingUp, Award, Calendar, Users
+  TrendingUp, Award, Calendar, Users, Star
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
