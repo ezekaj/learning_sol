@@ -156,7 +156,7 @@ export class LearningAssistant {
   // Gas optimization analysis
   public async optimizeGasUsage(
     code: string,
-    context: LearningContext
+    _context: LearningContext
   ): Promise<AIResponse> {
     const optimizations = this.findGasOptimizations(code);
 
@@ -469,7 +469,7 @@ Be supportive, clear, and practical in your response.
     };
   }
 
-  private generateContextualResponse(question: string, context: LearningContext): string {
+  private generateContextualResponse(question: string, _context: LearningContext): string {
     const topics = {
       'function': 'Functions in Solidity are executable units of code that can be called to perform specific tasks.',
       'variable': 'Variables in Solidity store data that can be used and modified throughout your contract.',
@@ -485,7 +485,7 @@ Be supportive, clear, and practical in your response.
     return matchedTopic ? matchedTopic[1] : 'This is an important concept in Solidity development that requires careful consideration.';
   }
 
-  private generateSuggestions(question: string, context: LearningContext): string[] {
+  private generateSuggestions(_question: string, context: LearningContext): string[] {
     const baseSuggestions = [
       'Practice with small examples first',
       'Read the official Solidity documentation',
@@ -514,7 +514,7 @@ Be supportive, clear, and practical in your response.
   }
 
   private detectSecurityIssues(code: string): Array<{type: string, line: number, severity: string}> {
-    const issues = [];
+    const issues: Array<{type: string, line: number, severity: string}> = [];
     const lines = code.split('\n');
 
     lines.forEach((line, index) => {
@@ -537,7 +537,7 @@ Be supportive, clear, and practical in your response.
     return issues;
   }
 
-  private generateSecuritySuggestions(issues: any[], userLevel: string): string[] {
+  private generateSecuritySuggestions(_issues: any[], userLevel: string): string[] {
     const suggestions = [
       'Always validate external inputs',
       'Use the checks-effects-interactions pattern',
@@ -554,7 +554,7 @@ Be supportive, clear, and practical in your response.
     return suggestions;
   }
 
-  private generateSecurityExamples(issues: any[]): Array<{title: string, code: string, explanation: string}> {
+  private generateSecurityExamples(_issues: any[]): Array<{title: string, code: string, explanation: string}> {
     return [{
       title: 'Safe External Call Pattern',
       code: `// Bad\n(bool success, ) = target.call(data);\n\n// Good\n(bool success, ) = target.call(data);\nrequire(success, "Call failed");`,
@@ -562,7 +562,7 @@ Be supportive, clear, and practical in your response.
     }];
   }
 
-  private findGasOptimizations(code: string): Array<{title: string, suggestion: string, optimizedCode: string, explanation: string}> {
+  private findGasOptimizations(_code: string): Array<{title: string, suggestion: string, optimizedCode: string, explanation: string}> {
     return [{
       title: 'Storage Optimization',
       suggestion: 'Pack struct variables to reduce storage slots',
