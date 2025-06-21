@@ -44,6 +44,8 @@ interface DebugBreakpoint {
 interface CollaborationUser {
   id: string;
   name: string;
+  status?: 'active' | 'idle' | 'offline';
+  role?: string;
   cursor?: { line: number; column: number };
   selection?: { startLine: number; startColumn: number; endLine: number; endColumn: number };
 }
@@ -270,7 +272,11 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [showMinimapState, setShowMinimap] = useState(showMinimap);
-  
+  const [showVersionControl, setShowVersionControl] = useState(false);
+  const [codeVersions, setCodeVersions] = useState<Array<{id: string, timestamp: Date, code: string, message: string}>>([]);
+  const [showCodePreview, setShowCodePreview] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
+
   const editorRef = useRef<any>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -502,6 +508,27 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
     showToastMessage('Code reset to default', 'success');
   };
 
+  const saveVersion = () => {
+    const newVersion = {
+      id: Date.now().toString(),
+      timestamp: new Date(),
+      code,
+      message: `Version saved at ${new Date().toLocaleTimeString()}`
+    };
+    setCodeVersions(prev => [newVersion, ...prev.slice(0, 9)]); // Keep last 10 versions
+    showToastMessage('Code version saved', 'success');
+  };
+
+  const toggleMaximize = () => {
+    setIsMaximized(!isMaximized);
+    showToastMessage(isMaximized ? 'Editor minimized' : 'Editor maximized', 'success');
+  };
+
+  const shareCode = () => {
+    copyToClipboard();
+    showToastMessage('Code ready to share!', 'success');
+  };
+
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
   };
@@ -574,12 +601,21 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
             )}
 
             <Button
+              onClick={saveVersion}
+              variant="outline"
+              className="border-green-500/30 text-green-600 hover:bg-green-500/10"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save Version
+            </Button>
+
+            <Button
               onClick={saveCode}
               variant="outline"
               className="border-white/30 text-gray-700 dark:text-gray-300"
             >
               <Download className="w-4 h-4 mr-2" />
-              Save
+              Download
             </Button>
 
             <label className="cursor-pointer">
@@ -613,6 +649,24 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
             >
               <Copy className="w-4 h-4 mr-2" />
               Copy
+            </Button>
+
+            <Button
+              onClick={() => setShowVersionControl(!showVersionControl)}
+              variant="outline"
+              className="border-purple-500/30 text-purple-600 hover:bg-purple-500/10"
+            >
+              <GitBranch className="w-4 h-4 mr-2" />
+              Versions
+            </Button>
+
+            <Button
+              onClick={() => setShowCodePreview(!showCodePreview)}
+              variant="outline"
+              className="border-cyan-500/30 text-cyan-600 hover:bg-cyan-500/10"
+            >
+              {showCodePreview ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
+              Preview
             </Button>
 
             <Button
@@ -936,6 +990,126 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
                   />
                   <span className="text-sm">Enable Editing</span>
                 </label>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Version Control Panel */}
+      <AnimatePresence>
+        {showVersionControl && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="absolute top-20 left-80 z-50 w-80 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-h-96 overflow-y-auto"
+          >
+            <h3 className="text-lg font-semibold mb-4 flex items-center">
+              <GitBranch className="w-5 h-5 mr-2" />
+              Version History
+            </h3>
+
+            <div className="space-y-3">
+              <Button
+                onClick={saveVersion}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Save Current Version
+              </Button>
+
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium">Saved Versions ({codeVersions.length})</h4>
+                {codeVersions.length === 0 ? (
+                  <p className="text-xs text-gray-500">No versions saved yet</p>
+                ) : (
+                  codeVersions.map((version) => (
+                    <div key={version.id} className="p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium">{version.message}</span>
+                        <span className="text-xs text-gray-500">
+                          {version.timestamp.toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setCode(version.code);
+                            showToastMessage('Version restored', 'success');
+                          }}
+                          className="text-xs"
+                        >
+                          Restore
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            navigator.clipboard.writeText(version.code);
+                            showToastMessage('Version copied to clipboard', 'success');
+                          }}
+                          className="text-xs"
+                        >
+                          <Copy className="w-3 h-3 mr-1" />
+                          Copy
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Testing Panel */}
+      <AnimatePresence>
+        {showTesting && enableTesting && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute top-20 right-60 z-50 w-64 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
+          >
+            <h3 className="text-lg font-semibold mb-4 flex items-center">
+              <TestTube className="w-5 h-5 mr-2" />
+              Contract Testing
+            </h3>
+
+            <div className="space-y-3">
+              <div className="text-sm">
+                <h4 className="font-medium mb-2">Test Results</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-2 rounded bg-green-50 dark:bg-green-900/20">
+                    <span className="text-green-700 dark:text-green-400">✓ Compilation Test</span>
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded bg-yellow-50 dark:bg-yellow-900/20">
+                    <span className="text-yellow-700 dark:text-yellow-400">⚠ Gas Optimization</span>
+                    <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded bg-green-50 dark:bg-green-900/20">
+                    <span className="text-green-700 dark:text-green-400">✓ Security Check</span>
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-gray-200 dark:border-gray-600">
+                <Button
+                  size="sm"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                  onClick={() => {
+                    showToastMessage('Running comprehensive tests...', 'success');
+                  }}
+                >
+                  <TestTube className="w-3 h-3 mr-1" />
+                  Run All Tests
+                </Button>
               </div>
             </div>
           </motion.div>

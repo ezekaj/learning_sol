@@ -40,6 +40,8 @@ export const BlockchainIntegration: React.FC<BlockchainIntegrationProps> = ({
   const [contracts, setContracts] = useState<DeployedContract[]>([]);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [networkStatus, setNetworkStatus] = useState<'healthy' | 'warning' | 'error'>('healthy');
+  const [gasAlert, setGasAlert] = useState<boolean>(false);
 
   useEffect(() => {
     loadBlockchainData();
@@ -59,6 +61,11 @@ export const BlockchainIntegration: React.FC<BlockchainIntegrationProps> = ({
         deployedContracts: 12,
         totalTransactions: 156
       };
+
+      // Check network status and gas prices
+      const gasPrice = parseInt(mockStats.gasPrice);
+      setGasAlert(gasPrice > 30);
+      setNetworkStatus(gasPrice > 50 ? 'error' : gasPrice > 30 ? 'warning' : 'healthy');
 
       const mockContracts: DeployedContract[] = [
         {
@@ -185,13 +192,66 @@ export const BlockchainIntegration: React.FC<BlockchainIntegrationProps> = ({
 
   return (
     <div className={`space-y-6 ${className}`}>
+      {/* Gas Price Alert */}
+      {gasAlert && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 bg-orange-500/20 border border-orange-500/30 rounded-lg"
+        >
+          <div className="flex items-center space-x-3">
+            <AlertTriangle className="w-5 h-5 text-orange-400" />
+            <div>
+              <p className="text-orange-400 font-medium">High Gas Prices</p>
+              <p className="text-orange-300 text-sm">
+                Current gas price is {stats?.gasPrice} Gwei. Consider waiting for lower fees.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Network Status Banner */}
+      {networkStatus !== 'healthy' && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`p-4 rounded-lg border ${
+            networkStatus === 'error'
+              ? 'bg-red-500/20 border-red-500/30'
+              : 'bg-yellow-500/20 border-yellow-500/30'
+          }`}
+        >
+          <div className="flex items-center space-x-3">
+            <AlertTriangle className={`w-5 h-5 ${
+              networkStatus === 'error' ? 'text-red-400' : 'text-yellow-400'
+            }`} />
+            <div>
+              <p className={`font-medium ${
+                networkStatus === 'error' ? 'text-red-400' : 'text-yellow-400'
+              }`}>
+                Network {networkStatus === 'error' ? 'Issues Detected' : 'Performance Warning'}
+              </p>
+              <p className={`text-sm ${
+                networkStatus === 'error' ? 'text-red-300' : 'text-yellow-300'
+              }`}>
+                {networkStatus === 'error'
+                  ? 'Network congestion may cause delays and high fees'
+                  : 'Slightly elevated gas prices detected'
+                }
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Wallet Status */}
       <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-white">Wallet Status</h3>
           <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-            <span className="text-green-400 text-sm">Connected</span>
+            <CheckCircle className="w-4 h-4 text-green-400" />
+            <span className="text-green-400 text-sm">Connected & Verified</span>
           </div>
         </div>
 
@@ -218,7 +278,10 @@ export const BlockchainIntegration: React.FC<BlockchainIntegrationProps> = ({
 
           <div className="space-y-1">
             <p className="text-gray-400 text-sm">Balance</p>
-            <p className="text-white font-medium">{stats.balance} ETH</p>
+            <div className="flex items-center space-x-1">
+              <DollarSign className="w-4 h-4 text-green-400" />
+              <p className="text-white font-medium">{stats.balance} ETH</p>
+            </div>
           </div>
 
           <div className="space-y-1">

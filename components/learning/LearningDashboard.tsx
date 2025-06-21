@@ -96,6 +96,20 @@ export function LearningDashboard() {
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10',
     },
+    {
+      title: 'Code Challenges',
+      value: state.completedChallenges || 0,
+      icon: Code,
+      color: 'text-cyan-500',
+      bgColor: 'bg-cyan-500/10',
+    },
+    {
+      title: 'Learning Goals',
+      value: `${state.goalsCompleted || 0}/${state.totalGoals || 5}`,
+      icon: Target,
+      color: 'text-red-500',
+      bgColor: 'bg-red-500/10',
+    },
   ];
 
   const recentAchievements = achievements
@@ -133,7 +147,7 @@ export function LearningDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         {stats.map((stat, index) => (
           <motion.div
             key={stat.title}
@@ -160,10 +174,11 @@ export function LearningDashboard() {
 
       {/* Main Content */}
       <Tabs defaultValue="courses" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 glass">
+        <TabsList className="grid w-full grid-cols-4 glass">
           <TabsTrigger value="courses">Courses</TabsTrigger>
           <TabsTrigger value="achievements">Achievements</TabsTrigger>
           <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+          <TabsTrigger value="community">Community</TabsTrigger>
         </TabsList>
 
         <TabsContent value="courses" className="space-y-6">
@@ -322,6 +337,83 @@ export function LearningDashboard() {
                 <Brain className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p>Activity tracking coming soon!</p>
                 <p className="text-sm">We're building detailed analytics for your learning journey.</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="community" className="space-y-6">
+          <Card className="glass border-white/10">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Users className="w-5 h-5" />
+                Learning Community
+              </CardTitle>
+              <CardDescription>
+                Connect with fellow developers and share your progress
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white">Study Groups</h3>
+                  <div className="space-y-3">
+                    <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-white">Solidity Beginners</h4>
+                        <Badge variant="secondary">24 members</Badge>
+                      </div>
+                      <p className="text-sm text-gray-400 mb-3">
+                        Weekly study sessions for Solidity fundamentals
+                      </p>
+                      <Button size="sm" variant="outline" className="w-full">
+                        Join Group
+                      </Button>
+                    </div>
+                    <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-white">DeFi Developers</h4>
+                        <Badge variant="secondary">18 members</Badge>
+                      </div>
+                      <p className="text-sm text-gray-400 mb-3">
+                        Advanced DeFi protocol development discussions
+                      </p>
+                      <Button size="sm" variant="outline" className="w-full">
+                        Join Group
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white">Leaderboard</h3>
+                  <div className="space-y-3">
+                    {[
+                      { name: 'Alex Chen', xp: 15420, rank: 1 },
+                      { name: 'Sarah Kim', xp: 14890, rank: 2 },
+                      { name: 'You', xp: state.xp, rank: 3 },
+                      { name: 'Mike Johnson', xp: 12340, rank: 4 },
+                      { name: 'Emma Davis', xp: 11980, rank: 5 }
+                    ].map((user) => (
+                      <div key={user.rank} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                            user.rank === 1 ? 'bg-yellow-500 text-black' :
+                            user.rank === 2 ? 'bg-gray-400 text-black' :
+                            user.rank === 3 ? 'bg-orange-500 text-white' :
+                            'bg-white/10 text-white'
+                          }`}>
+                            {user.rank}
+                          </div>
+                          <span className={`font-medium ${user.name === 'You' ? 'text-blue-400' : 'text-white'}`}>
+                            {user.name}
+                          </span>
+                        </div>
+                        <span className="text-sm text-gray-400">{user.xp.toLocaleString()} XP</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
