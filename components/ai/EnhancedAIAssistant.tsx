@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  MessageCircle, Send, Mic, MicOff, Volume2, VolumeX, 
-  Code, BookOpen, Lightbulb, Bug, Zap, Settings,
+import {
+  Send, Mic, MicOff, Volume2, VolumeX,
+  BookOpen, Lightbulb, Bug, Zap, Settings,
   Copy, ThumbsUp, ThumbsDown, RotateCcw, Maximize2,
-  Minimize2, Download, Upload, Star, Brain, Target
+  Minimize2, Download, Star, Brain, Target
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
