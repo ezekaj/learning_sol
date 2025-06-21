@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BookOpen, 
   Code, 
@@ -43,10 +43,12 @@ interface Achievement {
 }
 
 export function LearningDashboard() {
-  const { state } = useLearning();
+  const { state, completeChallenge, completeGoal, setTotalGoals } = useLearning();
   const [courses, setCourses] = useState<Course[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
+  const [showGoalModal, setShowGoalModal] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -59,12 +61,36 @@ export function LearningDashboard() {
         const data = await response.json();
         setCourses(data.courses || []);
         setAchievements(data.achievements || []);
+
+        // Initialize goals if not set
+        if (state.totalGoals === 0) {
+          setTotalGoals(5);
+        }
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCompleteChallenge = () => {
+    completeChallenge(1);
+    setShowChallengeModal(true);
+    setTimeout(() => setShowChallengeModal(false), 3000);
+  };
+
+  const handleCompleteGoal = () => {
+    if (state.goalsCompleted < state.totalGoals) {
+      completeGoal(1);
+      setShowGoalModal(true);
+      setTimeout(() => setShowGoalModal(false), 3000);
+    }
+  };
+
+  const handleSetNewGoals = () => {
+    const newTotal = state.totalGoals + 5;
+    setTotalGoals(newTotal);
   };
 
   const stats = [
@@ -155,9 +181,9 @@ export function LearningDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Card className="glass border-white/10">
+            <Card className="glass border-white/10 hover:border-white/20 transition-all">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-3">
                   <div>
                     <p className="text-sm text-gray-400 mb-1">{stat.title}</p>
                     <p className="text-2xl font-bold text-white">{stat.value}</p>
@@ -166,6 +192,42 @@ export function LearningDashboard() {
                     <stat.icon className={`w-6 h-6 ${stat.color}`} />
                   </div>
                 </div>
+
+                {/* Interactive Action Buttons */}
+                {stat.title === 'Code Challenges' && (
+                  <Button
+                    onClick={handleCompleteChallenge}
+                    size="sm"
+                    variant="outline"
+                    className="w-full text-xs border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+                  >
+                    Complete Challenge +1
+                  </Button>
+                )}
+
+                {stat.title === 'Learning Goals' && (
+                  <div className="space-y-2">
+                    <Button
+                      onClick={handleCompleteGoal}
+                      size="sm"
+                      variant="outline"
+                      className="w-full text-xs border-red-500/30 text-red-400 hover:bg-red-500/10"
+                      disabled={state.goalsCompleted >= state.totalGoals}
+                    >
+                      {state.goalsCompleted >= state.totalGoals ? 'All Goals Complete!' : 'Complete Goal +1'}
+                    </Button>
+                    {state.goalsCompleted >= state.totalGoals && (
+                      <Button
+                        onClick={handleSetNewGoals}
+                        size="sm"
+                        variant="outline"
+                        className="w-full text-xs border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
+                      >
+                        Set New Goals +5
+                      </Button>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
@@ -419,6 +481,60 @@ export function LearningDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Success Modals */}
+      <AnimatePresence>
+        {showChallengeModal && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ y: 50 }}
+              animate={{ y: 0 }}
+              exit={{ y: 50 }}
+              className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-lg p-8 text-center max-w-md mx-4"
+            >
+              <div className="text-6xl mb-4">🎯</div>
+              <h3 className="text-2xl font-bold text-white mb-2">Challenge Complete!</h3>
+              <p className="text-cyan-400 mb-4">You've completed another coding challenge!</p>
+              <div className="text-lg font-semibold text-white">
+                Total Challenges: {state.completedChallenges}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {showGoalModal && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ y: 50 }}
+              animate={{ y: 0 }}
+              exit={{ y: 50 }}
+              className="bg-gradient-to-br from-red-500/20 to-pink-500/20 border border-red-500/30 rounded-lg p-8 text-center max-w-md mx-4"
+            >
+              <div className="text-6xl mb-4">🎯</div>
+              <h3 className="text-2xl font-bold text-white mb-2">Goal Achieved!</h3>
+              <p className="text-red-400 mb-4">You're making excellent progress!</p>
+              <div className="text-lg font-semibold text-white">
+                Goals: {state.goalsCompleted}/{state.totalGoals}
+              </div>
+              {state.goalsCompleted >= state.totalGoals && (
+                <div className="mt-4 text-yellow-400 font-semibold">
+                  🎉 All goals complete! Time to set new ones!
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -12,6 +12,9 @@ interface LearningState {
   xp: number;
   level: number;
   streak: number;
+  completedChallenges: number;
+  goalsCompleted: number;
+  totalGoals: number;
   isLoading: boolean;
   error: string | null;
 }
@@ -25,6 +28,9 @@ type LearningAction =
   | { type: 'ADD_XP'; payload: number }
   | { type: 'SET_LEVEL'; payload: number }
   | { type: 'UPDATE_STREAK'; payload: number }
+  | { type: 'COMPLETE_CHALLENGE'; payload?: number }
+  | { type: 'COMPLETE_GOAL'; payload?: number }
+  | { type: 'SET_TOTAL_GOALS'; payload: number }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'RESET_STATE' };
@@ -38,6 +44,9 @@ const initialState: LearningState = {
   xp: 0,
   level: 1,
   streak: 0,
+  completedChallenges: 0,
+  goalsCompleted: 0,
+  totalGoals: 5,
   isLoading: false,
   error: null,
 };
@@ -68,6 +77,18 @@ function learningReducer(state: LearningState, action: LearningAction): Learning
       return { ...state, level: action.payload };
     case 'UPDATE_STREAK':
       return { ...state, streak: action.payload };
+    case 'COMPLETE_CHALLENGE':
+      return {
+        ...state,
+        completedChallenges: state.completedChallenges + (action.payload || 1)
+      };
+    case 'COMPLETE_GOAL':
+      return {
+        ...state,
+        goalsCompleted: Math.min(state.goalsCompleted + (action.payload || 1), state.totalGoals)
+      };
+    case 'SET_TOTAL_GOALS':
+      return { ...state, totalGoals: action.payload };
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
     case 'SET_ERROR':
@@ -88,6 +109,9 @@ interface LearningContextType {
   addAchievement: (achievementId: string) => void;
   addXP: (amount: number) => void;
   updateStreak: (streak: number) => void;
+  completeChallenge: (count?: number) => void;
+  completeGoal: (count?: number) => void;
+  setTotalGoals: (total: number) => void;
   completeLesson: (lessonId: string, xpReward: number) => void;
   resetLearningState: () => void;
 }
@@ -221,6 +245,18 @@ export function LearningProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const completeChallenge = (count: number = 1) => {
+    dispatch({ type: 'COMPLETE_CHALLENGE', payload: count });
+  };
+
+  const completeGoal = (count: number = 1) => {
+    dispatch({ type: 'COMPLETE_GOAL', payload: count });
+  };
+
+  const setTotalGoals = (total: number) => {
+    dispatch({ type: 'SET_TOTAL_GOALS', payload: total });
+  };
+
   const resetLearningState = () => {
     dispatch({ type: 'RESET_STATE' });
   };
@@ -236,6 +272,9 @@ export function LearningProvider({ children }: { children: React.ReactNode }) {
         addAchievement,
         addXP,
         updateStreak,
+        completeChallenge,
+        completeGoal,
+        setTotalGoals,
         completeLesson,
         resetLearningState,
       }}
