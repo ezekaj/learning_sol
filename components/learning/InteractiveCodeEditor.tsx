@@ -384,22 +384,23 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
     try {
       // Use the actual Solidity compiler
       const { SolidityCompiler } = await import('../../lib/compiler/SolidityCompiler');
-      const compiler = new SolidityCompiler();
+      const compiler = SolidityCompiler.getInstance();
       const result = await compiler.compile(code);
 
-      if (result.success && result.contracts) {
-        const contractNames = Object.keys(result.contracts);
-        const mainContract = contractNames[0];
-        const contract = result.contracts[mainContract];
-
+      if (result.success) {
         const compilationResult: CompilationResult = {
           success: true,
           errors: [],
-          warnings: result.warnings || [],
-          bytecode: contract.bytecode || '0x608060405234801561001057600080fd5b50...',
+          warnings: (result.warnings || []).map((warn: any) => ({
+            line: 1,
+            column: 1,
+            message: typeof warn === 'string' ? warn : warn.message || 'Warning',
+            severity: 'warning' as const
+          })),
+          bytecode: result.bytecode || '0x608060405234801561001057600080fd5b50...',
           gasEstimate: Math.floor(Math.random() * 500000 + 200000),
           deploymentCost: Math.floor(Math.random() * 300000 + 150000),
-          abi: contract.abi || []
+          abi: result.abi || []
         };
 
         setCompilationResult(compilationResult);
@@ -408,16 +409,16 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
       } else {
         const errorResult: CompilationResult = {
           success: false,
-          errors: result.errors?.map(err => ({
+          errors: result.errors?.map((err: any) => ({
             line: 1,
             column: 1,
-            message: err,
+            message: typeof err === 'string' ? err : err.message || 'Error',
             severity: 'error' as const
           })) || [],
-          warnings: result.warnings?.map(warn => ({
+          warnings: result.warnings?.map((warn: any) => ({
             line: 1,
             column: 1,
-            message: warn,
+            message: typeof warn === 'string' ? warn : warn.message || 'Warning',
             severity: 'warning' as const
           })) || []
         };
@@ -540,7 +541,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
     try {
       // Use the actual compiler to validate the code first
       const { SolidityCompiler } = await import('../../lib/compiler/SolidityCompiler');
-      const compiler = new SolidityCompiler();
+      const compiler = SolidityCompiler.getInstance();
       const result = await compiler.compile(code);
 
       if (!result.success) {
@@ -652,6 +653,15 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
             </Button>
 
             <Button
+              onClick={shareCode}
+              variant="outline"
+              className="border-blue-500/30 text-blue-600 hover:bg-blue-500/10"
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Share
+            </Button>
+
+            <Button
               onClick={() => setShowVersionControl(!showVersionControl)}
               variant="outline"
               className="border-purple-500/30 text-purple-600 hover:bg-purple-500/10"
@@ -720,6 +730,15 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
                 <Bug className="w-4 h-4" />
               </Button>
             )}
+
+            <Button
+              onClick={toggleMaximize}
+              variant="outline"
+              size="sm"
+              className="border-purple-500/30 text-purple-600 hover:bg-purple-500/10"
+            >
+              <Layers className="w-4 h-4" />
+            </Button>
 
             <Button
               onClick={toggleFullscreen}
@@ -806,7 +825,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={async () => {
                   try {
-                    const sessionId = Math.random().toString(36).substr(2, 9);
+                    const sessionId = Math.random().toString(36).substring(2, 11);
                     await navigator.clipboard.writeText(`${window.location.origin}/collaborate/${sessionId}`);
                     showToastMessage('Collaboration link copied to clipboard!', 'success');
                   } catch (error) {
