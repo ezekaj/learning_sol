@@ -1,15 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import { motion, AnimatePresence } from 'framer-motion';
-<<<<<<< HEAD
-import { Play, Download, Upload, Settings, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
-=======
 import {
   Play, Save, Download, Upload, Settings, CheckCircle, XCircle, AlertTriangle,
   Users, Share2, Bug, Code2, Zap, FileText, Copy, Eye, EyeOff, Maximize2,
   Minimize2, RotateCcw, GitBranch, TestTube, Layers
 } from 'lucide-react';
->>>>>>> feature/interactive-code-editor
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import CustomToast from '../ui/CustomToast';
