@@ -1,11 +1,8 @@
 import React, { useRef, useMemo, useState, useEffect } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { 
-  OrbitControls, 
-  Text, 
-  Box, 
-  Sphere, 
-  Plane,
+import { Canvas, useFrame } from '@react-three/fiber';
+import {
+  OrbitControls,
+  Text,
   Stars,
   Float,
   MeshDistortMaterial,
@@ -61,6 +58,7 @@ const ConnectionLine: React.FC<{
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
+          args={[new Float32Array(points.flatMap(p => [p.x, p.y, p.z])), 3]}
           count={points.length}
           array={new Float32Array(points.flatMap(p => [p.x, p.y, p.z]))}
           itemSize={3}

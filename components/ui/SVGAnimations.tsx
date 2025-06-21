@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface SVGAnimationProps {
   className?: string;
@@ -288,18 +288,21 @@ export const SVGWave: React.FC<SVGAnimationProps & {
   width = 200,
   height = 60,
   amplitude = 20,
-  frequency = 2,
   color = 'currentColor',
   duration = 3
 }) => {
-  const pathData = `M0,${height/2} Q${width/4},${height/2 - amplitude} ${width/2},${height/2} T${width},${height/2}`;
+  // Ensure width and height are numbers for arithmetic operations
+  const numWidth = typeof width === 'number' ? width : parseInt(width.toString(), 10) || 200;
+  const numHeight = typeof height === 'number' ? height : parseInt(height.toString(), 10) || 60;
+
+  const pathData = `M0,${numHeight/2} Q${numWidth/4},${numHeight/2 - amplitude} ${numWidth/2},${numHeight/2} T${numWidth},${numHeight/2}`;
 
   return (
     <svg
       className={`svg-wave ${className}`}
       width={width}
       height={height}
-      viewBox={`0 0 ${width} ${height}`}
+      viewBox={`0 0 ${numWidth} ${numHeight}`}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -314,12 +317,12 @@ export const SVGWave: React.FC<SVGAnimationProps & {
         <animateTransform
           attributeName="transform"
           type="translate"
-          values={`0,0;${-width},0;0,0`}
+          values={`0,0;${-numWidth},0;0,0`}
           dur={`${duration}s`}
           repeatCount="indefinite"
         />
       </path>
-      
+
       <path
         d={pathData}
         stroke={color}
@@ -327,12 +330,12 @@ export const SVGWave: React.FC<SVGAnimationProps & {
         fill="none"
         strokeLinecap="round"
         opacity="0.6"
-        transform={`translate(${width}, 0)`}
+        transform={`translate(${numWidth}, 0)`}
       >
         <animateTransform
           attributeName="transform"
           type="translate"
-          values={`${width},0;0,0;${-width},0`}
+          values={`${numWidth},0;0,0;${-numWidth},0`}
           dur={`${duration}s`}
           repeatCount="indefinite"
         />

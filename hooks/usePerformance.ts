@@ -123,7 +123,7 @@ export const useMemoWithDeps = <T>(
   factory: () => T,
   deps: React.DependencyList
 ): T => {
-  const ref = useRef<{ value: T; deps: React.DependencyList }>();
+  const ref = useRef<{ value: T; deps: React.DependencyList } | null>(null);
 
   if (!ref.current || !depsEqual(ref.current.deps, deps)) {
     ref.current = {
@@ -228,7 +228,7 @@ export const useLazyImage = (src: string, placeholder?: string) => {
 export const useBatchUpdates = <T>(initialValue: T, delay: number = 100) => {
   const [value, setValue] = useState<T>(initialValue);
   const [pendingValue, setPendingValue] = useState<T>(initialValue);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const batchedSetValue = useCallback((newValue: T | ((prev: T) => T)) => {
     const resolvedValue = typeof newValue === 'function' 
@@ -275,7 +275,7 @@ export const useResourcePreloader = (resources: string[]) => {
           // Preload script or stylesheet
           const link = document.createElement('link');
           link.rel = url.endsWith('.css') ? 'stylesheet' : 'preload';
-          link.as = url.endsWith('.css') ? undefined : 'script';
+          link.as = url.endsWith('.css') ? '' : 'script';
           link.href = url;
           link.onload = () => resolve();
           link.onerror = () => reject();
