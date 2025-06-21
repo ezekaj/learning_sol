@@ -94,9 +94,52 @@ export const StructuredCurriculum: React.FC<StructuredCurriculumProps> = ({
 }) => {
   const [selectedPath, setSelectedPath] = useState<string>(currentPath || learningPaths[0]?.id);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
-  const [activeTab, setActiveTab] = useState<'overview' | 'curriculum' | 'progress'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'curriculum' | 'progress' | 'community' | 'rewards'>('overview');
+  const [userProgress, setUserProgress] = useState<{[key: string]: number}>({});
+  const [earnedRewards, setEarnedRewards] = useState<{[key: string]: number}>({});
+  const [securityBadges, setSecurityBadges] = useState<string[]>([]);
+  const [communityStats, setCommunityStats] = useState<{studyGroups: number, discussions: number, mentors: number}>({
+    studyGroups: 0,
+    discussions: 0,
+    mentors: 0
+  });
 
   const currentLearningPath = learningPaths.find(path => path.id === selectedPath);
+
+  // Initialize data and track progress
+  useEffect(() => {
+    if (currentLearningPath) {
+      // Initialize user progress tracking
+      const progressData: {[key: string]: number} = {};
+      const rewardsData: {[key: string]: number} = {};
+
+      currentLearningPath.modules.forEach(module => {
+        progressData[module.id] = module.progress;
+        // Calculate earned coins based on completed lessons
+        const completedLessons = module.lessons.filter(l => l.completed).length;
+        rewardsData[module.id] = completedLessons * 10; // 10 coins per lesson
+      });
+
+      setUserProgress(progressData);
+      setEarnedRewards(rewardsData);
+
+      // Check for security badges
+      const badges: string[] = [];
+      currentLearningPath.modules.forEach(module => {
+        if (module.category === 'security' && module.completed) {
+          badges.push(`security-${module.id}`);
+        }
+      });
+      setSecurityBadges(badges);
+
+      // Load community stats
+      setCommunityStats({
+        studyGroups: Math.floor(Math.random() * 50) + 10,
+        discussions: Math.floor(Math.random() * 200) + 50,
+        mentors: Math.floor(Math.random() * 20) + 5
+      });
+    }
+  }, [currentLearningPath, selectedPath]);
 
   const toggleModule = (moduleId: string) => {
     const newExpanded = new Set(expandedModules);
@@ -111,6 +154,25 @@ export const StructuredCurriculum: React.FC<StructuredCurriculumProps> = ({
   const handleSelectPath = (pathId: string) => {
     setSelectedPath(pathId);
     onSelectPath?.(pathId);
+  };
+
+  const handleQuickAction = (moduleId: string, action: 'bookmark' | 'share' | 'notes') => {
+    // Track module-specific actions using moduleId
+    console.log(`Quick action ${action} for module ${moduleId}`);
+    // In a real app, this would save to user preferences/analytics
+  };
+
+  const earnSecurityBadge = (moduleId: string) => {
+    if (!securityBadges.includes(`security-${moduleId}`)) {
+      setSecurityBadges(prev => [...prev, `security-${moduleId}`]);
+    }
+  };
+
+  const addRewardCoins = (moduleId: string, amount: number) => {
+    setEarnedRewards(prev => ({
+      ...prev,
+      [moduleId]: (prev[moduleId] || 0) + amount
+    }));
   };
 
   const LessonCard: React.FC<{ lesson: Lesson; moduleId: string }> = ({ lesson, moduleId }) => (
@@ -159,17 +221,65 @@ export const StructuredCurriculum: React.FC<StructuredCurriculumProps> = ({
               <Star className="w-3 h-3" />
               <span>+{lesson.xpReward} XP</span>
             </div>
+            <div className="flex items-center space-x-1">
+              <Coins className="w-3 h-3 text-yellow-400" />
+              <span>+{Math.floor(lesson.xpReward / 2)} coins</span>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="flex items-center space-x-2 mt-3">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleQuickAction(moduleId, 'bookmark');
+              }}
+              className="text-xs px-2 py-1 h-6"
+            >
+              <Zap className="w-3 h-3 mr-1" />
+              Quick
+            </Button>
+            {lesson.type === 'project' && lesson.completed && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  earnSecurityBadge(moduleId);
+                }}
+                className="text-xs px-2 py-1 h-6 border-green-500/50 text-green-400"
+              >
+                <Shield className="w-3 h-3 mr-1" />
+                Badge
+              </Button>
+            )}
           </div>
         </div>
-        
-        <Button
-          onClick={() => onStartLesson?.(lesson.id)}
-          disabled={lesson.locked}
-          size="sm"
-          className={lesson.completed ? 'bg-green-600 hover:bg-green-700' : ''}
-        >
-          {lesson.completed ? 'Review' : 'Start'}
-        </Button>
+
+        <div className="flex flex-col space-y-2">
+          <Button
+            onClick={() => {
+              onStartLesson?.(lesson.id);
+              if (lesson.completed) {
+                addRewardCoins(moduleId, 5); // Bonus for reviewing
+              }
+            }}
+            disabled={lesson.locked}
+            size="sm"
+            className={lesson.completed ? 'bg-green-600 hover:bg-green-700' : ''}
+          >
+            {lesson.completed ? 'Review' : 'Start'}
+          </Button>
+
+          {earnedRewards[moduleId] > 0 && (
+            <div className="text-xs text-center text-yellow-400 flex items-center justify-center">
+              <Coins className="w-3 h-3 mr-1" />
+              {earnedRewards[moduleId]} earned
+            </div>
+          )}
+        </div>
       </div>
     </motion.div>
   );
@@ -339,7 +449,9 @@ export const StructuredCurriculum: React.FC<StructuredCurriculumProps> = ({
         {[
           { id: 'overview', label: 'Overview' },
           { id: 'curriculum', label: 'Curriculum' },
-          { id: 'progress', label: 'Progress' }
+          { id: 'progress', label: 'Progress' },
+          { id: 'community', label: 'Community', icon: <Users className="w-4 h-4" /> },
+          { id: 'rewards', label: 'Rewards', icon: <Coins className="w-4 h-4" /> }
         ].map((tab) => (
           <Button
             key={tab.id}
@@ -347,7 +459,10 @@ export const StructuredCurriculum: React.FC<StructuredCurriculumProps> = ({
             variant={activeTab === tab.id ? 'default' : 'ghost'}
             className={`flex-1 ${activeTab === tab.id ? 'bg-white/20' : 'hover:bg-white/10'}`}
           >
-            {tab.label}
+            <div className="flex items-center space-x-2">
+              {tab.icon && tab.icon}
+              <span>{tab.label}</span>
+            </div>
           </Button>
         ))}
       </div>
@@ -425,7 +540,7 @@ export const StructuredCurriculum: React.FC<StructuredCurriculumProps> = ({
           >
             <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20">
               <h3 className="text-xl font-semibold text-white mb-6">Learning Progress</h3>
-              
+
               <div className="space-y-4">
                 {currentLearningPath.modules.map((module) => (
                   <div key={module.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
@@ -448,6 +563,174 @@ export const StructuredCurriculum: React.FC<StructuredCurriculumProps> = ({
                 ))}
               </div>
             </Card>
+          </motion.div>
+        )}
+
+        {activeTab === 'community' && (
+          <motion.div
+            key="community"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20">
+                <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                  <Users className="w-5 h-5 mr-2" />
+                  Community Stats
+                </h3>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Users className="w-4 h-4 text-blue-400" />
+                      <span className="text-white">Study Groups</span>
+                    </div>
+                    <span className="text-blue-400 font-semibold">{communityStats.studyGroups}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <BookOpen className="w-4 h-4 text-green-400" />
+                      <span className="text-white">Active Discussions</span>
+                    </div>
+                    <span className="text-green-400 font-semibold">{communityStats.discussions}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Star className="w-4 h-4 text-yellow-400" />
+                      <span className="text-white">Available Mentors</span>
+                    </div>
+                    <span className="text-yellow-400 font-semibold">{communityStats.mentors}</span>
+                  </div>
+                </div>
+
+                <Button className="w-full mt-4 bg-blue-600 hover:bg-blue-700">
+                  <Users className="w-4 h-4 mr-2" />
+                  Join Community
+                </Button>
+              </Card>
+
+              <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20">
+                <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                  <Shield className="w-5 h-5 mr-2" />
+                  Security Achievements
+                </h3>
+
+                <div className="space-y-3">
+                  {securityBadges.length > 0 ? (
+                    securityBadges.map((badge, index) => (
+                      <div key={badge} className="flex items-center space-x-3 p-3 bg-green-500/20 border border-green-500/50 rounded-lg">
+                        <Shield className="w-4 h-4 text-green-400" />
+                        <div>
+                          <div className="text-green-400 font-medium">Security Badge #{index + 1}</div>
+                          <div className="text-green-300 text-sm">Earned for completing security module</div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-400">
+                      <Shield className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p>Complete security modules to earn badges</p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'rewards' && (
+          <motion.div
+            key="rewards"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20">
+                <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                  <Coins className="w-5 h-5 mr-2 text-yellow-400" />
+                  Earned Rewards
+                </h3>
+
+                <div className="space-y-4">
+                  {Object.entries(earnedRewards).map(([moduleId, coins]) => {
+                    const module = currentLearningPath.modules.find(m => m.id === moduleId);
+                    return coins > 0 ? (
+                      <div key={moduleId} className="flex items-center justify-between p-3 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          {module?.icon}
+                          <span className="text-white">{module?.title}</span>
+                        </div>
+                        <div className="flex items-center space-x-1 text-yellow-400 font-semibold">
+                          <Coins className="w-4 h-4" />
+                          <span>{coins}</span>
+                        </div>
+                      </div>
+                    ) : null;
+                  })}
+
+                  {Object.values(earnedRewards).every(coins => coins === 0) && (
+                    <div className="text-center py-8 text-gray-400">
+                      <Coins className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p>Complete lessons to earn coins</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-6 p-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-yellow-400 font-semibold">Total Coins</div>
+                      <div className="text-yellow-300 text-sm">Use for premium features</div>
+                    </div>
+                    <div className="flex items-center space-x-1 text-2xl font-bold text-yellow-400">
+                      <Coins className="w-6 h-6" />
+                      <span>{Object.values(earnedRewards).reduce((sum, coins) => sum + coins, 0)}</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20">
+                <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                  <Zap className="w-5 h-5 mr-2 text-purple-400" />
+                  Power Features
+                </h3>
+
+                <div className="space-y-3">
+                  <div className="p-4 bg-purple-500/20 border border-purple-500/50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <Zap className="w-4 h-4 text-purple-400" />
+                        <span className="text-white font-medium">Quick Learning</span>
+                      </div>
+                      <Badge className="bg-purple-600">Premium</Badge>
+                    </div>
+                    <p className="text-purple-300 text-sm">Skip prerequisites and access advanced content</p>
+                    <Button size="sm" className="w-full mt-3 bg-purple-600 hover:bg-purple-700">
+                      Unlock for 50 coins
+                    </Button>
+                  </div>
+
+                  <div className="p-4 bg-blue-500/20 border border-blue-500/50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <Users className="w-4 h-4 text-blue-400" />
+                        <span className="text-white font-medium">Mentor Access</span>
+                      </div>
+                      <Badge className="bg-blue-600">Premium</Badge>
+                    </div>
+                    <p className="text-blue-300 text-sm">Get 1-on-1 guidance from expert developers</p>
+                    <Button size="sm" className="w-full mt-3 bg-blue-600 hover:bg-blue-700">
+                      Unlock for 100 coins
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
