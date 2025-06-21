@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Plus, 
@@ -9,7 +9,6 @@ import {
   Clock, 
   Play,
   Search,
-  Filter,
   Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,14 +22,7 @@ import { CollaborativeEditor } from './CollaborativeEditor';
 import { useCollaboration } from '@/lib/context/CollaborationContext';
 import { useToast } from '@/components/ui/use-toast';
 
-interface SessionPreview {
-  id: string;
-  title: string;
-  language: string;
-  participantCount: number;
-  maxParticipants: number;
-  createdAt: Date;
-}
+
 
 export function CollaborationHub() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -266,7 +258,7 @@ export function CollaborationHub() {
                       </Badge>
                       <div className="flex items-center space-x-1 text-xs text-gray-400">
                         <Users className="w-3 h-3" />
-                        <span>{session.participantCount}/{session.maxParticipants}</span>
+                        <span>{session.participants.length}/4</span>
                       </div>
                     </div>
                     <CardTitle className="text-lg text-white line-clamp-2">
@@ -281,7 +273,7 @@ export function CollaborationHub() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <div className="flex -space-x-2">
-                          {[...Array(Math.min(session.participantCount, 3))].map((_, i) => (
+                          {[...Array(Math.min(session.participants.length, 3))].map((_, i) => (
                             <div
                               key={i}
                               className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 border-2 border-slate-800 flex items-center justify-center text-white text-xs"
@@ -289,20 +281,20 @@ export function CollaborationHub() {
                               {i + 1}
                             </div>
                           ))}
-                          {session.participantCount > 3 && (
+                          {session.participants.length > 3 && (
                             <div className="w-6 h-6 rounded-full bg-gray-600 border-2 border-slate-800 flex items-center justify-center text-white text-xs">
-                              +{session.participantCount - 3}
+                              +{session.participants.length - 3}
                             </div>
                           )}
                         </div>
                       </div>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         onClick={() => handleJoinSession(session.id)}
-                        disabled={session.participantCount >= session.maxParticipants}
+                        disabled={session.participants.length >= 4}
                       >
                         <Play className="w-3 h-3 mr-1" />
-                        {session.participantCount >= session.maxParticipants ? 'Full' : 'Join'}
+                        {session.participants.length >= 4 ? 'Full' : 'Join'}
                       </Button>
                     </div>
                   </CardContent>

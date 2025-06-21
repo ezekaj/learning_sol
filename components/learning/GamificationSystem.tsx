@@ -10,9 +10,7 @@ import {
   Shield, 
   Flame,
   TrendingUp,
-  Users,
-  Calendar,
-  Gift
+  Users
 } from 'lucide-react';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
 // Advanced Glass Card with 3D tilt effect
@@ -13,7 +13,6 @@ const TiltGlassCard: React.FC<TiltGlassCardProps> = ({
   className = '',
   intensity = 'medium',
 }) => {
-  const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
@@ -24,9 +23,7 @@ const TiltGlassCard: React.FC<TiltGlassCardProps> = ({
   const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ['-17.5deg', '17.5deg']);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return;
-
-    const rect = ref.current.getBoundingClientRect();
+    const rect = e.currentTarget.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
     const mouseX = e.clientX - rect.left;
@@ -52,7 +49,6 @@ const TiltGlassCard: React.FC<TiltGlassCardProps> = ({
 
   return (
     <motion.div
-      ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{

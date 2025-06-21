@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       transactionHash, 
       bytecode, 
       abi, 
-      constructorArgs 
+      constructorArgs: _constructorArgs
     } = await request.json();
 
     if (!contractName || !address || !chainId || !transactionHash) {
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     

@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate progress statistics
     const totalProgress = userProfile.user.progress;
-    const completedLessons = totalProgress.filter(p => p.status === 'COMPLETED').length;
+    const completedLessons = totalProgress.filter((p: any) => p.status === 'COMPLETED').length;
     const totalLessons = totalProgress.length;
     const completionRate = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
 
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
       completionRate,
       completedLessons,
       totalLessons,
-      achievements: userProfile.user.achievements.map(ua => ({
+      achievements: userProfile.user.achievements.map((ua: any) => ({
         id: ua.achievement.id,
         title: ua.achievement.title,
         description: ua.achievement.description,
@@ -73,16 +73,16 @@ export async function GET(request: NextRequest) {
         unlockedAt: ua.unlockedAt,
         isCompleted: ua.isCompleted,
       })),
-      courses: courseProgress.map(course => ({
+      courses: courseProgress.map((course: any) => ({
         id: course.id,
         title: course.title,
         description: course.description,
         difficulty: course.difficulty,
         totalModules: course.modules.length,
-        totalLessons: course.modules.reduce((acc, module) => acc + module.lessons.length, 0),
-        completedLessons: course.progress.filter(p => p.status === 'COMPLETED').length,
-        progress: course.progress.length > 0 
-          ? (course.progress.filter(p => p.status === 'COMPLETED').length / course.progress.length) * 100 
+        totalLessons: course.modules.reduce((acc: any, module: any) => acc + module.lessons.length, 0),
+        completedLessons: course.progress.filter((p: any) => p.status === 'COMPLETED').length,
+        progress: course.progress.length > 0
+          ? (course.progress.filter((p: any) => p.status === 'COMPLETED').length / course.progress.length) * 100
           : 0,
       })),
     };
