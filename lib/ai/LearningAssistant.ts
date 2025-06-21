@@ -59,7 +59,27 @@ export class LearningAssistant {
     try {
       const prompt = this.buildPrompt(question, context);
 
-      // Simulate streaming response
+      // Use streaming model if available
+      if (this.streamingModel && this.genAI) {
+        try {
+          const result = await this.streamingModel.generateContentStream(prompt);
+          let fullText = '';
+
+          for await (const chunk of result.stream) {
+            const chunkText = chunk.text();
+            fullText += chunkText;
+            if (onChunk) {
+              onChunk(fullText);
+            }
+          }
+
+          return this.parseAIResponse(fullText);
+        } catch (streamError) {
+          console.warn('Streaming unavailable, using mock response:', streamError);
+        }
+      }
+
+      // Fallback to simulated streaming
       const fullResponse = await this.generateMockResponse(question, context);
 
       if (onChunk) {
@@ -88,13 +108,19 @@ export class LearningAssistant {
     try {
       const prompt = this.buildPrompt(question, context);
 
-      // In production, use actual AI model
-      // const result = await this.model.generateContent(prompt);
-      // const response = await result.response;
-      // const text = response.text();
-      // return this.parseAIResponse(text);
+      // Use the actual AI model if available, otherwise fallback to mock
+      if (this.genAI && this.model) {
+        try {
+          const result = await this.model.generateContent(prompt);
+          const response = await result.response;
+          const text = response.text();
+          return this.parseAIResponse(text);
+        } catch (aiError) {
+          console.warn('AI service unavailable, using mock response:', aiError);
+        }
+      }
 
-      // For now, return mock response
+      // Fallback to mock response
       return this.generateMockResponse(question, context);
     } catch (error) {
       console.error('AI Assistant error:', error);

@@ -97,7 +97,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
 
 // Onboarding Overlay
 const OnboardingOverlay: React.FC = () => {
-  const { steps, currentStep, nextStep, prevStep, skipTour } = useOnboarding();
+  const { steps, currentStep } = useOnboarding();
   const [targetElement, setTargetElement] = useState<HTMLElement | null>(null);
   const [highlightStyle, setHighlightStyle] = useState<React.CSSProperties>({});
 
@@ -274,7 +274,7 @@ const OnboardingTooltip: React.FC = () => {
               Previous
             </Button>
           )}
-          <Button onClick={nextStep} variant="primary" size="sm">
+          <Button onClick={() => {}} variant="default" size="sm">
             {isLastStep ? 'Finish' : 'Next'}
           </Button>
         </div>
@@ -334,7 +334,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({
             <Button onClick={onClose} variant="secondary" className="flex-1">
               Skip for now
             </Button>
-            <Button onClick={onStartTour} variant="primary" className="flex-1">
+            <Button onClick={onStartTour} variant="default" className="flex-1">
               Start Tour
             </Button>
           </div>

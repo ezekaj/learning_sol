@@ -150,7 +150,6 @@ interface LottiePlayerProps {
 // Basic Lottie Player Component
 export const LottiePlayer: React.FC<LottiePlayerProps> = ({
   animationData,
-  animationUrl,
   className = '',
   width = 100,
   height = 100,
