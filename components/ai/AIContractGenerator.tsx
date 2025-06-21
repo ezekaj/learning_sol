@@ -175,6 +175,195 @@ contract ${template.name.replace(/[^a-zA-Z0-9]/g, '')} {
   };
 
   const generateContractFunctions = (template: ContractTemplate): string => {
+    // Use the template parameter to generate specific functions based on category
+    switch (template.category) {
+      case 'token':
+        return generateTokenFunctions();
+      case 'nft':
+        return generateNFTFunctions();
+      case 'defi':
+        return generateDeFiFunctions();
+      case 'dao':
+        return generateDAOFunctions();
+      default:
+        return generateUtilityFunctions();
+    }
+  };
+
+  const generateTokenFunctions = (): string => {
+    return `
+    mapping(address => uint256) public balances;
+    mapping(address => mapping(address => uint256)) public allowances;
+
+    uint256 public totalSupply;
+    string public name = "Generated Token";
+    string public symbol = "GTK";
+    uint8 public decimals = 18;
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    function transfer(address to, uint256 amount) public returns (bool) {
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+        balances[msg.sender] -= amount;
+        balances[to] += amount;
+        emit Transfer(msg.sender, to, amount);
+        return true;
+    }
+
+    function mint(address to, uint256 amount) public onlyOwner {
+        balances[to] += amount;
+        totalSupply += amount;
+        emit Transfer(address(0), to, amount);
+    }`;
+  };
+
+  const generateNFTFunctions = (): string => {
+    return `
+    mapping(uint256 => address) public tokenOwner;
+    mapping(address => uint256) public balanceOf;
+    mapping(uint256 => address) public tokenApprovals;
+
+    uint256 public nextTokenId = 1;
+    string public baseURI;
+
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+    event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
+
+    function mint(address to) public onlyOwner {
+        uint256 tokenId = nextTokenId++;
+        tokenOwner[tokenId] = to;
+        balanceOf[to]++;
+        emit Transfer(address(0), to, tokenId);
+    }
+
+    function ownerOf(uint256 tokenId) public view returns (address) {
+        return tokenOwner[tokenId];
+    }
+
+    function transferFrom(address from, address to, uint256 tokenId) public {
+        require(tokenOwner[tokenId] == from, "Not token owner");
+        require(msg.sender == from || tokenApprovals[tokenId] == msg.sender, "Not approved");
+
+        tokenOwner[tokenId] = to;
+        balanceOf[from]--;
+        balanceOf[to]++;
+        delete tokenApprovals[tokenId];
+
+        emit Transfer(from, to, tokenId);
+    }`;
+  };
+
+  const generateDeFiFunctions = (): string => {
+    return `
+    mapping(address => uint256) public stakes;
+    mapping(address => uint256) public rewards;
+
+    uint256 public rewardRate = 100; // per second
+    uint256 public totalStaked;
+
+    event Staked(address indexed user, uint256 amount);
+    event Withdrawn(address indexed user, uint256 amount);
+    event RewardClaimed(address indexed user, uint256 amount);
+
+    function stake(uint256 amount) public {
+        require(amount > 0, "Cannot stake 0");
+        stakes[msg.sender] += amount;
+        totalStaked += amount;
+        emit Staked(msg.sender, amount);
+    }
+
+    function withdraw(uint256 amount) public {
+        require(stakes[msg.sender] >= amount, "Insufficient stake");
+        stakes[msg.sender] -= amount;
+        totalStaked -= amount;
+        emit Withdrawn(msg.sender, amount);
+    }
+
+    function claimRewards() public {
+        uint256 reward = calculateReward(msg.sender);
+        rewards[msg.sender] = 0;
+        emit RewardClaimed(msg.sender, reward);
+    }
+
+    function calculateReward(address user) public view returns (uint256) {
+        return stakes[user] * rewardRate / 1000;
+    }`;
+  };
+
+  const generateDAOFunctions = (): string => {
+    return `
+    struct Proposal {
+        string description;
+        uint256 votesFor;
+        uint256 votesAgainst;
+        uint256 deadline;
+        bool executed;
+    }
+
+    mapping(uint256 => Proposal) public proposals;
+    mapping(address => uint256) public votingPower;
+    uint256 public proposalCount;
+
+    event ProposalCreated(uint256 indexed id, string description);
+    event VoteCast(uint256 indexed proposalId, address indexed voter, bool support);
+
+    function createProposal(string memory description) public {
+        require(votingPower[msg.sender] > 0, "No voting power");
+        proposals[proposalCount] = Proposal({
+            description: description,
+            votesFor: 0,
+            votesAgainst: 0,
+            deadline: block.timestamp + 7 days,
+            executed: false
+        });
+        emit ProposalCreated(proposalCount, description);
+        proposalCount++;
+    }
+
+    function vote(uint256 proposalId, bool support) public {
+        require(votingPower[msg.sender] > 0, "No voting power");
+        require(block.timestamp < proposals[proposalId].deadline, "Voting ended");
+
+        if (support) {
+            proposals[proposalId].votesFor += votingPower[msg.sender];
+        } else {
+            proposals[proposalId].votesAgainst += votingPower[msg.sender];
+        }
+
+        emit VoteCast(proposalId, msg.sender, support);
+    }`;
+  };
+
+  const generateUtilityFunctions = (): string => {
+    return `
+    mapping(address => bool) public authorized;
+    uint256 public value;
+
+    event ValueUpdated(uint256 newValue);
+    event AuthorizationChanged(address indexed user, bool authorized);
+
+    function setValue(uint256 newValue) public onlyOwner {
+        value = newValue;
+        emit ValueUpdated(newValue);
+    }
+
+    function authorize(address user) public onlyOwner {
+        authorized[user] = true;
+        emit AuthorizationChanged(user, true);
+    }
+
+    function deauthorize(address user) public onlyOwner {
+        authorized[user] = false;
+        emit AuthorizationChanged(user, false);
+    }
+
+    function getValue() public view returns (uint256) {
+        return value;
+    }`;
+  };
+
+  const generateContractFunctions = (template: ContractTemplate): string => {
     switch (template.id) {
       case 'erc20-token':
         return `

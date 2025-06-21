@@ -46,6 +46,9 @@ export function CollaborativeEditor() {
   const [showChat, setShowChat] = useState(true);
   const [isCompiling, setIsCompiling] = useState(false);
   const [compilationResult, setCompilationResult] = useState<any>(null);
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const editorRef = useRef<any>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   
@@ -162,6 +165,68 @@ export function CollaborativeEditor() {
     }
   };
 
+  const handleVoiceToggle = async () => {
+    try {
+      if (!isVoiceEnabled) {
+        // Request microphone access
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log('Microphone access granted');
+        // In production, this would connect to WebRTC
+        stream.getTracks().forEach(track => track.stop()); // Clean up for demo
+      }
+      setIsVoiceEnabled(!isVoiceEnabled);
+      toast({
+        title: isVoiceEnabled ? 'Voice chat disabled' : 'Voice chat enabled',
+        description: isVoiceEnabled ? 'Microphone turned off' : 'Microphone turned on',
+      });
+    } catch (error) {
+      toast({
+        title: 'Microphone access denied',
+        description: 'Please allow microphone access to use voice chat.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleVideoToggle = async () => {
+    try {
+      if (!isVideoEnabled) {
+        // Request camera access
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        console.log('Camera access granted');
+        // In production, this would connect to WebRTC
+        stream.getTracks().forEach(track => track.stop()); // Clean up for demo
+      }
+      setIsVideoEnabled(!isVideoEnabled);
+      toast({
+        title: isVideoEnabled ? 'Video chat disabled' : 'Video chat enabled',
+        description: isVideoEnabled ? 'Camera turned off' : 'Camera turned on',
+      });
+    } catch (error) {
+      toast({
+        title: 'Camera access denied',
+        description: 'Please allow camera access to use video chat.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDownloadCode = () => {
+    const blob = new Blob([code], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentSession?.title || 'collaborative-contract'}.sol`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({
+      title: 'Code downloaded!',
+      description: 'The Solidity file has been saved to your downloads.',
+    });
+  };
+
   if (!currentSession) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -192,6 +257,25 @@ export function CollaborativeEditor() {
                 <Badge variant="outline">{currentSession.language}</Badge>
               </div>
               <div className="flex items-center space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleVoiceToggle}
+                  className={isVoiceEnabled ? 'bg-green-600/20 border-green-500' : ''}
+                >
+                  {isVoiceEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleVideoToggle}
+                  className={isVideoEnabled ? 'bg-green-600/20 border-green-500' : ''}
+                >
+                  {isVideoEnabled ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setShowSettings(!showSettings)}>
+                  <Settings className="w-4 h-4" />
+                </Button>
                 <Button size="sm" variant="outline" onClick={handleShareSession}>
                   <Share className="w-4 h-4 mr-2" />
                   Share
@@ -200,8 +284,12 @@ export function CollaborativeEditor() {
                   <Copy className="w-4 h-4 mr-2" />
                   Copy
                 </Button>
-                <Button 
-                  size="sm" 
+                <Button size="sm" variant="outline" onClick={handleDownloadCode}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download
+                </Button>
+                <Button
+                  size="sm"
                   onClick={handleCompileCode}
                   disabled={isCompiling}
                   className="bg-blue-600 hover:bg-blue-700"
@@ -377,13 +465,66 @@ export function CollaborativeEditor() {
           )}
         </Card>
 
+        {/* Settings Panel */}
+        <AnimatePresence>
+          {showSettings && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <Card className="glass border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-sm flex items-center">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Session Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs text-gray-400">Audio/Video</label>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant={isVoiceEnabled ? "default" : "outline"}
+                        onClick={handleVoiceToggle}
+                        className="flex-1"
+                      >
+                        {isVoiceEnabled ? <Mic className="w-3 h-3 mr-1" /> : <MicOff className="w-3 h-3 mr-1" />}
+                        Voice
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={isVideoEnabled ? "default" : "outline"}
+                        onClick={handleVideoToggle}
+                        className="flex-1"
+                      >
+                        {isVideoEnabled ? <Video className="w-3 h-3 mr-1" /> : <VideoOff className="w-3 h-3 mr-1" />}
+                        Video
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs text-gray-400">Session Info</label>
+                    <div className="text-xs space-y-1">
+                      <p>ID: {currentSession?.id.slice(0, 8)}...</p>
+                      <p>Language: {currentSession?.language}</p>
+                      <p>Created: {new Date(currentSession?.createdAt || '').toLocaleString()}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Session Controls */}
         <Card className="glass border-white/10">
           <CardContent className="pt-6">
             <div className="space-y-2">
-              <Button 
-                variant="destructive" 
-                size="sm" 
+              <Button
+                variant="destructive"
+                size="sm"
                 className="w-full"
                 onClick={leaveSession}
               >
