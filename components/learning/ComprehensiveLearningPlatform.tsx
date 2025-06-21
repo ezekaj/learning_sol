@@ -198,6 +198,25 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
   // Handle community features
   const handleCommunityAction = (action: 'join-group' | 'find-mentor' | 'start-session') => {
     console.log(`Community action: ${action}`);
+
+    // Update community stats based on action
+    if (action === 'join-group') {
+      setCommunityStats(prev => ({
+        ...prev,
+        studyGroups: prev.studyGroups + 1
+      }));
+    } else if (action === 'find-mentor') {
+      setCommunityStats(prev => ({
+        ...prev,
+        mentorsAvailable: prev.mentorsAvailable - 1
+      }));
+    } else if (action === 'start-session') {
+      setCommunityStats(prev => ({
+        ...prev,
+        onlineUsers: prev.onlineUsers + 1
+      }));
+    }
+
     setShowSuccessAnimation(true);
     setTimeout(() => setShowSuccessAnimation(false), 2000);
   };
