@@ -101,8 +101,7 @@ const GlassNeumorphDemo: React.FC = () => {
           <GlassContainer
             intensity="medium"
             tint="neutral"
-            padding="lg"
-            className="max-w-md mx-auto"
+            className="max-w-md mx-auto p-8"
           >
             <h3 className="text-2xl font-semibold text-white mb-6">Glass Form</h3>
             <div className="space-y-4">
@@ -118,7 +117,7 @@ const GlassNeumorphDemo: React.FC = () => {
                 type="password"
                 placeholder="Enter your password"
               />
-              <GlassButton variant="primary" fullWidth>
+              <GlassButton variant="primary" className="w-full">
                 Sign In
               </GlassButton>
             </div>
@@ -184,13 +183,13 @@ const GlassNeumorphDemo: React.FC = () => {
               header={<h3 className="text-xl font-semibold text-gray-800">Button Variants</h3>}
             >
               <div className="space-y-3">
-                <NeumorphicButton variant="primary" size="sm" fullWidth>
+                <NeumorphicButton variant="primary" size="sm" className="w-full">
                   Primary
                 </NeumorphicButton>
-                <NeumorphicButton variant="secondary" size="sm" fullWidth>
+                <NeumorphicButton variant="secondary" size="sm" className="w-full">
                   Secondary
                 </NeumorphicButton>
-                <NeumorphicButton variant="accent" size="sm" fullWidth>
+                <NeumorphicButton variant="accent" size="sm" className="w-full">
                   Accent
                 </NeumorphicButton>
                 <div className="flex gap-2 justify-center">
@@ -236,7 +235,7 @@ const GlassNeumorphDemo: React.FC = () => {
                   </svg>
                 }
               />
-              <NeumorphicButton variant="primary" size="md" fullWidth>
+              <NeumorphicButton variant="primary" size="md" className="w-full">
                 Submit
               </NeumorphicButton>
             </div>
@@ -253,8 +252,7 @@ const GlassNeumorphDemo: React.FC = () => {
             <GlassContainer
               intensity="heavy"
               tint="primary"
-              padding="lg"
-              className="space-y-4"
+              className="space-y-4 p-8"
             >
               <h3 className="text-2xl font-semibold text-white">Glass Dashboard</h3>
               <div className="grid grid-cols-2 gap-4">
