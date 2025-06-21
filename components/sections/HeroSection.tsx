@@ -158,15 +158,57 @@ export function HeroSection() {
           {features.map((feature, index) => (
             <motion.div
               key={feature.title}
-              className="glass p-6 rounded-xl border border-white/10 hover:border-white/20 transition-all duration-300"
+              className="glass p-6 rounded-xl border border-white/10 hover:border-white/20 transition-all duration-300 relative"
               whileHover={{ scale: 1.05, y: -5 }}
               initial={{ opacity: 0 }}
+              animate={{
+                opacity: 1,
+                transition: {
+                  delay: index * 0.2, // Use index for staggered animation
+                  duration: 0.6
+                }
+              }}
             >
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 mx-auto">
-                <feature.icon className="w-6 h-6 text-white" />
+              {/* Feature priority badge using index */}
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">
+                {index + 1}
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
+
+              <div className={`w-12 h-12 bg-gradient-to-br ${
+                index % 4 === 0 ? 'from-blue-500 to-purple-600' :
+                index % 4 === 1 ? 'from-purple-500 to-pink-600' :
+                index % 4 === 2 ? 'from-green-500 to-blue-600' :
+                'from-orange-500 to-red-600'
+              } rounded-lg flex items-center justify-center mb-4 mx-auto relative overflow-hidden`}>
+                <feature.icon className="w-6 h-6 text-white relative z-10" />
+                {/* Highlight top features */}
+                {index < 2 && (
+                  <div className="absolute top-0 right-0 w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
+                )}
+              </div>
+
+              <h3 className="text-lg font-semibold text-white mb-2">
+                {feature.title}
+                {/* Priority indicator for first two features */}
+                {index < 2 && (
+                  <span className="ml-2 text-xs bg-yellow-400/20 text-yellow-400 px-2 py-1 rounded-full">
+                    Priority
+                  </span>
+                )}
+              </h3>
               <p className="text-gray-400 text-sm">{feature.description}</p>
+
+              {/* Progress indicator based on index */}
+              <div className="mt-3 flex items-center justify-center space-x-1">
+                {Array.from({ length: 4 }, (_, i) => (
+                  <div
+                    key={i}
+                    className={`w-2 h-1 rounded-full transition-all duration-300 ${
+                      i <= index ? 'bg-blue-400' : 'bg-gray-600'
+                    }`}
+                  />
+                ))}
+              </div>
             </motion.div>
           ))}
         </div>

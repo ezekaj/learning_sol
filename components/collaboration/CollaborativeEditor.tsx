@@ -134,16 +134,40 @@ export function CollaborativeEditor() {
     if (chatInput.trim()) {
       // Use the utility function to create a properly typed message
       const newMessage = createChatMessage('current-user', 'Current User', chatInput.trim());
+
+      // Add the message to local state for immediate UI feedback
+      setLocalChatMessages(prev => [...prev, newMessage]);
+
+      // Send to collaboration service
       sendChatMessage(chatInput.trim());
       setChatInput('');
+
+      // Show toast notification for message sent
+      toast({
+        title: "Message sent",
+        description: `Message "${newMessage.message.slice(0, 30)}${newMessage.message.length > 30 ? '...' : ''}" sent to ${activeParticipants.length} participants`,
+      });
     }
   };
 
   const handleAddParticipant = (name: string) => {
     // Use the utility function to create a properly typed participant
     const newParticipant = createParticipant(Date.now().toString(), name);
-    // This would be used when adding new participants to the session
-    console.log('New participant created:', newParticipant);
+
+    // Add participant to active participants list
+    setActiveParticipants(prev => [...prev, newParticipant]);
+
+    // Show welcome message in chat
+    const welcomeMessage = createChatMessage('system', 'System', `${newParticipant.name} joined the session`);
+    setLocalChatMessages(prev => [...prev, welcomeMessage]);
+
+    // Show toast notification
+    toast({
+      title: "New participant joined",
+      description: `${newParticipant.name} has joined the collaboration session`,
+    });
+
+    console.log('New participant added:', newParticipant);
   };
 
   const handleCompileCode = async () => {
@@ -441,9 +465,24 @@ export function CollaborativeEditor() {
         {/* Participants */}
         <Card className="glass border-white/10">
           <CardHeader>
-            <CardTitle className="text-sm flex items-center">
-              <Users className="w-4 h-4 mr-2" />
-              Participants ({currentSession.participants.length})
+            <CardTitle className="text-sm flex items-center justify-between">
+              <div className="flex items-center">
+                <Users className="w-4 h-4 mr-2" />
+                Participants ({currentSession.participants.length})
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const name = prompt('Enter participant name:');
+                  if (name?.trim()) {
+                    handleAddParticipant(name.trim());
+                  }
+                }}
+                className="text-xs"
+              >
+                Add
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">

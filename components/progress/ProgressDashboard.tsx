@@ -744,17 +744,44 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({
 
             <div className="grid grid-cols-7 gap-2">
               {studySchedule.map((day, index) => (
-                <div key={day.date} className="text-center">
+                <div key={day.date} className="text-center relative">
                   <div className="text-xs text-gray-400 mb-2">
                     {new Date(day.date).toLocaleDateString('en', { weekday: 'short' })}
                   </div>
-                  <div className={`p-3 rounded-lg border ${
+                  <div className={`p-3 rounded-lg border transition-all duration-300 ${
                     day.planned
                       ? 'bg-blue-500/20 border-blue-500/50'
                       : 'bg-white/5 border-white/10'
+                  } ${
+                    index === 0 ? 'ring-2 ring-blue-400/50' : '' // Highlight today using index
                   }`}>
                     <div className="text-sm font-semibold text-white">{day.sessions}</div>
                     <div className="text-xs text-gray-400">sessions</div>
+
+                    {/* Day progress indicator using index */}
+                    <div className="mt-2 flex justify-center space-x-1">
+                      {Array.from({ length: 3 }, (_, i) => (
+                        <div
+                          key={i}
+                          className={`w-1 h-1 rounded-full ${
+                            i < day.sessions ? 'bg-blue-400' : 'bg-gray-600'
+                          }`}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Week position indicator */}
+                    {index === 0 && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+                    )}
+                    {index === 6 && (
+                      <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-purple-400 rounded-full" />
+                    )}
+                  </div>
+
+                  {/* Day number badge using index */}
+                  <div className="absolute -top-2 -left-2 w-5 h-5 bg-gray-700 rounded-full flex items-center justify-center text-xs text-white font-bold">
+                    {index + 1}
                   </div>
                 </div>
               ))}
