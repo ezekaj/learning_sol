@@ -95,18 +95,50 @@ export const GamificationSystem: React.FC<GamificationSystemProps> = ({
     milestone: achievements.filter(a => a.category === 'milestone')
   };
 
-  // Check for new achievements
+  // Check for new achievements and level ups
   useEffect(() => {
     const recentAchievements = achievements.filter(
-      a => a.unlocked && a.unlockedAt && 
+      a => a.unlocked && a.unlockedAt &&
       Date.now() - a.unlockedAt.getTime() < 5000 // Last 5 seconds
     );
-    
+
     if (recentAchievements.length > 0) {
       setNewAchievements(recentAchievements);
       setTimeout(() => setNewAchievements([]), 5000);
     }
-  }, [achievements]);
+
+    // Check for level up
+    if (userProgress.xp >= userProgress.xpToNextLevel) {
+      setShowLevelUp(true);
+      setTimeout(() => setShowLevelUp(false), 3000);
+    }
+  }, [achievements, userProgress.xp, userProgress.xpToNextLevel]);
+
+  const handleClaimReward = (rewardId: string) => {
+    // Handle reward claiming logic
+    console.log('Claiming reward:', rewardId);
+    onClaimReward?.(rewardId); // Use the onClaimReward callback
+  };
+
+  const handleQuickAction = (actionType: 'boost' | 'shield' | 'star') => {
+    // Handle quick gamification actions
+    switch (actionType) {
+      case 'boost':
+        console.log('XP Boost activated!');
+        break;
+      case 'shield':
+        console.log('Shield protection activated!');
+        break;
+      case 'star':
+        console.log('Star power activated!');
+        break;
+    }
+  };
+
+  const handleSecurityChallenge = () => {
+    // Handle security-focused challenges
+    console.log('Starting security challenge...');
+  };
 
   const AchievementCard: React.FC<{ achievement: Achievement }> = ({ achievement }) => (
     <motion.div
@@ -139,8 +171,18 @@ export const GamificationSystem: React.FC<GamificationSystemProps> = ({
         </p>
         
         {achievement.unlocked && achievement.unlockedAt && (
-          <div className="mt-2 text-xs text-green-400">
-            Unlocked {achievement.unlockedAt.toLocaleDateString()}
+          <div className="mt-2">
+            <div className="text-xs text-green-400 mb-2">
+              Unlocked {achievement.unlockedAt.toLocaleDateString()}
+            </div>
+            <Button
+              onClick={() => handleClaimReward(achievement.id)}
+              size="sm"
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+            >
+              <Star className="w-3 h-3 mr-1" />
+              Claim Reward
+            </Button>
           </div>
         )}
       </div>
@@ -193,7 +235,7 @@ export const GamificationSystem: React.FC<GamificationSystemProps> = ({
             initial={{ opacity: 0, y: -50, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -50, scale: 0.8 }}
-            className="fixed top-4 right-4 z-50 p-4 bg-gradient-to-r from-yellow-400 to-orange-500 
+            className="fixed top-4 right-4 z-50 p-4 bg-gradient-to-r from-yellow-400 to-orange-500
                        rounded-lg shadow-lg border border-yellow-300"
           >
             <div className="flex items-center space-x-3">
@@ -205,6 +247,31 @@ export const GamificationSystem: React.FC<GamificationSystemProps> = ({
             </div>
           </motion.div>
         ))}
+
+        {/* Level Up Notification */}
+        {showLevelUp && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5, y: -100 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.5, y: -100 }}
+            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50
+                       p-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-2xl
+                       border-2 border-yellow-400"
+          >
+            <div className="text-center">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="w-16 h-16 mx-auto mb-4"
+              >
+                <Star className="w-full h-full text-yellow-400" />
+              </motion.div>
+              <div className="text-3xl font-bold text-white mb-2">LEVEL UP!</div>
+              <div className="text-xl text-yellow-200">Level {userProgress.level}</div>
+              <div className="text-sm text-blue-200 mt-2">You're getting stronger!</div>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* Navigation Tabs */}
@@ -281,6 +348,56 @@ export const GamificationSystem: React.FC<GamificationSystemProps> = ({
               <div className="text-sm text-gray-400">Global Rank</div>
             </Card>
           </div>
+
+          {/* Quick Actions */}
+          <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20">
+            <h3 className="text-xl font-semibold text-white mb-4">Quick Actions</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <Button
+                onClick={() => handleQuickAction('boost')}
+                className="flex flex-col items-center p-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20
+                          hover:from-yellow-500/30 hover:to-orange-500/30 border border-yellow-500/30"
+              >
+                <Zap className="w-8 h-8 text-yellow-400 mb-2" />
+                <span className="text-sm text-white">XP Boost</span>
+              </Button>
+
+              <Button
+                onClick={() => handleQuickAction('shield')}
+                className="flex flex-col items-center p-4 bg-gradient-to-r from-blue-500/20 to-cyan-500/20
+                          hover:from-blue-500/30 hover:to-cyan-500/30 border border-blue-500/30"
+              >
+                <Shield className="w-8 h-8 text-blue-400 mb-2" />
+                <span className="text-sm text-white">Shield</span>
+              </Button>
+
+              <Button
+                onClick={() => handleQuickAction('star')}
+                className="flex flex-col items-center p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20
+                          hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-500/30"
+              >
+                <Star className="w-8 h-8 text-purple-400 mb-2" />
+                <span className="text-sm text-white">Star Power</span>
+              </Button>
+            </div>
+          </Card>
+
+          {/* Security Challenge */}
+          <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold text-white mb-2">Security Challenge</h3>
+                <p className="text-gray-300">Test your smart contract security knowledge</p>
+              </div>
+              <Button
+                onClick={handleSecurityChallenge}
+                className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Start Challenge
+              </Button>
+            </div>
+          </Card>
 
           {/* Recent Achievements */}
           <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20">
