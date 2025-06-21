@@ -1,7 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import { motion, AnimatePresence } from 'framer-motion';
+<<<<<<< HEAD
 import { Play, Download, Upload, Settings, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+=======
+import {
+  Play, Save, Download, Upload, Settings, CheckCircle, XCircle, AlertTriangle,
+  Users, Share2, Bug, Code2, Zap, FileText, Copy, Eye, EyeOff, Maximize2,
+  Minimize2, RotateCcw, GitBranch, TestTube, Layers
+} from 'lucide-react';
+>>>>>>> feature/interactive-code-editor
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import CustomToast from '../ui/CustomToast';
@@ -12,6 +20,8 @@ interface CompilationResult {
   warnings: CompilationError[];
   bytecode?: string;
   abi?: any[];
+  gasEstimate?: number;
+  deploymentCost?: number;
 }
 
 interface CompilationError {
@@ -19,6 +29,27 @@ interface CompilationError {
   column: number;
   message: string;
   severity: 'error' | 'warning' | 'info';
+}
+
+interface CodeTemplate {
+  id: string;
+  name: string;
+  description: string;
+  code: string;
+  category: 'basic' | 'defi' | 'nft' | 'dao' | 'security';
+}
+
+interface DebugBreakpoint {
+  line: number;
+  enabled: boolean;
+  condition?: string;
+}
+
+interface CollaborationUser {
+  id: string;
+  name: string;
+  cursor?: { line: number; column: number };
+  selection?: { startLine: number; startColumn: number; endLine: number; endColumn: number };
 }
 
 interface InteractiveCodeEditorProps {
@@ -29,6 +60,11 @@ interface InteractiveCodeEditorProps {
   theme?: 'light' | 'dark';
   showMinimap?: boolean;
   enableAutoSave?: boolean;
+  enableCollaboration?: boolean;
+  enableDebugging?: boolean;
+  enableTemplates?: boolean;
+  enableTesting?: boolean;
+  collaborationUsers?: CollaborationUser[];
   className?: string;
 }
 
@@ -42,34 +78,169 @@ pragma solidity ^0.8.0;
 contract HelloWorld {
     string private message;
     address public owner;
-    
+
     event MessageChanged(string newMessage, address changedBy);
-    
+
     constructor() {
         message = "Hello, Blockchain World!";
         owner = msg.sender;
     }
-    
+
     function setMessage(string memory _newMessage) public {
         require(bytes(_newMessage).length > 0, "Message cannot be empty");
         message = _newMessage;
         emit MessageChanged(_newMessage, msg.sender);
     }
-    
+
     function getMessage() public view returns (string memory) {
         return message;
     }
-    
+
     modifier onlyOwner() {
         require(msg.sender == owner, "Only owner can call this function");
         _;
     }
-    
+
     function changeOwner(address _newOwner) public onlyOwner {
         require(_newOwner != address(0), "Invalid address");
         owner = _newOwner;
     }
 }`;
+
+const codeTemplates: CodeTemplate[] = [
+  {
+    id: 'erc20',
+    name: 'ERC-20 Token',
+    description: 'Standard fungible token implementation',
+    category: 'basic',
+    code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract MyToken is ERC20, Ownable {
+    constructor() ERC20("MyToken", "MTK") {
+        _mint(msg.sender, 1000000 * 10 ** decimals());
+    }
+
+    function mint(address to, uint256 amount) public onlyOwner {
+        _mint(to, amount);
+    }
+}`
+  },
+  {
+    id: 'erc721',
+    name: 'ERC-721 NFT',
+    description: 'Non-fungible token implementation',
+    category: 'nft',
+    code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+
+contract MyNFT is ERC721, Ownable {
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIds;
+
+    constructor() ERC721("MyNFT", "MNFT") {}
+
+    function mintNFT(address recipient, string memory tokenURI)
+        public onlyOwner returns (uint256)
+    {
+        _tokenIds.increment();
+        uint256 newItemId = _tokenIds.current();
+        _mint(recipient, newItemId);
+        _setTokenURI(newItemId, tokenURI);
+        return newItemId;
+    }
+}`
+  },
+  {
+    id: 'multisig',
+    name: 'Multi-Signature Wallet',
+    description: 'Secure wallet requiring multiple signatures',
+    category: 'security',
+    code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract MultiSigWallet {
+    event Deposit(address indexed sender, uint amount, uint balance);
+    event SubmitTransaction(
+        address indexed owner,
+        uint indexed txIndex,
+        address indexed to,
+        uint value,
+        bytes data
+    );
+    event ConfirmTransaction(address indexed owner, uint indexed txIndex);
+    event RevokeConfirmation(address indexed owner, uint indexed txIndex);
+    event ExecuteTransaction(address indexed owner, uint indexed txIndex);
+
+    address[] public owners;
+    mapping(address => bool) public isOwner;
+    uint public numConfirmationsRequired;
+
+    struct Transaction {
+        address to;
+        uint value;
+        bytes data;
+        bool executed;
+        uint numConfirmations;
+    }
+
+    mapping(uint => mapping(address => bool)) public isConfirmed;
+    Transaction[] public transactions;
+
+    modifier onlyOwner() {
+        require(isOwner[msg.sender], "not owner");
+        _;
+    }
+
+    modifier txExists(uint _txIndex) {
+        require(_txIndex < transactions.length, "tx does not exist");
+        _;
+    }
+
+    modifier notExecuted(uint _txIndex) {
+        require(!transactions[_txIndex].executed, "tx already executed");
+        _;
+    }
+
+    modifier notConfirmed(uint _txIndex) {
+        require(!isConfirmed[_txIndex][msg.sender], "tx already confirmed");
+        _;
+    }
+
+    constructor(address[] memory _owners, uint _numConfirmationsRequired) {
+        require(_owners.length > 0, "owners required");
+        require(
+            _numConfirmationsRequired > 0 &&
+                _numConfirmationsRequired <= _owners.length,
+            "invalid number of required confirmations"
+        );
+
+        for (uint i = 0; i < _owners.length; i++) {
+            address owner = _owners[i];
+
+            require(owner != address(0), "invalid owner");
+            require(!isOwner[owner], "owner not unique");
+
+            isOwner[owner] = true;
+            owners.push(owner);
+        }
+
+        numConfirmationsRequired = _numConfirmationsRequired;
+    }
+
+    receive() external payable {
+        emit Deposit(msg.sender, msg.value, address(this).balance);
+    }
+}`
+  }
+];
 
 export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
   initialCode = defaultSolidityCode,
@@ -79,17 +250,30 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
   theme = 'dark',
   showMinimap = true,
   enableAutoSave = true,
+  enableCollaboration = false,
+  enableDebugging = false,
+  enableTemplates = true,
+  enableTesting = false,
+  collaborationUsers = [],
   className = ''
 }) => {
   const [code, setCode] = useState(initialCode);
   const [isCompiling, setIsCompiling] = useState(false);
   const [compilationResult, setCompilationResult] = useState<CompilationResult | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showCollaboration, setShowCollaboration] = useState(false);
+  const [showDebugger, setShowDebugger] = useState(false);
+  const [showTesting, setShowTesting] = useState(false);
   const [editorTheme, setEditorTheme] = useState(theme);
   const [fontSize, setFontSize] = useState(14);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
+  const [breakpoints, setBreakpoints] = useState<DebugBreakpoint[]>([]);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [showMinimapState, setShowMinimap] = useState(showMinimap);
   
   const editorRef = useRef<any>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -212,6 +396,8 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
           }
         ],
         bytecode: '0x608060405234801561001057600080fd5b50...',
+        gasEstimate: 245678,
+        deploymentCost: 189432,
         abi: [
           {
             "inputs": [],
@@ -276,9 +462,60 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
     }
   };
 
+  const loadTemplate = (templateId: string) => {
+    const template = codeTemplates.find(t => t.id === templateId);
+    if (template) {
+      setCode(template.code);
+      setSelectedTemplate(templateId);
+      setShowTemplates(false);
+      showToastMessage(`Template "${template.name}" loaded`, 'success');
+    }
+  };
+
+  const toggleBreakpoint = (line: number) => {
+    setBreakpoints(prev => {
+      const existing = prev.find(bp => bp.line === line);
+      if (existing) {
+        return prev.filter(bp => bp.line !== line);
+      } else {
+        return [...prev, { line, enabled: true }];
+      }
+    });
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      showToastMessage('Code copied to clipboard', 'success');
+    } catch (err) {
+      showToastMessage('Failed to copy code', 'error');
+    }
+  };
+
+  const resetCode = () => {
+    setCode(defaultSolidityCode);
+    setCompilationResult(null);
+    setBreakpoints([]);
+    showToastMessage('Code reset to default', 'success');
+  };
+
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
+  const runTests = async () => {
+    setShowTesting(true);
+    showToastMessage('Running tests...', 'warning');
+
+    // Simulate test execution
+    setTimeout(() => {
+      showToastMessage('All tests passed!', 'success');
+    }, 2000);
+  };
+
   return (
-    <div className={`relative w-full h-full ${className}`}>
-      {/* Toolbar */}
+    <div className={`relative w-full h-full ${className} ${isFullscreen ? 'fixed inset-0 z-50 bg-gray-900' : ''}`}>
+      {/* Enhanced Toolbar */}
       <Card className="mb-4 p-4 bg-white/10 backdrop-blur-md border border-white/20">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -290,7 +527,18 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
               <Play className="w-4 h-4 mr-2" />
               {isCompiling ? 'Compiling...' : 'Compile'}
             </Button>
-            
+
+            {enableTesting && (
+              <Button
+                onClick={runTests}
+                variant="outline"
+                className="border-blue-500/30 text-blue-600 hover:bg-blue-500/10"
+              >
+                <TestTube className="w-4 h-4 mr-2" />
+                Test
+              </Button>
+            )}
+
             <Button
               onClick={saveCode}
               variant="outline"
@@ -299,7 +547,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
               <Download className="w-4 h-4 mr-2" />
               Save
             </Button>
-            
+
             <label className="cursor-pointer">
               <Button variant="outline" className="border-white/30 text-gray-700 dark:text-gray-300">
                 <Upload className="w-4 h-4 mr-2" />
@@ -312,8 +560,37 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
                 className="hidden"
               />
             </label>
+
+            {enableTemplates && (
+              <Button
+                onClick={() => setShowTemplates(!showTemplates)}
+                variant="outline"
+                className="border-purple-500/30 text-purple-600 hover:bg-purple-500/10"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Templates
+              </Button>
+            )}
+
+            <Button
+              onClick={copyToClipboard}
+              variant="outline"
+              className="border-white/30 text-gray-700 dark:text-gray-300"
+            >
+              <Copy className="w-4 h-4 mr-2" />
+              Copy
+            </Button>
+
+            <Button
+              onClick={resetCode}
+              variant="outline"
+              className="border-orange-500/30 text-orange-600 hover:bg-orange-500/10"
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Reset
+            </Button>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             {compilationResult && (
               <div className="flex items-center space-x-2">
@@ -325,9 +602,46 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
                 {compilationResult.warnings.length > 0 && (
                   <AlertTriangle className="w-5 h-5 text-yellow-500" />
                 )}
+                {compilationResult.gasEstimate && (
+                  <span className="text-xs text-gray-500">
+                    Gas: {compilationResult.gasEstimate.toLocaleString()}
+                  </span>
+                )}
               </div>
             )}
-            
+
+            {enableCollaboration && (
+              <Button
+                onClick={() => setShowCollaboration(!showCollaboration)}
+                variant="outline"
+                size="sm"
+                className="border-blue-500/30 text-blue-600 hover:bg-blue-500/10"
+              >
+                <Users className="w-4 h-4 mr-1" />
+                {collaborationUsers.length}
+              </Button>
+            )}
+
+            {enableDebugging && (
+              <Button
+                onClick={() => setShowDebugger(!showDebugger)}
+                variant="outline"
+                size="sm"
+                className="border-red-500/30 text-red-600 hover:bg-red-500/10"
+              >
+                <Bug className="w-4 h-4" />
+              </Button>
+            )}
+
+            <Button
+              onClick={toggleFullscreen}
+              variant="outline"
+              size="sm"
+              className="border-white/30 text-gray-700 dark:text-gray-300"
+            >
+              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </Button>
+
             <Button
               onClick={() => setShowSettings(!showSettings)}
               variant="outline"
@@ -340,6 +654,128 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
         </div>
       </Card>
 
+      {/* Templates Panel */}
+      <AnimatePresence>
+        {showTemplates && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="absolute top-20 left-0 z-50 w-80 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-h-96 overflow-y-auto"
+          >
+            <h3 className="text-lg font-semibold mb-4 flex items-center">
+              <Code2 className="w-5 h-5 mr-2" />
+              Code Templates
+            </h3>
+
+            <div className="space-y-3">
+              {codeTemplates.map((template) => (
+                <div
+                  key={template.id}
+                  className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                    selectedTemplate === template.id
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                  }`}
+                  onClick={() => loadTemplate(template.id)}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-sm">{template.name}</h4>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      template.category === 'basic' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
+                      template.category === 'defi' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' :
+                      template.category === 'nft' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400' :
+                      template.category === 'dao' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400' :
+                      'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                    }`}>
+                      {template.category}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">{template.description}</p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Collaboration Panel */}
+      <AnimatePresence>
+        {showCollaboration && enableCollaboration && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute top-20 right-20 z-50 w-64 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
+          >
+            <h3 className="text-lg font-semibold mb-4 flex items-center">
+              <Users className="w-5 h-5 mr-2" />
+              Collaboration
+            </h3>
+
+            <div className="space-y-3">
+              <Button
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Share Session
+              </Button>
+
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium">Active Users ({collaborationUsers.length})</h4>
+                {collaborationUsers.map((user) => (
+                  <div key={user.id} className="flex items-center space-x-2 text-sm">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>{user.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Debugger Panel */}
+      <AnimatePresence>
+        {showDebugger && enableDebugging && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute top-20 right-40 z-50 w-64 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
+          >
+            <h3 className="text-lg font-semibold mb-4 flex items-center">
+              <Bug className="w-5 h-5 mr-2" />
+              Debugger
+            </h3>
+
+            <div className="space-y-3">
+              <div className="text-sm">
+                <h4 className="font-medium mb-2">Breakpoints ({breakpoints.length})</h4>
+                {breakpoints.length === 0 ? (
+                  <p className="text-gray-500">No breakpoints set</p>
+                ) : (
+                  <div className="space-y-1">
+                    {breakpoints.map((bp, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <span>Line {bp.line}</span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => toggleBreakpoint(bp.line)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Settings Panel */}
       <AnimatePresence>
         {showSettings && (
@@ -350,7 +786,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
             className="absolute top-20 right-0 z-50 w-64 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
           >
             <h3 className="text-lg font-semibold mb-4">Editor Settings</h3>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Theme</label>
@@ -363,7 +799,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
                   <option value="dark">Dark</option>
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium mb-2">Font Size</label>
                 <input
@@ -375,6 +811,18 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
                   className="w-full"
                 />
                 <span className="text-sm text-gray-600 dark:text-gray-400">{fontSize}px</span>
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={showMinimapState}
+                    onChange={(e) => setShowMinimap(e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className="text-sm">Show Minimap</span>
+                </label>
               </div>
             </div>
           </motion.div>
@@ -392,7 +840,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
           theme={editorTheme === 'dark' ? 'vs-dark' : 'light'}
           options={{
             readOnly,
-            minimap: { enabled: showMinimap },
+            minimap: { enabled: showMinimapState },
             fontSize,
             lineNumbers: 'on',
             roundedSelection: false,
@@ -407,6 +855,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
             suggestOnTriggerCharacters: true,
             acceptSuggestionOnEnter: 'on',
             bracketPairColorization: { enabled: true },
+            glyphMargin: enableDebugging,
           }}
         />
       </Card>
@@ -451,8 +900,41 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
             )}
             
             {compilationResult.success && (
-              <div className="text-green-400 text-sm">
-                ✓ Contract compiled successfully
+              <div className="space-y-2">
+                <div className="text-green-400 text-sm">
+                  ✓ Contract compiled successfully
+                </div>
+
+                {compilationResult.gasEstimate && (
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex justify-between">
+                      <span>Estimated Gas:</span>
+                      <span>{compilationResult.gasEstimate.toLocaleString()}</span>
+                    </div>
+                  </div>
+                )}
+
+                {compilationResult.deploymentCost && (
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex justify-between">
+                      <span>Deployment Cost:</span>
+                      <span>{compilationResult.deploymentCost.toLocaleString()} gas</span>
+                    </div>
+                  </div>
+                )}
+
+                {compilationResult.bytecode && (
+                  <div className="mt-3">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-green-500/30 text-green-600 hover:bg-green-500/10"
+                    >
+                      <Layers className="w-4 h-4 mr-2" />
+                      View Bytecode
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </Card>
