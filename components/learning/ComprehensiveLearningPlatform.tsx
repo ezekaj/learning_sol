@@ -170,21 +170,53 @@ contract HelloWorld {
 export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
   className = ''
 }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'curriculum' | 'projects' | 'gamification' | 'code'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'curriculum' | 'projects' | 'gamification' | 'code' | 'community' | 'ai-tutor'>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [aiTutorActive, setAiTutorActive] = useState(false);
+  const [communityStats, setCommunityStats] = useState({
+    onlineUsers: 1247,
+    studyGroups: 89,
+    mentorsAvailable: 23
+  });
 
   useEffect(() => {
     // Simulate loading
     setTimeout(() => setIsLoading(false), 2000);
   }, []);
 
+  // Handle AI Tutor activation
+  const handleAiTutorToggle = () => {
+    setAiTutorActive(!aiTutorActive);
+    if (!aiTutorActive) {
+      setShowSuccessAnimation(true);
+      setTimeout(() => setShowSuccessAnimation(false), 3000);
+    }
+  };
+
+  // Handle community features
+  const handleCommunityAction = (action: 'join-group' | 'find-mentor' | 'start-session') => {
+    console.log(`Community action: ${action}`);
+    setShowSuccessAnimation(true);
+    setTimeout(() => setShowSuccessAnimation(false), 2000);
+  };
+
+  // Handle quick learning boost
+  const handleQuickBoost = () => {
+    console.log('Quick learning boost activated!');
+    setShowSuccessAnimation(true);
+    setTimeout(() => setShowSuccessAnimation(false), 2000);
+  };
+
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <Target className="w-5 h-5" /> },
     { id: 'curriculum', label: 'Curriculum', icon: <BookOpen className="w-5 h-5" /> },
     { id: 'projects', label: 'Projects', icon: <Rocket className="w-5 h-5" /> },
     { id: 'gamification', label: 'Achievements', icon: <Trophy className="w-5 h-5" /> },
-    { id: 'code', label: 'Code Editor', icon: <Code className="w-5 h-5" /> }
+    { id: 'code', label: 'Code Editor', icon: <Code className="w-5 h-5" /> },
+    { id: 'community', label: 'Community', icon: <Users className="w-5 h-5" /> },
+    { id: 'ai-tutor', label: 'AI Tutor', icon: <Brain className="w-5 h-5" /> }
   ];
 
   if (isLoading) {
@@ -285,7 +317,17 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                   <div className="text-sm text-gray-400">Current Streak</div>
                   <div className="text-lg font-bold text-orange-400">{mockUserProgress.streak} days</div>
                 </div>
-                
+
+                <Button
+                  onClick={handleQuickBoost}
+                  variant="outline"
+                  size="sm"
+                  className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/20"
+                >
+                  <Zap className="w-4 h-4 mr-2" />
+                  Boost
+                </Button>
+
                 <Button variant="outline" size="sm" className="border-white/30">
                   <Settings className="w-4 h-4" />
                 </Button>
@@ -348,7 +390,7 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                       </Card>
                     </GSAPScrollAnimation>
 
-                    <GSAPScrollAnimation animationType="slideRight">
+                    <GSAPScrollAnimation animationType="slideLeft">
                       <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20">
                         <h3 className="text-xl font-semibold text-white mb-4">Recent Achievements</h3>
                         <div className="space-y-3">
@@ -424,10 +466,181 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                   </Card>
                 </motion.div>
               )}
+
+              {activeTab === 'community' && (
+                <motion.div
+                  key="community"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-6"
+                >
+                  <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-2xl font-bold text-white flex items-center">
+                        <Users className="w-8 h-8 mr-3 text-blue-400" />
+                        Community Hub
+                      </h2>
+                      <div className="flex items-center space-x-4 text-sm text-gray-400">
+                        <span>{communityStats.onlineUsers} online</span>
+                        <span>{communityStats.studyGroups} study groups</span>
+                        <span>{communityStats.mentorsAvailable} mentors available</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <Card className="p-4 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
+                        <div className="text-center">
+                          <Users className="w-12 h-12 mx-auto mb-3 text-green-400" />
+                          <h3 className="text-lg font-semibold text-white mb-2">Study Groups</h3>
+                          <p className="text-gray-300 text-sm mb-4">Join collaborative learning sessions</p>
+                          <Button
+                            onClick={() => handleCommunityAction('join-group')}
+                            className="w-full bg-green-600 hover:bg-green-700"
+                          >
+                            Join Group
+                          </Button>
+                        </div>
+                      </Card>
+
+                      <Card className="p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30">
+                        <div className="text-center">
+                          <Brain className="w-12 h-12 mx-auto mb-3 text-purple-400" />
+                          <h3 className="text-lg font-semibold text-white mb-2">Find Mentor</h3>
+                          <p className="text-gray-300 text-sm mb-4">Get guidance from experienced developers</p>
+                          <Button
+                            onClick={() => handleCommunityAction('find-mentor')}
+                            className="w-full bg-purple-600 hover:bg-purple-700"
+                          >
+                            Find Mentor
+                          </Button>
+                        </div>
+                      </Card>
+
+                      <Card className="p-4 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30">
+                        <div className="text-center">
+                          <Zap className="w-12 h-12 mx-auto mb-3 text-orange-400" />
+                          <h3 className="text-lg font-semibold text-white mb-2">Live Sessions</h3>
+                          <p className="text-gray-300 text-sm mb-4">Join real-time coding sessions</p>
+                          <Button
+                            onClick={() => handleCommunityAction('start-session')}
+                            className="w-full bg-orange-600 hover:bg-orange-700"
+                          >
+                            Start Session
+                          </Button>
+                        </div>
+                      </Card>
+                    </div>
+                  </Card>
+                </motion.div>
+              )}
+
+              {activeTab === 'ai-tutor' && (
+                <motion.div
+                  key="ai-tutor"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-6"
+                >
+                  <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-2xl font-bold text-white flex items-center">
+                        <Brain className="w-8 h-8 mr-3 text-purple-400" />
+                        AI Learning Assistant
+                      </h2>
+                      <Button
+                        onClick={handleAiTutorToggle}
+                        variant={aiTutorActive ? "default" : "outline"}
+                        className={aiTutorActive ? "bg-purple-600 hover:bg-purple-700" : "border-purple-500/50"}
+                      >
+                        <Brain className="w-4 h-4 mr-2" />
+                        {aiTutorActive ? 'Active' : 'Activate'}
+                      </Button>
+                    </div>
+
+                    {aiTutorActive ? (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-lg border border-purple-500/30">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <Brain className="w-6 h-6 text-purple-400" />
+                            <span className="font-semibold text-white">AI Tutor is now active!</span>
+                          </div>
+                          <p className="text-gray-300 text-sm">
+                            I'm here to help you learn Solidity and blockchain development.
+                            Ask me anything about smart contracts, DeFi, or Solana programming!
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <Card className="p-4 bg-blue-500/10 border border-blue-500/30">
+                            <h4 className="font-semibold text-white mb-2">Quick Help Topics</h4>
+                            <ul className="space-y-2 text-sm text-gray-300">
+                              <li>• Smart Contract Basics</li>
+                              <li>• Security Best Practices</li>
+                              <li>• DeFi Development</li>
+                              <li>• Gas Optimization</li>
+                            </ul>
+                          </Card>
+
+                          <Card className="p-4 bg-green-500/10 border border-green-500/30">
+                            <h4 className="font-semibold text-white mb-2">Learning Progress</h4>
+                            <div className="space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-300">Understanding</span>
+                                <span className="text-green-400">85%</span>
+                              </div>
+                              <Progress value={85} className="h-2" />
+                            </div>
+                          </Card>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <Brain className="w-16 h-16 mx-auto mb-4 text-gray-500" />
+                        <h3 className="text-xl font-semibold text-white mb-2">AI Tutor Ready</h3>
+                        <p className="text-gray-400 mb-6">
+                          Activate your personal AI learning assistant to get instant help and guidance.
+                        </p>
+                        <Button
+                          onClick={handleAiTutorToggle}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          <Brain className="w-4 h-4 mr-2" />
+                          Activate AI Tutor
+                        </Button>
+                      </div>
+                    )}
+                  </Card>
+                </motion.div>
+              )}
             </AnimatePresence>
           </main>
         </div>
       </div>
+
+      {/* Success Animation Overlay */}
+      <AnimatePresence>
+        {showSuccessAnimation && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.5, opacity: 0 }}
+              className="text-center"
+            >
+              <LottieSuccess size="lg" />
+              <div className="text-xl font-bold text-white mt-4">Success!</div>
+              <div className="text-gray-300">Action completed successfully</div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
