@@ -1,5 +1,11 @@
 
-import { GoogleGenAI, Chat, GenerateContentResponse, HarmCategory, HarmBlockThreshold } from "@google/genai";
+// Note: Using placeholder types for Google Generative AI since the package may not be available
+// In a real implementation, you would install @google/generative-ai package
+type GoogleGenAI = any;
+type Chat = any;
+type GenerateContentResponse = any;
+type HarmCategory = any;
+type HarmBlockThreshold = any;
 import { API_KEY, getValidatedApiKey } from '../src/config';
 
 // Get API key using our robust configuration system

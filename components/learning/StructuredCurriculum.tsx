@@ -17,10 +17,10 @@ import {
   ChevronDown,
   ChevronRight
 } from 'lucide-react';
-import { Card } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { Progress } from '../ui/Progress';
-import { Badge } from '../ui/Badge';
+import { Card } from '../ui/card';
+import { Button } from '../ui/button';
+import { Progress } from '../ui/progress';
+import { Badge } from '../ui/badge';
 
 interface Lesson {
   id: string;

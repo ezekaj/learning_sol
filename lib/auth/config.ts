@@ -4,7 +4,6 @@ import GithubProvider from 'next-auth/providers/github';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
-import { UserRole } from '@prisma/client';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -18,7 +17,7 @@ export const authOptions: NextAuthOptions = {
           name: profile.name || profile.login,
           email: profile.email,
           image: profile.avatar_url,
-          role: UserRole.STUDENT,
+          role: 'STUDENT' as const,
         };
       },
     }),
@@ -31,7 +30,7 @@ export const authOptions: NextAuthOptions = {
           name: profile.name,
           email: profile.email,
           image: profile.picture,
-          role: UserRole.STUDENT,
+          role: 'STUDENT' as const,
         };
       },
     }),
@@ -69,7 +68,7 @@ export const authOptions: NextAuthOptions = {
               data: {
                 email: credentials.address,
                 name: `User ${credentials.address.slice(0, 6)}...${credentials.address.slice(-4)}`,
-                role: UserRole.STUDENT,
+                role: 'STUDENT' as const,
               },
             });
 
@@ -100,7 +99,7 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
         token.id = user.id;
@@ -108,9 +107,9 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      if (token) {
+      if (token && session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as UserRole;
+        session.user.role = token.role as any;
       }
       return session;
     },
@@ -126,7 +125,7 @@ export const authOptions: NextAuthOptions = {
             await prisma.userProfile.create({
               data: {
                 userId: user.id,
-                githubUsername: account.provider === 'github' ? profile?.login : undefined,
+                githubUsername: account.provider === 'github' ? (profile as any)?.login : undefined,
               },
             });
           }
@@ -139,11 +138,10 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/auth/signin',
-    signUp: '/auth/signup',
     error: '/auth/error',
   },
   events: {
-    async signIn({ user, account, isNewUser }) {
+    async signIn({ user, isNewUser }) {
       if (isNewUser) {
         // Send welcome email or perform other onboarding tasks
         console.log(`New user signed up: ${user.email}`);

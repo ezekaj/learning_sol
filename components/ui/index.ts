@@ -1,17 +1,17 @@
 // Export all UI components
 export * from './Accessibility';
-export * from './Badge';
+export * from './badge';
 export * from './Branding';
-export * from './Button';
-export * from './Card';
-export * from './Dialog';
-export * from './DropdownMenu';
+export * from './button';
+export * from './card';
+export * from './dialog';
+export * from './dropdown-menu';
 export * from './ErrorHandling';
 export * from './LoadingStates';
 export * from './Onboarding';
 export * from './PageTransition';
-export * from './Progress';
-export * from './Toast';
+export * from './progress';
+export * from './toast';
 export * from './Tooltip';
 
 // Glassmorphism & Neumorphism components
@@ -21,17 +21,17 @@ export * from './AdvancedAnimations';
 
 // Default exports
 export { default as SkipLink } from './Accessibility';
-export { default as Badge } from './Badge';
+export { Badge } from './badge';
 export { default as Logo } from './Branding';
-export { default as Button } from './Button';
-export { default as Card } from './Card';
-export { default as Dialog } from './Dialog';
-export { default as DropdownMenu } from './DropdownMenu';
+export { Button } from './button';
+export { Card } from './card';
+export { Dialog } from './dialog';
+export { DropdownMenu } from './dropdown-menu';
 export { default as ErrorBoundary } from './ErrorHandling';
 export { default as LoadingSpinner } from './LoadingStates';
 export { default as OnboardingProvider } from './Onboarding';
 export { default as PageTransition } from './PageTransition';
-export { default as Progress } from './Progress';
+export { default as Progress } from './progress';
 export { default as Tooltip } from './Tooltip';
 
 // Advanced Animation Components

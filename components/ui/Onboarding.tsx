@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from './Button';
+import { Button } from './button';
 
 // Onboarding Context
 interface OnboardingStep {
