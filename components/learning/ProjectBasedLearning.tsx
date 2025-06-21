@@ -102,9 +102,23 @@ export const ProjectBasedLearning: React.FC<ProjectBasedLearningProps> = ({
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
+  const [isRunning, setIsRunning] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const project = projects.find(p => p.id === selectedProject);
   const currentStep = project?.steps[project.currentStep];
+
+  // Load project data and initialize state
+  useEffect(() => {
+    if (selectedProject && project) {
+      // Initialize test results for all steps
+      const initialTestResults: { [key: string]: boolean } = {};
+      project.steps.forEach(step => {
+        initialTestResults[step.id] = step.completed;
+      });
+      setTestResults(initialTestResults);
+    }
+  }, [selectedProject, project]);
 
   const showToastMessage = (message: string, type: 'success' | 'error' | 'warning') => {
     setToastMessage(message);
@@ -147,12 +161,12 @@ export const ProjectBasedLearning: React.FC<ProjectBasedLearningProps> = ({
 
   const handleDeploy = async () => {
     if (!project || !currentStep?.code) return;
-    
+
     setIsDeploying(true);
-    
+
     try {
       const result = await onDeploy?.(project.id, currentStep.code);
-      
+
       if (result) {
         setDeploymentResult(result);
         if (result.success) {
@@ -166,6 +180,47 @@ export const ProjectBasedLearning: React.FC<ProjectBasedLearningProps> = ({
     } finally {
       setIsDeploying(false);
     }
+  };
+
+  const handleRunCode = () => {
+    setIsRunning(true);
+    showToastMessage('Running code simulation...', 'success');
+    setTimeout(() => {
+      setIsRunning(false);
+      showToastMessage('Code execution completed!', 'success');
+    }, 2000);
+  };
+
+  const handlePauseExecution = () => {
+    setIsRunning(false);
+    showToastMessage('Code execution paused', 'warning');
+  };
+
+  const handleDownloadProject = () => {
+    if (!project) return;
+
+    const projectData = {
+      title: project.title,
+      description: project.description,
+      steps: project.steps,
+      code: currentStep?.code || ''
+    };
+
+    const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${project.title.replace(/\s+/g, '_')}_project.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToastMessage('Project downloaded successfully!', 'success');
+  };
+
+  const handleShareProject = () => {
+    setShowShareModal(true);
   };
 
   const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
@@ -298,6 +353,26 @@ export const ProjectBasedLearning: React.FC<ProjectBasedLearningProps> = ({
             </div>
             
             <div className="flex items-center space-x-2">
+              <Button
+                onClick={handleDownloadProject}
+                variant="outline"
+                size="sm"
+                className="border-white/30"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download
+              </Button>
+
+              <Button
+                onClick={handleShareProject}
+                variant="outline"
+                size="sm"
+                className="border-white/30"
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
+
               {project.githubRepo && (
                 <Button variant="outline" size="sm" className="border-white/30">
                   <GitBranch className="w-4 h-4 mr-2" />
@@ -369,6 +444,66 @@ export const ProjectBasedLearning: React.FC<ProjectBasedLearningProps> = ({
               )}
               
               <div className="space-y-3">
+                {/* Code Execution Controls */}
+                <div className="p-3 bg-gray-800/50 rounded-lg border border-gray-600">
+                  <h4 className="text-sm font-medium text-white mb-2 flex items-center">
+                    <Code className="w-4 h-4 mr-2" />
+                    Code Execution
+                  </h4>
+                  <div className="flex space-x-2">
+                    <Button
+                      onClick={handleRunCode}
+                      disabled={isRunning}
+                      size="sm"
+                      className="bg-purple-600 hover:bg-purple-700"
+                    >
+                      {isRunning ? (
+                        <>
+                          <RotateCcw className="w-3 h-3 mr-1 animate-spin" />
+                          Running
+                        </>
+                      ) : (
+                        <>
+                          <Rocket className="w-3 h-3 mr-1" />
+                          Run
+                        </>
+                      )}
+                    </Button>
+
+                    {isRunning && (
+                      <Button
+                        onClick={handlePauseExecution}
+                        size="sm"
+                        variant="outline"
+                        className="border-orange-500/50 text-orange-400"
+                      >
+                        <Pause className="w-3 h-3 mr-1" />
+                        Pause
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Test Results Display */}
+                {Object.keys(testResults).length > 0 && (
+                  <div className="p-3 bg-gray-800/50 rounded-lg border border-gray-600">
+                    <h4 className="text-sm font-medium text-white mb-2">Test Results</h4>
+                    <div className="space-y-1">
+                      {Object.entries(testResults).map(([stepId, passed]) => {
+                        const step = project.steps.find(s => s.id === stepId);
+                        return (
+                          <div key={stepId} className="flex items-center justify-between text-xs">
+                            <span className="text-gray-400">{step?.title || stepId}</span>
+                            <span className={passed ? 'text-green-400' : 'text-red-400'}>
+                              {passed ? '✓ Passed' : '✗ Failed'}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 <Button
                   onClick={() => handleStepComplete(currentStep.id)}
                   className="w-full bg-green-600 hover:bg-green-700"
@@ -386,7 +521,7 @@ export const ProjectBasedLearning: React.FC<ProjectBasedLearningProps> = ({
                     </>
                   )}
                 </Button>
-                
+
                 <Button
                   onClick={handleDeploy}
                   disabled={isDeploying || !currentStep.completed}
