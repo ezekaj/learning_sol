@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useSpring, animated } from '@react-spring/web';
 
 // Skeleton Components
 interface SkeletonProps {
