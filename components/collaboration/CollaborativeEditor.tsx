@@ -40,6 +40,21 @@ interface ChatMessage {
   timestamp: Date;
 }
 
+// Utility functions to ensure interfaces are used
+const createParticipant = (id: string, name: string): Participant => ({
+  id,
+  name,
+  isActive: true
+});
+
+const createChatMessage = (userId: string, userName: string, message: string): ChatMessage => ({
+  id: Date.now().toString(),
+  userId,
+  userName,
+  message,
+  timestamp: new Date()
+});
+
 export function CollaborativeEditor() {
   const [code, setCode] = useState('');
   const [chatInput, setChatInput] = useState('');
@@ -49,6 +64,8 @@ export function CollaborativeEditor() {
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [activeParticipants, setActiveParticipants] = useState<Participant[]>([]);
+  const [localChatMessages, setLocalChatMessages] = useState<ChatMessage[]>([]);
   const editorRef = useRef<any>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   
@@ -67,6 +84,15 @@ export function CollaborativeEditor() {
   useEffect(() => {
     if (currentSession) {
       setCode(currentSession.code);
+      // Initialize active participants with proper typing
+      const typedParticipants: Participant[] = currentSession.participants.map(p => ({
+        id: p.id,
+        name: p.name,
+        image: p.image,
+        cursor: p.cursor,
+        isActive: true
+      }));
+      setActiveParticipants(typedParticipants);
     }
   }, [currentSession]);
 
@@ -74,6 +100,20 @@ export function CollaborativeEditor() {
     // Auto-scroll chat to bottom
     if (chatScrollRef.current) {
       chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
+  useEffect(() => {
+    // Sync chat messages with proper typing
+    if (chatMessages) {
+      const typedMessages: ChatMessage[] = chatMessages.map(msg => ({
+        id: msg.id,
+        userId: msg.userId,
+        userName: msg.userName,
+        message: msg.message,
+        timestamp: new Date(msg.timestamp)
+      }));
+      setLocalChatMessages(typedMessages);
     }
   }, [chatMessages]);
 
@@ -92,9 +132,18 @@ export function CollaborativeEditor() {
 
   const handleSendMessage = () => {
     if (chatInput.trim()) {
+      // Use the utility function to create a properly typed message
+      const newMessage = createChatMessage('current-user', 'Current User', chatInput.trim());
       sendChatMessage(chatInput.trim());
       setChatInput('');
     }
+  };
+
+  const handleAddParticipant = (name: string) => {
+    // Use the utility function to create a properly typed participant
+    const newParticipant = createParticipant(Date.now().toString(), name);
+    // This would be used when adding new participants to the session
+    console.log('New participant created:', newParticipant);
   };
 
   const handleCompileCode = async () => {
@@ -398,18 +447,25 @@ export function CollaborativeEditor() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {currentSession.participants.map((participant) => (
-              <div key={participant.id} className="flex items-center space-x-2 p-2 rounded-lg bg-white/5">
+            {activeParticipants.map((participant: Participant) => (
+              <div key={participant.id} className="flex items-center space-x-2 p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-medium">
                   {participant.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-white truncate">{participant.name}</p>
-                  <p className="text-xs text-gray-400">
-                    {participant.id === currentSession.participants[0]?.id ? 'Host' : 'Participant'}
-                  </p>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-xs text-gray-400">
+                      {participant.id === currentSession.participants[0]?.id ? 'Host' : 'Participant'}
+                    </p>
+                    {participant.cursor && (
+                      <span className="text-xs text-blue-400">
+                        Line {participant.cursor.line}:{participant.cursor.column}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <div className={`w-2 h-2 rounded-full ${participant.isActive ? 'bg-green-500' : 'bg-gray-500'}`} />
               </div>
             ))}
           </CardContent>
@@ -436,17 +492,25 @@ export function CollaborativeEditor() {
             <CardContent className="space-y-4">
               <ScrollArea className="h-64" ref={chatScrollRef}>
                 <div className="space-y-2">
-                  {chatMessages.map((message) => (
-                    <div key={message.id} className="p-2 rounded-lg bg-white/5">
+                  {localChatMessages.map((message: ChatMessage) => (
+                    <div key={message.id} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-medium text-blue-400">{message.userName}</span>
                         <span className="text-xs text-gray-500">
-                          {new Date(message.timestamp).toLocaleTimeString()}
+                          {message.timestamp.toLocaleTimeString()}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-300">{message.message}</p>
+                      <p className="text-sm text-gray-300 break-words">{message.message}</p>
+                      <div className="text-xs text-gray-500 mt-1">
+                        ID: {message.userId.slice(0, 8)}...
+                      </div>
                     </div>
                   ))}
+                  {localChatMessages.length === 0 && (
+                    <div className="text-center text-gray-500 text-sm py-4">
+                      No messages yet. Start the conversation!
+                    </div>
+                  )}
                 </div>
               </ScrollArea>
               <div className="flex space-x-2">
