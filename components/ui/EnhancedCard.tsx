@@ -31,20 +31,25 @@ export const EnhancedCard: React.FC<EnhancedCardProps> = ({
 
   const glowClass = glow ? 'shadow-lg shadow-purple-500/25' : '';
 
-  // Filter out HTML drag events that conflict with Framer Motion
-  const { onDrag, onDragStart, onDragEnd, onDragOver, onDrop, ...filteredProps } = props;
+  // Create motion-compatible props
+  const motionProps = {
+    className: cn(
+      'rounded-lg p-6 transition-all duration-300',
+      variants[variant],
+      glowClass,
+      className
+    ),
+    ...hoverEffects,
+    onClick: props.onClick,
+    onFocus: props.onFocus,
+    onBlur: props.onBlur,
+    onKeyDown: props.onKeyDown,
+    id: props.id,
+    'data-testid': (props as any)['data-testid']
+  };
 
   return (
-    <motion.div
-      className={cn(
-        'rounded-lg p-6 transition-all duration-300',
-        variants[variant],
-        glowClass,
-        className
-      )}
-      {...hoverEffects}
-      {...filteredProps}
-    >
+    <motion.div {...motionProps}>
       {children}
     </motion.div>
   );

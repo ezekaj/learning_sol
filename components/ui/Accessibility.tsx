@@ -281,31 +281,37 @@ const AccessibleButton: React.FC<AccessibleButtonProps> = ({
 }) => {
   const isFocusVisible = useFocusVisible();
 
-  // Filter out HTML drag events that conflict with Framer Motion
-  const { onDrag, onDragStart, onDragEnd, onDragOver, onDrop, ...filteredProps } = props;
+  // Create motion-compatible props by filtering out conflicting HTML events
+  const motionProps = {
+    className: `
+      relative inline-flex items-center justify-center font-medium rounded-lg
+      transition-all duration-200 focus:outline-none
+      ${isFocusVisible ? 'focus:ring-2 focus:ring-brand-primary-500 focus:ring-offset-2 focus:ring-offset-brand-bg-dark' : ''}
+      ${variant === 'primary' ? 'bg-brand-primary-600 hover:bg-brand-primary-700 text-white' : ''}
+      ${variant === 'secondary' ? 'bg-brand-bg-medium hover:bg-brand-bg-light text-brand-text-primary border border-brand-bg-light' : ''}
+      ${variant === 'ghost' ? 'bg-transparent hover:bg-brand-bg-medium text-brand-text-primary' : ''}
+      ${size === 'sm' ? 'px-3 py-1.5 text-sm' : ''}
+      ${size === 'md' ? 'px-4 py-2 text-sm' : ''}
+      ${size === 'lg' ? 'px-6 py-3 text-base' : ''}
+      ${(disabled || loading) ? 'opacity-50 cursor-not-allowed' : ''}
+    `,
+    disabled: disabled || loading,
+    'aria-label': loading ? loadingText : ariaLabel,
+    'aria-busy': loading,
+    whileHover: !disabled && !loading ? { scale: 1.02 } : {},
+    whileTap: !disabled && !loading ? { scale: 0.98 } : {},
+    transition: { duration: 0.1 },
+    onClick: props.onClick,
+    onFocus: props.onFocus,
+    onBlur: props.onBlur,
+    onKeyDown: props.onKeyDown,
+    type: props.type,
+    id: props.id,
+    'data-testid': (props as any)['data-testid']
+  };
 
   return (
-    <motion.button
-      className={`
-        relative inline-flex items-center justify-center font-medium rounded-lg
-        transition-all duration-200 focus:outline-none
-        ${isFocusVisible ? 'focus:ring-2 focus:ring-brand-primary-500 focus:ring-offset-2 focus:ring-offset-brand-bg-dark' : ''}
-        ${variant === 'primary' ? 'bg-brand-primary-600 hover:bg-brand-primary-700 text-white' : ''}
-        ${variant === 'secondary' ? 'bg-brand-bg-medium hover:bg-brand-bg-light text-brand-text-primary border border-brand-bg-light' : ''}
-        ${variant === 'ghost' ? 'bg-transparent hover:bg-brand-bg-medium text-brand-text-primary' : ''}
-        ${size === 'sm' ? 'px-3 py-1.5 text-sm' : ''}
-        ${size === 'md' ? 'px-4 py-2 text-sm' : ''}
-        ${size === 'lg' ? 'px-6 py-3 text-base' : ''}
-        ${(disabled || loading) ? 'opacity-50 cursor-not-allowed' : ''}
-      `}
-      disabled={disabled || loading}
-      aria-label={loading ? loadingText : ariaLabel}
-      aria-busy={loading}
-      whileHover={!disabled && !loading ? { scale: 1.02 } : {}}
-      whileTap={!disabled && !loading ? { scale: 0.98 } : {}}
-      transition={{ duration: 0.1 }}
-      {...filteredProps}
-    >
+    <motion.button {...motionProps}>
       {loading && (
         <motion.div
           className="w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2"
@@ -362,11 +368,12 @@ const AccessibleField: React.FC<AccessibleFieldProps> = ({
       
       <div>
         {React.cloneElement(children as React.ReactElement, {
-          id,
+          ...((children as React.ReactElement).props || {}),
+          id: id,
           'aria-describedby': [hintId, errorId].filter(Boolean).join(' ') || undefined,
           'aria-invalid': error ? 'true' : undefined,
-          required,
-        })}
+          required: required,
+        } as any)}
       </div>
       
       {error && (

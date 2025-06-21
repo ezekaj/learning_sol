@@ -140,33 +140,39 @@ const NeumorphicButton: React.FC<NeumorphicButtonProps> = ({
     if (onClick) onClick(e);
   };
 
-  // Filter out HTML drag events that conflict with Framer Motion
-  const { onDrag, onDragStart, onDragEnd, onDragOver, onDrop, ...filteredProps } = props;
+  // Create motion-compatible props
+  const motionProps = {
+    className: `
+      ${variants[variant]}
+      ${sizes[size]}
+      ${shapes[shape]}
+      font-medium transition-all duration-150 relative overflow-hidden
+      focus:outline-none focus:ring-2 focus:ring-brand-primary-500/50
+      ${className}
+    `,
+    style: {
+      boxShadow: isPressed
+        ? 'inset 4px 4px 8px rgba(0,0,0,0.15), inset -4px -4px 8px rgba(255,255,255,0.8)'
+        : '6px 6px 12px rgba(0,0,0,0.15), -6px -6px 12px rgba(255,255,255,0.8)',
+    },
+    onMouseDown: handleMouseDown,
+    onMouseUp: handleMouseUp,
+    onMouseLeave: handleMouseLeave,
+    onClick: handleClick,
+    whileHover: { scale: 1.02 },
+    whileTap: { scale: 0.98 },
+    transition: { duration: 0.1 },
+    onFocus: props.onFocus,
+    onBlur: props.onBlur,
+    onKeyDown: props.onKeyDown,
+    type: props.type,
+    disabled: props.disabled,
+    id: props.id,
+    'data-testid': (props as any)['data-testid']
+  };
 
   return (
-    <motion.button
-      className={`
-        ${variants[variant]}
-        ${sizes[size]}
-        ${shapes[shape]}
-        font-medium transition-all duration-150 relative overflow-hidden
-        focus:outline-none focus:ring-2 focus:ring-brand-primary-500/50
-        ${className}
-      `}
-      style={{
-        boxShadow: isPressed
-          ? 'inset 4px 4px 8px rgba(0,0,0,0.15), inset -4px -4px 8px rgba(255,255,255,0.8)'
-          : '6px 6px 12px rgba(0,0,0,0.15), -6px -6px 12px rgba(255,255,255,0.8)',
-      }}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseLeave}
-      onClick={handleClick}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.1 }}
-      {...filteredProps}
-    >
+    <motion.button {...motionProps}>
       {children}
     </motion.button>
   );

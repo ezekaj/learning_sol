@@ -51,23 +51,29 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 
   const isDisabled = disabled || loading;
 
-  // Filter out HTML drag events that conflict with Framer Motion
-  const { onDrag, onDragStart, onDragEnd, onDragOver, onDrop, ...filteredProps } = props;
+  // Create motion-compatible props
+  const motionProps = {
+    className: cn(
+      'relative overflow-hidden rounded-lg border font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed',
+      variants[variant],
+      sizes[size],
+      glowClass,
+      className
+    ),
+    whileHover: !isDisabled ? { scale: 1.02 } : {},
+    whileTap: !isDisabled ? { scale: 0.98 } : {},
+    disabled: isDisabled,
+    onClick: props.onClick,
+    onFocus: props.onFocus,
+    onBlur: props.onBlur,
+    onKeyDown: props.onKeyDown,
+    type: props.type,
+    id: props.id,
+    'data-testid': (props as any)['data-testid']
+  };
 
   return (
-    <motion.button
-      className={cn(
-        'relative overflow-hidden rounded-lg border font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed',
-        variants[variant],
-        sizes[size],
-        glowClass,
-        className
-      )}
-      whileHover={!isDisabled ? { scale: 1.02 } : {}}
-      whileTap={!isDisabled ? { scale: 0.98 } : {}}
-      disabled={isDisabled}
-      {...filteredProps}
-    >
+    <motion.button {...motionProps}>
       {ripple && (
         <motion.div
           className="absolute inset-0 bg-white/20 rounded-lg"

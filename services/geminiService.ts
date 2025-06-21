@@ -10,7 +10,7 @@ class GoogleGenAI {
   }
 
   chats = {
-    create: (config: any) => ({
+    create: (_config: any) => ({
       sendMessage: async (message: any) => ({
         text: `Mock AI response to: ${message.message || message}`
       })
@@ -18,13 +18,17 @@ class GoogleGenAI {
   };
 
   models = {
-    generateContent: async (config: any) => ({
-      text: `Mock explanation for: ${config.contents}`,
+    generateContent: async (_config: any) => ({
+      text: `Mock explanation for: ${_config.contents}`,
       candidates: [{ finishReason: 'STOP' }]
     }),
-    generateImages: async (config: any) => ({
-      generatedImages: [],
-      error: { message: 'Mock image generation not implemented' }
+    generateImages: async (_config: any) => ({
+      generatedImages: [{
+        image: {
+          imageBytes: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' // 1x1 transparent PNG
+        }
+      }],
+      error: null
     })
   };
 }

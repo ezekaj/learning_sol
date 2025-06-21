@@ -72,7 +72,7 @@ const GlassContainer: React.FC<GlassContainerProps> = ({
   const motionProps = animated ? {
     initial: { opacity: 0, scale: 0.95 },
     animate: { opacity: 1, scale: 1 },
-    transition: { duration: 0.3, ease: "easeOut" },
+    transition: { duration: 0.3, ease: "easeOut" as const },
   } : {};
 
   return (
@@ -283,24 +283,31 @@ const GlassButton: React.FC<GlassButtonProps> = ({
 
   const glowClass = glow ? 'hover:shadow-glow' : '';
 
-  // Filter out HTML drag events that conflict with Framer Motion
-  const { onDrag, onDragStart, onDragEnd, onDragOver, onDrop, ...filteredProps } = props;
+  // Create motion-compatible props
+  const motionProps = {
+    className: `
+      backdrop-blur-md border rounded-lg font-medium
+      transition-all duration-300 relative overflow-hidden
+      ${variants[variant]}
+      ${sizes[size]}
+      ${glowClass}
+      ${className}
+    `,
+    whileHover: { scale: 1.02 },
+    whileTap: { scale: 0.98 },
+    transition: { duration: 0.1 },
+    onClick: props.onClick,
+    onFocus: props.onFocus,
+    onBlur: props.onBlur,
+    onKeyDown: props.onKeyDown,
+    type: props.type,
+    disabled: props.disabled,
+    id: props.id,
+    'data-testid': (props as any)['data-testid']
+  };
 
   return (
-    <motion.button
-      className={`
-        backdrop-blur-md border rounded-lg font-medium
-        transition-all duration-300 relative overflow-hidden
-        ${variants[variant]}
-        ${sizes[size]}
-        ${glowClass}
-        ${className}
-      `}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.1 }}
-      {...filteredProps}
-    >
+    <motion.button {...motionProps}>
       {/* Glass shine effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
       

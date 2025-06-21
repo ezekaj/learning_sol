@@ -266,7 +266,7 @@ const Retry: React.FC<RetryProps> = ({
       {canRetry && (
         <Button
           onClick={onRetry}
-          loading={isRetrying}
+          disabled={isRetrying}
           variant="default"
           className="mx-auto"
         >
