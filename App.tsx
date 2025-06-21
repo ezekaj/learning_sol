@@ -19,7 +19,11 @@ import {
 
 type DemoView = 'learning' | 'animations' | 'design' | 'overview';
 
-const MainApp: React.FC = () => {
+interface MainAppProps {
+  onLogout?: () => void;
+}
+
+const MainApp: React.FC<MainAppProps> = ({ onLogout }) => {
   const [currentView, setCurrentView] = useState<DemoView>('overview');
 
   const navigationItems = [

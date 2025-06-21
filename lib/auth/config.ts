@@ -4,6 +4,7 @@ import GithubProvider from 'next-auth/providers/github';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
+import { UserRole } from '@prisma/client';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -17,7 +18,7 @@ export const authOptions: NextAuthOptions = {
           name: profile.name || profile.login,
           email: profile.email,
           image: profile.avatar_url,
-          role: 'STUDENT' as const,
+          role: UserRole.STUDENT,
         };
       },
     }),
@@ -30,7 +31,7 @@ export const authOptions: NextAuthOptions = {
           name: profile.name,
           email: profile.email,
           image: profile.picture,
-          role: 'STUDENT' as const,
+          role: UserRole.STUDENT,
         };
       },
     }),
@@ -68,7 +69,7 @@ export const authOptions: NextAuthOptions = {
               data: {
                 email: credentials.address,
                 name: `User ${credentials.address.slice(0, 6)}...${credentials.address.slice(-4)}`,
-                role: 'STUDENT' as const,
+                role: UserRole.STUDENT,
               },
             });
 

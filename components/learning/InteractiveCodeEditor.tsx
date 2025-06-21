@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Save, Download, Upload, Settings, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { Play, Download, Upload, Settings, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import CustomToast from '../ui/CustomToast';
