@@ -55,7 +55,8 @@ model User {
   achievements  UserAchievement[]
   submissions   CodeSubmission[]
   collaborations Collaboration[]
-  mentorships   Mentorship[]
+  mentorships   Mentorship[] @relation("MentorRelation")
+  menteeships   Mentorship[] @relation("MenteeRelation")
   chatMessages  ChatMessage[]
 }
 
@@ -228,8 +229,8 @@ model Mentorship {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
-  mentor User @relation("MentorRelation", fields: [mentorId], references: [id])
-  mentee User @relation("MenteeRelation", fields: [menteeId], references: [id])
+  mentor User @relation("MentorRelation", fields: [mentorId], references: [id], onDelete: Cascade)
+  mentee User @relation("MenteeRelation", fields: [menteeId], references: [id], onDelete: Cascade)
 
   @@unique([mentorId, menteeId])
 }

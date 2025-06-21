@@ -4,9 +4,10 @@ const nextConfig = {
   trailingSlash: true,
   basePath: '/learning_sol',
   assetPrefix: '/learning_sol/',
+  serverExternalPackages: ['@prisma/client'],
   experimental: {
-    appDir: true,
-    serverComponentsExternalPackages: ['@prisma/client'],
+    // Removed deprecated appDir option (App Router is now stable)
+    // Moved serverComponentsExternalPackages to serverExternalPackages at root level
   },
   images: {
     domains: ['avatars.githubusercontent.com', 'lh3.googleusercontent.com'],
