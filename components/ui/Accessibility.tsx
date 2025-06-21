@@ -281,6 +281,9 @@ const AccessibleButton: React.FC<AccessibleButtonProps> = ({
 }) => {
   const isFocusVisible = useFocusVisible();
 
+  // Filter out HTML drag events that conflict with Framer Motion
+  const { onDrag, onDragStart, onDragEnd, onDragOver, onDrop, ...filteredProps } = props;
+
   return (
     <motion.button
       className={`
@@ -301,7 +304,7 @@ const AccessibleButton: React.FC<AccessibleButtonProps> = ({
       whileHover={!disabled && !loading ? { scale: 1.02 } : {}}
       whileTap={!disabled && !loading ? { scale: 0.98 } : {}}
       transition={{ duration: 0.1 }}
-      {...props}
+      {...filteredProps}
     >
       {loading && (
         <motion.div

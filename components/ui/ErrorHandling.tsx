@@ -69,7 +69,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
           message={this.state.error?.message || 'An unexpected error occurred'}
           onRetry={this.handleRetry}
           showDetails={this.props.showDetails}
-          details={this.state.errorInfo?.componentStack}
+          details={this.state.errorInfo?.componentStack || undefined}
         />
       );
     }
@@ -267,7 +267,7 @@ const Retry: React.FC<RetryProps> = ({
         <Button
           onClick={onRetry}
           loading={isRetrying}
-          variant="primary"
+          variant="default"
           className="mx-auto"
         >
           {isRetrying ? 'Retrying...' : 'Try Again'}

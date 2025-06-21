@@ -140,6 +140,9 @@ const NeumorphicButton: React.FC<NeumorphicButtonProps> = ({
     if (onClick) onClick(e);
   };
 
+  // Filter out HTML drag events that conflict with Framer Motion
+  const { onDrag, onDragStart, onDragEnd, onDragOver, onDrop, ...filteredProps } = props;
+
   return (
     <motion.button
       className={`
@@ -162,7 +165,7 @@ const NeumorphicButton: React.FC<NeumorphicButtonProps> = ({
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.1 }}
-      {...props}
+      {...filteredProps}
     >
       {children}
     </motion.button>

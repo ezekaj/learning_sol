@@ -10,11 +10,15 @@ import {
   Palette,
   Zap,
   Github,
-
   Play,
   Code,
   Trophy,
-  Users
+  Users,
+  LogOut,
+  User,
+  Settings,
+  Shield,
+  AlertTriangle
 } from 'lucide-react';
 
 type DemoView = 'learning' | 'animations' | 'design' | 'overview';
@@ -25,6 +29,61 @@ interface MainAppProps {
 
 const MainApp: React.FC<MainAppProps> = ({ onLogout = () => {} }) => {
   const [currentView, setCurrentView] = useState<DemoView>('overview');
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  // Mock user session data
+  const [userSession] = useState({
+    username: 'Demo User',
+    email: 'demo@solanalearn.com',
+    avatar: null,
+    lastLogin: new Date().toISOString(),
+    sessionDuration: '2h 15m',
+    progress: {
+      completedLessons: 12,
+      totalXP: 2450,
+      currentStreak: 7
+    }
+  });
+
+  // Logout functionality handlers
+  const handleLogoutClick = () => {
+    setShowUserMenu(false);
+    setShowLogoutModal(true);
+  };
+
+  const handleLogoutConfirm = async () => {
+    setIsLoggingOut(true);
+
+    try {
+      // Simulate session cleanup
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Clear local storage/session storage
+      localStorage.removeItem('userSession');
+      localStorage.removeItem('learningProgress');
+      sessionStorage.clear();
+
+      // Call the onLogout prop to handle parent component logout
+      onLogout();
+
+      // Close modal
+      setShowLogoutModal(false);
+
+      // Optional: Redirect to login page or home
+      // window.location.href = '/login';
+
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
+  const handleLogoutCancel = () => {
+    setShowLogoutModal(false);
+  };
 
   const navigationItems = [
     {
@@ -115,6 +174,85 @@ const MainApp: React.FC<MainAppProps> = ({ onLogout = () => {} }) => {
                 <Github className="w-4 h-4" />
                 <span className="text-sm">GitHub</span>
               </a>
+
+              {/* User Menu */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center space-x-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white"
+                >
+                  <User className="w-4 h-4" />
+                  <span className="text-sm">{userSession.username}</span>
+                </button>
+
+                {/* User Dropdown Menu */}
+                <AnimatePresence>
+                  {showUserMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute right-0 mt-2 w-64 bg-gray-900/95 backdrop-blur-md border border-white/20 rounded-lg shadow-xl z-50"
+                    >
+                      <div className="p-4 border-b border-white/10">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                            <User className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-white">{userSession.username}</div>
+                            <div className="text-sm text-gray-400">{userSession.email}</div>
+                          </div>
+                        </div>
+                        <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                          <div className="text-center">
+                            <div className="font-semibold text-blue-400">{userSession.progress.completedLessons}</div>
+                            <div className="text-gray-400">Lessons</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="font-semibold text-yellow-400">{userSession.progress.totalXP}</div>
+                            <div className="text-gray-400">XP</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="font-semibold text-green-400">{userSession.progress.currentStreak}</div>
+                            <div className="text-gray-400">Streak</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-2">
+                        <button
+                          onClick={() => setShowUserMenu(false)}
+                          className="w-full flex items-center space-x-2 px-3 py-2 text-left text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                          <Settings className="w-4 h-4" />
+                          <span>Settings</span>
+                        </button>
+                        <button
+                          onClick={() => setShowUserMenu(false)}
+                          className="w-full flex items-center space-x-2 px-3 py-2 text-left text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                          <Shield className="w-4 h-4" />
+                          <span>Privacy</span>
+                        </button>
+                        <div className="border-t border-white/10 my-2"></div>
+                        <button
+                          onClick={handleLogoutClick}
+                          className="w-full flex items-center space-x-2 px-3 py-2 text-left text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Logout</span>
+                        </button>
+                      </div>
+
+                      <div className="p-3 border-t border-white/10 text-xs text-gray-400">
+                        <div>Session: {userSession.sessionDuration}</div>
+                        <div>Last login: {new Date(userSession.lastLogin).toLocaleDateString()}</div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
         </div>
@@ -306,6 +444,81 @@ const MainApp: React.FC<MainAppProps> = ({ onLogout = () => {} }) => {
           )}
         </AnimatePresence>
       </main>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+            onClick={handleLogoutCancel}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-gray-900 border border-white/20 rounded-xl p-6 max-w-md w-full mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Confirm Logout</h3>
+                  <p className="text-sm text-gray-400">Are you sure you want to logout?</p>
+                </div>
+              </div>
+
+              <div className="bg-white/5 rounded-lg p-4 mb-6">
+                <div className="text-sm text-gray-300 space-y-2">
+                  <div className="flex justify-between">
+                    <span>Current session:</span>
+                    <span className="text-blue-400">{userSession.sessionDuration}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Unsaved progress:</span>
+                    <span className="text-yellow-400">Will be saved automatically</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Current streak:</span>
+                    <span className="text-green-400">{userSession.progress.currentStreak} days</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleLogoutCancel}
+                  disabled={isLoggingOut}
+                  className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLogoutConfirm}
+                  disabled={isLoggingOut}
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                >
+                  {isLoggingOut ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Logging out...</span>
+                    </>
+                  ) : (
+                    <>
+                      <LogOut className="w-4 h-4" />
+                      <span>Logout</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

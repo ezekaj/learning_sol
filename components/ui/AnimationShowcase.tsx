@@ -183,9 +183,16 @@ export const AnimationShowcase: React.FC<{ className?: string }> = ({
             </div>
             
             <div className="text-center space-y-4">
-              <h4 className="font-semibold text-gray-900 dark:text-white">Progress</h4>
-              <div className="text-2xl font-bold text-blue-600">
-                {progress}%
+              <h4 className="font-semibold text-gray-900 dark:text-white">Custom Player</h4>
+              <LottiePlayer
+                src="https://assets5.lottiefiles.com/packages/lf20_V9t630.json"
+                autoplay
+                loop
+                style={{ width: 120, height: 120 }}
+                className="mx-auto"
+              />
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Progress: {progress}%
               </div>
             </div>
           </div>

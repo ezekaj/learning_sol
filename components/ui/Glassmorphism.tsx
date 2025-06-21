@@ -72,7 +72,7 @@ const GlassContainer: React.FC<GlassContainerProps> = ({
   const motionProps = animated ? {
     initial: { opacity: 0, scale: 0.95 },
     animate: { opacity: 1, scale: 1 },
-    transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.3, ease: "easeOut" },
   } : {};
 
   return (
@@ -283,6 +283,9 @@ const GlassButton: React.FC<GlassButtonProps> = ({
 
   const glowClass = glow ? 'hover:shadow-glow' : '';
 
+  // Filter out HTML drag events that conflict with Framer Motion
+  const { onDrag, onDragStart, onDragEnd, onDragOver, onDrop, ...filteredProps } = props;
+
   return (
     <motion.button
       className={`
@@ -296,7 +299,7 @@ const GlassButton: React.FC<GlassButtonProps> = ({
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.1 }}
-      {...props}
+      {...filteredProps}
     >
       {/* Glass shine effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />

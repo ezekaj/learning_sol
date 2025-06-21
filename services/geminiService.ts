@@ -1,7 +1,34 @@
 
-// Note: Using placeholder types for Google Generative AI since the package may not be available
+// Note: Using placeholder implementation for Google Generative AI since the package may not be available
 // In a real implementation, you would install @google/generative-ai package
-type GoogleGenAI = any;
+
+// Mock implementation for development/demo purposes
+class GoogleGenAI {
+  constructor(config: { apiKey: string }) {
+    // Mock constructor - in real implementation this would initialize the actual SDK
+    console.log('Mock GoogleGenAI initialized with API key:', !!config.apiKey);
+  }
+
+  chats = {
+    create: (config: any) => ({
+      sendMessage: async (message: any) => ({
+        text: `Mock AI response to: ${message.message || message}`
+      })
+    })
+  };
+
+  models = {
+    generateContent: async (config: any) => ({
+      text: `Mock explanation for: ${config.contents}`,
+      candidates: [{ finishReason: 'STOP' }]
+    }),
+    generateImages: async (config: any) => ({
+      generatedImages: [],
+      error: { message: 'Mock image generation not implemented' }
+    })
+  };
+}
+
 type Chat = any;
 type GenerateContentResponse = any;
 import { API_KEY, getValidatedApiKey } from '../src/config';

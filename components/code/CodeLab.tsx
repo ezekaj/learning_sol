@@ -3,10 +3,13 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Editor } from '@monaco-editor/react';
-import { 
-  Play, 
-  Save, 
-  Download, 
+import {
+  BookOpen,
+  Code,
+  Lightbulb,
+  Play,
+  Save,
+  Download,
   Upload,
   Zap
 } from 'lucide-react';
@@ -441,6 +444,206 @@ export function CodeLab() {
         {/* Sidebar */}
         <div className="space-y-4">
           <WalletConnect />
+
+          {/* Code Examples Card */}
+          <Card className="glass border-white/10">
+            <CardHeader>
+              <CardTitle className="text-sm text-white flex items-center">
+                <Code className="w-4 h-4 mr-2" />
+                Code Examples
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                Quick start templates and common patterns
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <button
+                onClick={() => setCode(DEFAULT_CODE)}
+                className="w-full text-left p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <div className="font-medium text-white text-sm">Simple Storage</div>
+                <div className="text-xs text-gray-400">Basic contract with getter/setter</div>
+              </button>
+
+              <button
+                onClick={() => setCode(`// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract ERC20Token {
+    string public name = "MyToken";
+    string public symbol = "MTK";
+    uint8 public decimals = 18;
+    uint256 public totalSupply = 1000000 * 10**decimals;
+
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    constructor() {
+        balanceOf[msg.sender] = totalSupply;
+    }
+
+    function transfer(address to, uint256 value) public returns (bool) {
+        require(balanceOf[msg.sender] >= value, "Insufficient balance");
+        balanceOf[msg.sender] -= value;
+        balanceOf[to] += value;
+        emit Transfer(msg.sender, to, value);
+        return true;
+    }
+
+    function approve(address spender, uint256 value) public returns (bool) {
+        allowance[msg.sender][spender] = value;
+        emit Approval(msg.sender, spender, value);
+        return true;
+    }
+}`)}
+                className="w-full text-left p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <div className="font-medium text-white text-sm">ERC-20 Token</div>
+                <div className="text-xs text-gray-400">Standard token implementation</div>
+              </button>
+
+              <button
+                onClick={() => setCode(`// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract MultiSigWallet {
+    address[] public owners;
+    uint256 public required;
+
+    struct Transaction {
+        address to;
+        uint256 value;
+        bytes data;
+        bool executed;
+        uint256 confirmations;
+    }
+
+    Transaction[] public transactions;
+    mapping(uint256 => mapping(address => bool)) public confirmations;
+
+    modifier onlyOwner() {
+        require(isOwner(msg.sender), "Not an owner");
+        _;
+    }
+
+    constructor(address[] memory _owners, uint256 _required) {
+        require(_owners.length > 0, "Owners required");
+        require(_required > 0 && _required <= _owners.length, "Invalid required number");
+
+        owners = _owners;
+        required = _required;
+    }
+
+    function isOwner(address addr) public view returns (bool) {
+        for (uint256 i = 0; i < owners.length; i++) {
+            if (owners[i] == addr) return true;
+        }
+        return false;
+    }
+
+    function submitTransaction(address to, uint256 value, bytes memory data) public onlyOwner {
+        transactions.push(Transaction({
+            to: to,
+            value: value,
+            data: data,
+            executed: false,
+            confirmations: 0
+        }));
+    }
+}`)}
+                className="w-full text-left p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <div className="font-medium text-white text-sm">Multi-Sig Wallet</div>
+                <div className="text-xs text-gray-400">Advanced security pattern</div>
+              </button>
+            </CardContent>
+          </Card>
+
+          {/* Tutorial Guide Card */}
+          <Card className="glass border-white/10">
+            <CardHeader>
+              <CardTitle className="text-sm text-white flex items-center">
+                <BookOpen className="w-4 h-4 mr-2" />
+                Tutorial Guide
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                Step-by-step learning resources
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                <div className="font-medium text-blue-400 text-sm mb-1">Getting Started</div>
+                <div className="text-xs text-gray-400 space-y-1">
+                  <div>1. Write your Solidity code</div>
+                  <div>2. Click "Compile" to check for errors</div>
+                  <div>3. Review security analysis</div>
+                  <div>4. Deploy to testnet</div>
+                </div>
+              </div>
+
+              <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                <div className="font-medium text-green-400 text-sm mb-1">Best Practices</div>
+                <div className="text-xs text-gray-400 space-y-1">
+                  <div>• Use latest Solidity version</div>
+                  <div>• Add comprehensive comments</div>
+                  <div>• Implement proper access controls</div>
+                  <div>• Test thoroughly before mainnet</div>
+                </div>
+              </div>
+
+              <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                <div className="font-medium text-yellow-400 text-sm mb-1">Common Pitfalls</div>
+                <div className="text-xs text-gray-400 space-y-1">
+                  <div>• Reentrancy attacks</div>
+                  <div>• Integer overflow/underflow</div>
+                  <div>• Unhandled exceptions</div>
+                  <div>• Gas limit issues</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Project Ideas Card */}
+          <Card className="glass border-white/10">
+            <CardHeader>
+              <CardTitle className="text-sm text-white flex items-center">
+                <Lightbulb className="w-4 h-4 mr-2" />
+                Project Ideas
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                Inspiration for your next smart contract
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="p-2 bg-white/5 rounded text-xs">
+                <div className="font-medium text-white">🎮 Gaming Token</div>
+                <div className="text-gray-400">In-game currency with rewards</div>
+              </div>
+
+              <div className="p-2 bg-white/5 rounded text-xs">
+                <div className="font-medium text-white">🏪 Marketplace</div>
+                <div className="text-gray-400">NFT trading platform</div>
+              </div>
+
+              <div className="p-2 bg-white/5 rounded text-xs">
+                <div className="font-medium text-white">🗳️ Voting System</div>
+                <div className="text-gray-400">Decentralized governance</div>
+              </div>
+
+              <div className="p-2 bg-white/5 rounded text-xs">
+                <div className="font-medium text-white">💰 DeFi Protocol</div>
+                <div className="text-gray-400">Lending and borrowing</div>
+              </div>
+
+              <div className="p-2 bg-white/5 rounded text-xs">
+                <div className="font-medium text-white">🎨 Art Gallery</div>
+                <div className="text-gray-400">Digital art showcase</div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

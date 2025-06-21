@@ -51,6 +51,9 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 
   const isDisabled = disabled || loading;
 
+  // Filter out HTML drag events that conflict with Framer Motion
+  const { onDrag, onDragStart, onDragEnd, onDragOver, onDrop, ...filteredProps } = props;
+
   return (
     <motion.button
       className={cn(
@@ -63,7 +66,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
       whileHover={!isDisabled ? { scale: 1.02 } : {}}
       whileTap={!isDisabled ? { scale: 0.98 } : {}}
       disabled={isDisabled}
-      {...props}
+      {...filteredProps}
     >
       {ripple && (
         <motion.div

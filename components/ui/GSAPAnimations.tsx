@@ -26,7 +26,7 @@ export const GSAPTimelineAnimation: React.FC<GSAPTimelineAnimationProps> = ({
   ease = 'power2.out'
 }) => {
   const elementRef = useRef<HTMLDivElement>(null);
-  const timelineRef = useRef<gsap.core.Timeline>();
+  const timelineRef = useRef<gsap.core.Timeline | null>(null);
 
   useEffect(() => {
     if (!elementRef.current) return;

@@ -70,11 +70,81 @@ export const EnhancedLoginModal: React.FC<EnhancedLoginModalProps> = ({
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [email, setEmail] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [userPreferences, setUserPreferences] = useState({
+    preferredRoute: redirectTo,
+    lastVisitedPages: [] as string[],
+    loginHistory: [] as { timestamp: string; method: string }[]
+  });
+
+  // Navigation and preference handling
+  const saveUserPreferences = (loginMethod: string) => {
+    const preferences = {
+      ...userPreferences,
+      loginHistory: [
+        ...userPreferences.loginHistory,
+        { timestamp: new Date().toISOString(), method: loginMethod }
+      ].slice(-10) // Keep last 10 login attempts
+    };
+
+    if (rememberMe) {
+      localStorage.setItem('userPreferences', JSON.stringify(preferences));
+      localStorage.setItem('preferredRoute', redirectTo);
+      localStorage.setItem('rememberLogin', 'true');
+    } else {
+      sessionStorage.setItem('currentSession', JSON.stringify(preferences));
+    }
+
+    setUserPreferences(preferences);
+  };
+
+  const handlePostLoginNavigation = () => {
+    // Save current page to history before redirecting
+    const currentPath = window.location.pathname;
+    const updatedHistory = [currentPath, ...userPreferences.lastVisitedPages].slice(0, 5);
+
+    const updatedPreferences = {
+      ...userPreferences,
+      lastVisitedPages: updatedHistory
+    };
+
+    setUserPreferences(updatedPreferences);
+
+    // Determine redirect destination
+    let destination = redirectTo;
+
+    // Check for saved preferred route
+    const savedRoute = localStorage.getItem('preferredRoute');
+    if (savedRoute && savedRoute !== '/') {
+      destination = savedRoute;
+    }
+
+    // Check for return URL in query params
+    const urlParams = new URLSearchParams(window.location.search);
+    const returnUrl = urlParams.get('returnUrl');
+    if (returnUrl) {
+      destination = decodeURIComponent(returnUrl);
+    }
+
+    // Navigate to destination
+    setTimeout(() => {
+      if (destination && destination !== window.location.pathname) {
+        window.location.href = destination;
+      }
+    }, 500); // Small delay for better UX
+  };
 
   const handleProviderLogin = async (providerId: string) => {
     setIsLoading(providerId);
     try {
       await login(providerId);
+
+      // Save preferences and handle navigation
+      saveUserPreferences(providerId);
+      handlePostLoginNavigation();
+
+      // Close modal after successful login
+      onClose();
     } catch (error) {
       console.error('Login failed:', error);
     } finally {
@@ -88,6 +158,13 @@ export const EnhancedLoginModal: React.FC<EnhancedLoginModalProps> = ({
     try {
       // In a real app, this would handle email/password login
       await login('email');
+
+      // Save preferences and handle navigation
+      saveUserPreferences('email');
+      handlePostLoginNavigation();
+
+      // Close modal after successful login
+      onClose();
     } catch (error) {
       console.error('Email login failed:', error);
     } finally {
@@ -178,6 +255,25 @@ export const EnhancedLoginModal: React.FC<EnhancedLoginModalProps> = ({
                   <p className="text-gray-400">
                     Sign in to continue your learning journey
                   </p>
+
+                  {/* Redirect Information */}
+                  {redirectTo && redirectTo !== '/' && (
+                    <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <ArrowRight className="w-4 h-4 text-blue-400" />
+                        <span className="text-sm text-blue-400 font-medium">
+                          You'll be redirected to: {redirectTo}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Recent Login History */}
+                  {userPreferences.loginHistory.length > 0 && (
+                    <div className="mt-3 text-xs text-gray-500">
+                      Last login: {new Date(userPreferences.loginHistory[userPreferences.loginHistory.length - 1]?.timestamp).toLocaleDateString()}
+                    </div>
+                  )}
                 </div>
 
                 {!showEmailForm ? (
@@ -268,6 +364,8 @@ export const EnhancedLoginModal: React.FC<EnhancedLoginModalProps> = ({
                       <label className="flex items-center">
                         <input
                           type="checkbox"
+                          checked={rememberMe}
+                          onChange={(e) => setRememberMe(e.target.checked)}
                           className="rounded border-white/20 bg-white/10 text-purple-600 focus:ring-purple-500"
                         />
                         <span className="ml-2 text-sm text-gray-400">Remember me</span>

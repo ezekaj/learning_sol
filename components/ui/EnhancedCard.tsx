@@ -31,6 +31,9 @@ export const EnhancedCard: React.FC<EnhancedCardProps> = ({
 
   const glowClass = glow ? 'shadow-lg shadow-purple-500/25' : '';
 
+  // Filter out HTML drag events that conflict with Framer Motion
+  const { onDrag, onDragStart, onDragEnd, onDragOver, onDrop, ...filteredProps } = props;
+
   return (
     <motion.div
       className={cn(
@@ -40,7 +43,7 @@ export const EnhancedCard: React.FC<EnhancedCardProps> = ({
         className
       )}
       {...hoverEffects}
-      {...props}
+      {...filteredProps}
     >
       {children}
     </motion.div>

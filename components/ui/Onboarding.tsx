@@ -163,6 +163,73 @@ const OnboardingTooltip: React.FC = () => {
   const isLastStep = currentStep === steps.length - 1;
   const isFirstStep = currentStep === 0;
 
+  // Enhanced navigation with progress tracking
+  const handleNextStep = () => {
+    if (isLastStep) {
+      // Complete the tour and save progress
+      localStorage.setItem('onboardingCompleted', 'true');
+      localStorage.setItem('onboardingCompletedAt', new Date().toISOString());
+
+      // Track completion analytics
+      const tourData = {
+        completedSteps: steps.length,
+        totalTime: Date.now() - parseInt(localStorage.getItem('onboardingStartTime') || '0'),
+        completionRate: 100,
+        skippedSteps: 0
+      };
+      localStorage.setItem('onboardingAnalytics', JSON.stringify(tourData));
+
+      skipTour(); // This will close the tour
+    } else {
+      // Track step progress
+      const stepProgress = {
+        stepIndex: currentStep,
+        stepId: currentStepData.id,
+        timestamp: new Date().toISOString(),
+        timeSpent: Date.now() - parseInt(localStorage.getItem(`step_${currentStep}_startTime`) || '0')
+      };
+
+      // Save individual step completion
+      const completedSteps = JSON.parse(localStorage.getItem('completedOnboardingSteps') || '[]');
+      completedSteps.push(stepProgress);
+      localStorage.setItem('completedOnboardingSteps', JSON.stringify(completedSteps));
+
+      // Set start time for next step
+      localStorage.setItem(`step_${currentStep + 1}_startTime`, Date.now().toString());
+
+      nextStep();
+    }
+  };
+
+  const handlePrevStep = () => {
+    // Track backward navigation
+    const backNavigation = {
+      fromStep: currentStep,
+      toStep: currentStep - 1,
+      timestamp: new Date().toISOString()
+    };
+
+    const backNavigations = JSON.parse(localStorage.getItem('onboardingBackNavigations') || '[]');
+    backNavigations.push(backNavigation);
+    localStorage.setItem('onboardingBackNavigations', JSON.stringify(backNavigations));
+
+    prevStep();
+  };
+
+  const handleSkipTour = () => {
+    // Track skip analytics
+    const skipData = {
+      skippedAtStep: currentStep,
+      totalStepsCompleted: currentStep,
+      completionRate: Math.round((currentStep / steps.length) * 100),
+      timeSpent: Date.now() - parseInt(localStorage.getItem('onboardingStartTime') || '0')
+    };
+    localStorage.setItem('onboardingSkipAnalytics', JSON.stringify(skipData));
+    localStorage.setItem('onboardingSkipped', 'true');
+
+    skipTour();
+  };
+
   const getTooltipPosition = () => {
     if (!currentStepData.target) {
       return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
@@ -260,23 +327,53 @@ const OnboardingTooltip: React.FC = () => {
       {/* Navigation */}
       <div className="flex justify-between items-center">
         <Button
-          onClick={skipTour}
+          onClick={handleSkipTour}
           variant="ghost"
           size="sm"
-          className="text-brand-text-muted"
+          className="text-brand-text-muted hover:text-red-400"
         >
           Skip Tour
         </Button>
-        
+
         <div className="flex gap-2">
           {!isFirstStep && (
-            <Button onClick={prevStep} variant="secondary" size="sm">
+            <Button onClick={handlePrevStep} variant="secondary" size="sm">
               Previous
             </Button>
           )}
-          <Button onClick={() => {}} variant="default" size="sm">
-            {isLastStep ? 'Finish' : 'Next'}
+          <Button onClick={handleNextStep} variant="default" size="sm">
+            {isLastStep ? 'Finish Tour' : 'Next'}
           </Button>
+        </div>
+      </div>
+
+      {/* Enhanced Progress Information */}
+      <div className="mt-4 pt-3 border-t border-brand-bg-light/20">
+        <div className="flex items-center justify-between text-xs text-brand-text-muted">
+          <span>Progress: {Math.round(((currentStep + 1) / steps.length) * 100)}%</span>
+          <span>{steps.length - currentStep - 1} steps remaining</span>
+        </div>
+
+        {/* Step completion indicator */}
+        <div className="mt-2 flex items-center gap-1">
+          {steps.map((step, index) => (
+            <div
+              key={step.id}
+              className={`flex-1 h-1 rounded-full transition-all duration-300 ${
+                index < currentStep
+                  ? 'bg-green-500'
+                  : index === currentStep
+                  ? 'bg-brand-primary-500'
+                  : 'bg-brand-bg-light'
+              }`}
+              title={`Step ${index + 1}: ${step.title}`}
+            />
+          ))}
+        </div>
+
+        {/* Time estimate */}
+        <div className="mt-2 text-xs text-brand-text-muted text-center">
+          Estimated time remaining: {Math.max(0, (steps.length - currentStep - 1) * 30)} seconds
         </div>
       </div>
     </motion.div>
@@ -299,6 +396,34 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({
   title = "Welcome to Solidity DevPath!",
   description = "Let's take a quick tour to help you get started with learning Solidity and blockchain development.",
 }) => {
+  // Check if user has completed onboarding before
+  const hasCompletedBefore = localStorage.getItem('onboardingCompleted') === 'true';
+  const lastCompletionDate = localStorage.getItem('onboardingCompletedAt');
+  const skipAnalytics = JSON.parse(localStorage.getItem('onboardingSkipAnalytics') || 'null');
+
+  const handleStartTour = () => {
+    // Initialize tour tracking
+    localStorage.setItem('onboardingStartTime', Date.now().toString());
+    localStorage.setItem('step_0_startTime', Date.now().toString());
+    localStorage.removeItem('onboardingSkipped');
+    localStorage.removeItem('completedOnboardingSteps');
+    localStorage.removeItem('onboardingBackNavigations');
+
+    onStartTour();
+  };
+
+  const handleSkipForNow = () => {
+    // Track skip from welcome modal
+    const skipData = {
+      skippedAtStep: -1, // Before starting
+      skippedFromWelcome: true,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem('onboardingSkipAnalytics', JSON.stringify(skipData));
+
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -326,16 +451,57 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({
             {title}
           </h2>
           
-          <p className="text-brand-text-muted mb-6">
+          <p className="text-brand-text-muted mb-4">
             {description}
           </p>
-          
+
+          {/* Previous completion info */}
+          {hasCompletedBefore && lastCompletionDate && (
+            <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <div className="flex items-center gap-2 text-green-400 text-sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>You completed the tour on {new Date(lastCompletionDate).toLocaleDateString()}</span>
+              </div>
+              <p className="text-xs text-green-300 mt-1">
+                Want to take it again or show someone else?
+              </p>
+            </div>
+          )}
+
+          {/* Skip analytics info */}
+          {skipAnalytics && !hasCompletedBefore && (
+            <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+              <div className="text-yellow-400 text-sm">
+                You previously skipped the tour at {skipAnalytics.completionRate}% completion
+              </div>
+              <p className="text-xs text-yellow-300 mt-1">
+                Ready to complete it this time?
+              </p>
+            </div>
+          )}
+
+          {/* Tour benefits */}
+          <div className="mb-6 text-left">
+            <div className="text-sm font-medium text-brand-text-primary mb-2">This tour will show you:</div>
+            <ul className="text-xs text-brand-text-muted space-y-1">
+              <li>• How to navigate the learning platform</li>
+              <li>• Key features and tools available</li>
+              <li>• Tips for effective learning</li>
+              <li>• How to track your progress</li>
+            </ul>
+            <div className="text-xs text-brand-text-muted mt-2">
+              ⏱️ Takes about 2-3 minutes
+            </div>
+          </div>
+
           <div className="flex gap-3">
-            <Button onClick={onClose} variant="secondary" className="flex-1">
-              Skip for now
+            <Button onClick={handleSkipForNow} variant="secondary" className="flex-1">
+              {hasCompletedBefore ? 'Close' : 'Skip for now'}
             </Button>
-            <Button onClick={onStartTour} variant="default" className="flex-1">
-              Start Tour
+            <Button onClick={handleStartTour} variant="default" className="flex-1">
+              {hasCompletedBefore ? 'Take Again' : 'Start Tour'}
             </Button>
           </div>
         </div>

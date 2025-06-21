@@ -116,40 +116,104 @@ export const BlockchainVisualization: React.FC<{ className?: string }> = ({
 };
 
 // Floating Particles Background
-const Particle: React.FC<{ position: [number, number, number] }> = ({ position }) => {
+const Particle: React.FC<{
+  position: [number, number, number];
+  id?: number;
+  animationDelay?: number;
+  animationSpeed?: number;
+  renderPriority?: string;
+  colorVariant?: number;
+  scale?: number;
+  movementPattern?: number;
+}> = ({
+  position,
+  id = 0,
+  animationDelay = 0,
+  animationSpeed = 1,
+  renderPriority = 'medium',
+  colorVariant = 0,
+  scale = 1,
+  movementPattern = 0
+}) => {
   const meshRef = useRef<THREE.Mesh>(null);
+
+  // Color variants based on index
+  const colors = ['#00ff88', '#9945FF', '#14F195', '#FF6B6B', '#FFD93D'];
+  const particleColor = colors[colorVariant];
 
   useFrame((state) => {
     if (meshRef.current) {
-      meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime + position[0]) * 0.5;
-      meshRef.current.rotation.x = state.clock.elapsedTime * 0.5;
-      meshRef.current.rotation.y = state.clock.elapsedTime * 0.3;
+      const time = state.clock.elapsedTime;
+      const delayedTime = Math.max(0, time - animationDelay);
+
+      // Different movement patterns based on index
+      switch (movementPattern) {
+        case 0: // Original floating motion
+          meshRef.current.position.y = position[1] + Math.sin(delayedTime + position[0]) * 0.5;
+          break;
+        case 1: // Circular motion
+          meshRef.current.position.x = position[0] + Math.cos(delayedTime * animationSpeed) * 0.3;
+          meshRef.current.position.z = position[2] + Math.sin(delayedTime * animationSpeed) * 0.3;
+          break;
+        case 2: // Figure-8 motion
+          meshRef.current.position.x = position[0] + Math.sin(delayedTime * animationSpeed) * 0.4;
+          meshRef.current.position.y = position[1] + Math.sin(delayedTime * animationSpeed * 2) * 0.2;
+          break;
+      }
+
+      // Rotation based on animation speed and index
+      meshRef.current.rotation.x = delayedTime * animationSpeed * 0.5;
+      meshRef.current.rotation.y = delayedTime * animationSpeed * 0.3;
+
+      // Performance optimization: reduce updates for low priority particles
+      if (renderPriority === 'low' && Math.floor(time * 10) % 3 !== 0) {
+        return; // Skip some frames for low priority particles
+      }
     }
   });
 
   return (
-    <mesh ref={meshRef} position={position}>
-      <sphereGeometry args={[0.05, 8, 8]} />
-      <meshStandardMaterial 
-        color="#00ff88" 
-        emissive="#00ff88" 
-        emissiveIntensity={0.2}
+    <mesh
+      ref={meshRef}
+      position={position}
+      scale={[scale, scale, scale]}
+      userData={{ id, renderPriority }} // Store metadata for debugging
+    >
+      <sphereGeometry args={[0.05, renderPriority === 'high' ? 16 : 8, renderPriority === 'high' ? 16 : 8]} />
+      <meshStandardMaterial
+        color={particleColor}
+        emissive={particleColor}
+        emissiveIntensity={renderPriority === 'high' ? 0.3 : renderPriority === 'medium' ? 0.2 : 0.1}
+        transparent
+        opacity={renderPriority === 'high' ? 0.9 : renderPriority === 'medium' ? 0.7 : 0.5}
       />
     </mesh>
   );
 };
 
-export const ParticleBackground: React.FC<{ 
+export const ParticleBackground: React.FC<{
   className?: string;
   particleCount?: number;
 }> = ({ className = '', particleCount = 50 }) => {
-  const particles = useMemo(() => 
+  const particles = useMemo(() =>
     Array.from({ length: particleCount }, (_, i) => ({
+      id: i, // Unique identifier for each particle
       position: [
         (Math.random() - 0.5) * 20,
         (Math.random() - 0.5) * 20,
         (Math.random() - 0.5) * 20
-      ] as [number, number, number]
+      ] as [number, number, number],
+      // Use index for animation sequencing
+      animationDelay: i * 0.1, // Staggered animation start
+      animationSpeed: 0.5 + (i % 3) * 0.2, // Varied speeds based on index
+      // Use index for performance optimization
+      renderPriority: i < 20 ? 'high' : i < 40 ? 'medium' : 'low',
+      // Use index for color variation
+      colorVariant: i % 5, // 5 different color variants
+      // Use index for size variation
+      scale: 0.8 + (i % 4) * 0.1, // Size based on index
+      // Use index for movement pattern
+      movementPattern: i % 3 // 3 different movement patterns
     })), [particleCount]
   );
 
@@ -159,7 +223,17 @@ export const ParticleBackground: React.FC<{
         <ambientLight intensity={0.3} />
         
         {particles.map((particle, index) => (
-          <Particle key={index} position={particle.position} />
+          <Particle
+            key={index}
+            position={particle.position}
+            id={particle.id}
+            animationDelay={particle.animationDelay}
+            animationSpeed={particle.animationSpeed}
+            renderPriority={particle.renderPriority}
+            colorVariant={particle.colorVariant}
+            scale={particle.scale}
+            movementPattern={particle.movementPattern}
+          />
         ))}
         
         <Stars radius={100} depth={50} count={1000} factor={4} saturation={0} fade />
