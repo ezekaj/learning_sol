@@ -177,6 +177,40 @@ export const EnhancedAIAssistant: React.FC<EnhancedAIAssistantProps> = ({
     }
   };
 
+  // Helper function to extract concepts from messages
+  const extractConceptFromMessage = (message: string): string | null => {
+    const conceptKeywords = [
+      'smart contract', 'solidity', 'ethereum', 'blockchain', 'gas', 'wei', 'ether',
+      'function', 'modifier', 'event', 'struct', 'mapping', 'array', 'inheritance',
+      'interface', 'library', 'pragma', 'constructor', 'fallback', 'receive',
+      'public', 'private', 'internal', 'external', 'view', 'pure', 'payable'
+    ];
+
+    const lowerMessage = message.toLowerCase();
+    const foundConcept = conceptKeywords.find(keyword =>
+      lowerMessage.includes(keyword)
+    );
+
+    return foundConcept || null;
+  };
+
+  // Enhanced sendMessage with callback usage
+  const sendMessageWithCallbacks = async (message: string, type: string = 'question') => {
+    await sendMessage(message, type);
+
+    // Use the callback props based on message type
+    if (type === 'analyze-code' && onCodeAnalysis && currentCode) {
+      onCodeAnalysis(currentCode);
+    }
+
+    if (type === 'explain-concept' && onConceptExplanation) {
+      const concept = extractConceptFromMessage(message);
+      if (concept) {
+        onConceptExplanation(concept);
+      }
+    }
+  };
+
   const handleQuickAction = (action: typeof quickActions[0]) => {
     let message = '';
     switch (action.type) {
@@ -427,7 +461,7 @@ export const EnhancedAIAssistant: React.FC<EnhancedAIAssistantProps> = ({
               type="text"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage(inputMessage)}
+              onKeyPress={(e) => e.key === 'Enter' && sendMessageWithCallbacks(inputMessage)}
               placeholder={isListening ? 'Listening...' : 'Ask me anything about Solidity...'}
               className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isLoading || isListening}
@@ -444,7 +478,7 @@ export const EnhancedAIAssistant: React.FC<EnhancedAIAssistantProps> = ({
             </Button>
             
             <Button
-              onClick={() => sendMessage(inputMessage)}
+              onClick={() => sendMessageWithCallbacks(inputMessage)}
               disabled={!inputMessage.trim() || isLoading}
               className="bg-blue-600 hover:bg-blue-700"
             >
