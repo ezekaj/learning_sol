@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Rocket, 
-  Code, 
-  Deploy, 
-  TestTube, 
-  CheckCircle, 
+import {
+  Rocket,
+  Code,
+  Upload,
+  TestTube,
+  CheckCircle,
   AlertCircle,
   ExternalLink,
   Download,
@@ -399,7 +399,7 @@ export const ProjectBasedLearning: React.FC<ProjectBasedLearningProps> = ({
                     </>
                   ) : (
                     <>
-                      <Deploy className="w-4 h-4 mr-2" />
+                      <Upload className="w-4 h-4 mr-2" />
                       Deploy to Testnet
                     </>
                   )}

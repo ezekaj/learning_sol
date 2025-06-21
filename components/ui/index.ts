@@ -31,7 +31,7 @@ export { default as ErrorBoundary } from './ErrorHandling';
 export { default as LoadingSpinner } from './LoadingStates';
 export { default as OnboardingProvider } from './Onboarding';
 export { default as PageTransition } from './PageTransition';
-export { default as Progress } from './progress';
+export { Progress } from './progress';
 export { default as Tooltip } from './Tooltip';
 
 // Advanced Animation Components

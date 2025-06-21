@@ -35,12 +35,32 @@ declare namespace NodeJS {
   }
 }
 
-// Prisma UserRole enum
+// Prisma UserRole enum and PrismaClient
 declare module '@prisma/client' {
   export enum UserRole {
     STUDENT = 'STUDENT',
     MENTOR = 'MENTOR',
     INSTRUCTOR = 'INSTRUCTOR',
     ADMIN = 'ADMIN'
+  }
+
+  export class PrismaClient {
+    constructor(options?: any);
+    user: any;
+    userProfile: any;
+    userProgress: any;
+    userAchievement: any;
+    codeSubmission: any;
+    collaboration: any;
+    mentorship: any;
+    chatMessage: any;
+    course: any;
+    module: any;
+    lesson: any;
+    achievement: any;
+    deployment: any;
+    aiInteraction: any;
+    $connect(): Promise<void>;
+    $disconnect(): Promise<void>;
   }
 }
