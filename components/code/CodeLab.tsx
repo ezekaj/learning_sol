@@ -62,12 +62,17 @@ interface CompilationResult {
   optimizationSuggestions?: string[];
 }
 
-// For static export, return a simplified version without hooks
-if (isStaticExport) {
-  return <StaticCodeLab />;
+export function CodeLab() {
+  // For static export, return a simplified version without hooks
+  if (isStaticExport) {
+    return <StaticCodeLab />;
+  }
+
+  return <DynamicCodeLab />;
 }
 
-export function CodeLab() {
+// Dynamic component that uses hooks (only loaded in non-static mode)
+function DynamicCodeLab() {
   const [code, setCode] = useState(DEFAULT_CODE);
   const [compilationResult, setCompilationResult] = useState<CompilationResult | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
