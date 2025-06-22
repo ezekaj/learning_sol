@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// Check if we're in static export mode
+const isStaticExport = process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
 import { 
   BookOpen, 
   Code, 
@@ -43,6 +46,16 @@ interface Achievement {
 }
 
 export function LearningDashboard() {
+  // For static export, return a simplified version without hooks
+  if (isStaticExport) {
+    return <StaticLearningDashboard />;
+  }
+
+  return <DynamicLearningDashboard />;
+}
+
+// Dynamic component that uses hooks (only loaded in non-static mode)
+function DynamicLearningDashboard() {
   const { state, completeChallenge, completeGoal, setTotalGoals } = useLearning();
   const [courses, setCourses] = useState<Course[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
@@ -535,6 +548,123 @@ export function LearningDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+// Simplified static version for static export
+function StaticLearningDashboard() {
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center">
+        <motion.h1
+          className="text-4xl font-bold gradient-text mb-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          Learn Solidity
+        </motion.h1>
+        <motion.p
+          className="text-xl text-gray-300"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          Master blockchain development with interactive courses and challenges.
+          This is a static demo showcasing the learning platform.
+        </motion.p>
+      </div>
+
+      {/* Progress Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="glass border-white/10">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Courses Completed</p>
+                <p className="text-2xl font-bold text-white">3/5</p>
+              </div>
+              <BookOpen className="w-8 h-8 text-blue-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass border-white/10">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Challenges Solved</p>
+                <p className="text-2xl font-bold text-white">12/20</p>
+              </div>
+              <Code className="w-8 h-8 text-green-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass border-white/10">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Achievements</p>
+                <p className="text-2xl font-bold text-white">8</p>
+              </div>
+              <Trophy className="w-8 h-8 text-yellow-400" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Course Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card className="glass border-white/10 hover:border-blue-500/30 transition-colors">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">Solidity Basics</h3>
+              <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+            </div>
+            <p className="text-gray-400 text-sm mb-4">
+              Learn the fundamentals of Solidity programming language.
+            </p>
+            <div className="w-full bg-gray-700 rounded-full h-2 mb-4">
+              <div className="bg-green-400 h-2 rounded-full" style={{ width: '100%' }}></div>
+            </div>
+            <p className="text-green-400 text-sm">Completed</p>
+          </CardContent>
+        </Card>
+
+        <Card className="glass border-white/10 hover:border-blue-500/30 transition-colors">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">Smart Contracts</h3>
+              <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
+            </div>
+            <p className="text-gray-400 text-sm mb-4">
+              Build and deploy your first smart contracts.
+            </p>
+            <div className="w-full bg-gray-700 rounded-full h-2 mb-4">
+              <div className="bg-blue-400 h-2 rounded-full" style={{ width: '75%' }}></div>
+            </div>
+            <p className="text-blue-400 text-sm">In Progress</p>
+          </CardContent>
+        </Card>
+
+        <Card className="glass border-white/10 hover:border-blue-500/30 transition-colors">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">DeFi Development</h3>
+              <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+            </div>
+            <p className="text-gray-400 text-sm mb-4">
+              Advanced DeFi protocols and yield farming.
+            </p>
+            <div className="w-full bg-gray-700 rounded-full h-2 mb-4">
+              <div className="bg-gray-400 h-2 rounded-full" style={{ width: '0%' }}></div>
+            </div>
+            <p className="text-gray-400 text-sm">Not Started</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
