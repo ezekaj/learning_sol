@@ -6,9 +6,6 @@ import { Navigation } from '@/components/layout/Navigation';
 import { Footer } from '@/components/layout/Footer';
 import './globals.css';
 
-// Check if we're in static export mode
-const isStaticExport = process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
-
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
@@ -59,23 +56,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // For static export, use a simplified layout without complex providers
-  if (isStaticExport) {
-    return (
-      <html lang="en" suppressHydrationWarning>
-        <body className={inter.className}>
-          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-            <Navigation />
-            <main className="relative">
-              {children}
-            </main>
-            <Footer />
-          </div>
-        </body>
-      </html>
-    );
-  }
-
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>

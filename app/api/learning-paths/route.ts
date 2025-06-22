@@ -31,14 +31,16 @@ export async function GET(_request: NextRequest) {
           },
           orderBy: { order: 'asc' },
         },
-        enrollments: {
+        progress: {
           where: {
             userId: session.user.id,
+            courseId: { not: null },
           },
+          distinct: ['courseId'],
         },
         _count: {
           select: {
-            enrollments: true,
+            progress: true,
           },
         },
       },
@@ -47,7 +49,7 @@ export async function GET(_request: NextRequest) {
 
     // Transform courses to learning paths format
     const learningPaths = courses.map((course: any) => {
-      const userEnrollment = course.enrollments[0];
+      const userEnrollment = course.progress.find((p: any) => p.courseId === course.id);
       const isEnrolled = !!userEnrollment;
       
       // Calculate course progress
@@ -107,10 +109,10 @@ export async function GET(_request: NextRequest) {
         modules: transformedModules,
         totalHours: course.estimatedHours || 40,
         completionRate,
-        studentsEnrolled: course._count.enrollments,
+        studentsEnrolled: course._count.progress,
         rating: 4.8, // TODO: Implement course rating system
         isEnrolled,
-        enrolledAt: userEnrollment?.enrolledAt,
+        enrolledAt: userEnrollment?.createdAt,
       };
     });
 
@@ -137,25 +139,24 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'Course ID required' }, { status: 400 });
         }
 
-        // Check if already enrolled
-        const existingEnrollment = await prisma.courseEnrollment.findUnique({
+        // Check if already enrolled by looking at user progress for this course
+        const existingProgress = await prisma.userProgress.findFirst({
           where: {
-            userId_courseId: {
-              userId: session.user.id,
-              courseId,
-            },
+            userId: session.user.id,
+            courseId,
           },
         });
 
-        if (existingEnrollment) {
+        if (existingProgress) {
           return NextResponse.json({ error: 'Already enrolled' }, { status: 400 });
         }
 
-        // Create enrollment
-        const enrollment = await prisma.courseEnrollment.create({
+        // Create initial course progress to represent enrollment
+        const enrollment = await prisma.userProgress.create({
           data: {
             userId: session.user.id,
             courseId,
+            status: 'NOT_STARTED',
           },
         });
 
@@ -167,24 +168,28 @@ export async function POST(request: NextRequest) {
         }
 
         // Create or update lesson progress
-        const lessonProgress = await prisma.userProgress.upsert({
+        const existingLessonProgress = await prisma.userProgress.findFirst({
           where: {
-            userId_lessonId: {
-              userId: session.user.id,
-              lessonId,
-            },
-          },
-          update: {
-            status: 'IN_PROGRESS',
-            startedAt: new Date(),
-          },
-          create: {
             userId: session.user.id,
             lessonId,
-            status: 'IN_PROGRESS',
-            startedAt: new Date(),
           },
         });
+
+        const lessonProgress = existingLessonProgress
+          ? await prisma.userProgress.update({
+              where: { id: existingLessonProgress.id },
+              data: {
+                status: 'IN_PROGRESS',
+                updatedAt: new Date(),
+              },
+            })
+          : await prisma.userProgress.create({
+              data: {
+                userId: session.user.id,
+                lessonId,
+                status: 'IN_PROGRESS',
+              },
+            });
 
         return NextResponse.json({ success: true, progress: lessonProgress });
 

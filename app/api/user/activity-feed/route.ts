@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
 
     // Get user's recent activity from various sources
-    const activities = [];
+    const activities: any[] = [];
 
     // Recent lesson completions
     const recentLessons = await prisma.userProgress.findMany({
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       take: 10,
     });
 
-    recentLessons.forEach(progress => {
+    recentLessons.forEach((progress: any) => {
       if (progress.completedAt) {
         activities.push({
           id: `lesson-${progress.id}`,
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
       take: 5,
     });
 
-    recentAchievements.forEach(userAchievement => {
+    recentAchievements.forEach((userAchievement: any) => {
       if (userAchievement.completedAt) {
         activities.push({
           id: `achievement-${userAchievement.id}`,
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
       take: 5,
     });
 
-    recentCollaborations.forEach(collaboration => {
+    recentCollaborations.forEach((collaboration: any) => {
       activities.push({
         id: `collaboration-${collaboration.id}`,
         type: 'social',

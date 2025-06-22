@@ -47,8 +47,10 @@
     "legacy:dev": "vite",
     "legacy:build": "vite build",
     "legacy:preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d out"
+    "socket:dev": "cd socket-server && npm run dev",
+    "socket:start": "cd socket-server && npm start",
+    "deploy:vercel": "vercel --prod",
+    "deploy:railway": "railway up"
   },
   "dependencies": {
     "@google/genai": "^1.3.0",

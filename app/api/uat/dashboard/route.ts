@@ -194,18 +194,22 @@ export async function GET(request: NextRequest) {
 
     const responseTime = Date.now() - startTime;
     logger.info('UAT dashboard data retrieved', {
-      timeRange,
-      category,
-      sessionsCount: sessions.length,
-      feedbackCount: feedback.length,
-      responseTime,
+      metadata: {
+        timeRange,
+        category,
+        sessionsCount: sessions.length,
+        feedbackCount: feedback.length,
+        responseTime,
+      },
     });
 
     return NextResponse.json(dashboardData);
   } catch (error) {
     const responseTime = Date.now() - startTime;
     logger.error('Failed to retrieve UAT dashboard data', error as Error, {
-      responseTime,
+      metadata: {
+        responseTime,
+      },
     });
 
     return NextResponse.json(

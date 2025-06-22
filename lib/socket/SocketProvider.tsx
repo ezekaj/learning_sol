@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { useSession } from 'next-auth/react';
 
 interface SocketContextType {
   socket: Socket | null;
@@ -30,19 +31,20 @@ export const useSocket = () => {
 export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-
-  // For static export, we'll use a mock session
-  const session = { user: { id: 'static-user', name: 'Demo User', email: 'demo@example.com' } };
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    // For static export, we'll simulate a connection without actually connecting
+    // Only connect if user is authenticated
+    if (status === 'loading' || !session?.user) {
+      return;
+    }
+
     if (typeof window !== 'undefined') {
-      // Only try to connect in the browser, not during static generation
       const socketInstance = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001', {
         auth: {
-          userId: session.user.id,
+          userId: session.user.id || session.user.email,
           userName: session.user.name || 'Anonymous',
-          token: session.user.email, // Use a proper JWT token in production
+          token: session.user.email, // Use proper JWT token in production
         },
         transports: ['websocket', 'polling'],
         timeout: 20000,
@@ -69,7 +71,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         socketInstance.disconnect();
       };
     }
-  }, []);
+  }, [session, status]);
 
   const joinRoom = (roomId: string) => {
     if (socket && isConnected) {
