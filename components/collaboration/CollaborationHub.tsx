@@ -1,10 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-
-// Check if we're in static export mode
-const isStaticExport = process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
+import { useSocket, useCollaborationSessions } from '@/lib/socket/client';
+import { useAuth } from '@/components/auth/EnhancedAuthProvider';
 import { 
   Plus, 
   Users, 
@@ -22,37 +21,38 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CollaborativeEditor } from './CollaborativeEditor';
-import { useCollaboration } from '@/lib/context/CollaborationContext';
 import { useToast } from '@/components/ui/use-toast';
 
 
 
 export function CollaborationHub() {
-  // For static export, return a simplified version without hooks
-  if (isStaticExport) {
-    return <StaticCollaborationHub />;
-  }
-
-  return <DynamicCollaborationHub />;
+  return <RealTimeCollaborationHub />;
 }
 
-// Dynamic component that uses hooks (only loaded in non-static mode)
-function DynamicCollaborationHub() {
+// Real-time collaboration component with Socket.io integration
+function RealTimeCollaborationHub() {
+  const { user, isAuthenticated } = useAuth();
+  const { socket, isConnected, joinSession: socketJoinSession, session, participants, presence } = useSocket();
+  const { sessions, loading, createSession, joinSession, fetchSessions } = useCollaborationSessions();
+
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newSessionTitle, setNewSessionTitle] = useState('');
-  const [newSessionLanguage, setNewSessionLanguage] = useState('solidity');
+  const [newSessionDescription, setNewSessionDescription] = useState('');
+  const [newSessionType, setNewSessionType] = useState('PAIR_PROGRAMMING');
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
-  const {
-    currentSession,
-    availableSessions,
-    isConnected,
-    createSession,
-    joinSession
-  } = useCollaboration();
-  
   const { toast } = useToast();
+
+  // Check authentication
+  if (!isAuthenticated) {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-2xl font-bold text-white mb-4">Authentication Required</h2>
+        <p className="text-gray-400">Please sign in to access collaboration features.</p>
+      </div>
+    );
+  }
 
   const handleCreateSession = async () => {
     if (!newSessionTitle.trim()) {
@@ -66,14 +66,23 @@ function DynamicCollaborationHub() {
 
     setIsCreating(true);
     try {
-      const sessionId = await createSession(newSessionTitle.trim(), newSessionLanguage);
-      await joinSession(sessionId);
-      setShowCreateDialog(false);
-      setNewSessionTitle('');
-      toast({
-        title: "Session created!",
-        description: "Your collaboration session is ready.",
-      });
+      const newSession = await createSession(
+        newSessionTitle.trim(),
+        newSessionDescription.trim() || 'Collaborative coding session',
+        newSessionType
+      );
+
+      if (newSession) {
+        // Join the session via Socket.io
+        socketJoinSession(newSession.id);
+        setShowCreateDialog(false);
+        setNewSessionTitle('');
+        setNewSessionDescription('');
+        toast({
+          title: "Session created!",
+          description: "Your collaboration session is ready.",
+        });
+      }
     } catch (error) {
       toast({
         title: "Failed to create session",
@@ -87,11 +96,15 @@ function DynamicCollaborationHub() {
 
   const handleJoinSession = async (sessionId: string) => {
     try {
-      await joinSession(sessionId);
-      toast({
-        title: "Joined session!",
-        description: "You're now collaborating with others.",
-      });
+      const success = await joinSession(sessionId);
+      if (success) {
+        // Join the session via Socket.io
+        socketJoinSession(sessionId);
+        toast({
+          title: "Joined session!",
+          description: "You're now collaborating with others.",
+        });
+      }
     } catch (error) {
       toast({
         title: "Failed to join session",
@@ -101,13 +114,13 @@ function DynamicCollaborationHub() {
     }
   };
 
-  const filteredSessions = availableSessions.filter(session =>
+  const filteredSessions = sessions.filter(session =>
     session.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    session.language.toLowerCase().includes(searchTerm.toLowerCase())
+    session.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // If user is in a session, show the collaborative editor
-  if (currentSession) {
+  if (session) {
     return (
       <div className="space-y-6">
         <div className="text-center">
@@ -124,10 +137,10 @@ function DynamicCollaborationHub() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            Code together in real-time
+            Code together in real-time with {participants.length} participant{participants.length !== 1 ? 's' : ''}
           </motion.p>
         </div>
-        
+
         <CollaborativeEditor />
       </div>
     );
@@ -194,16 +207,26 @@ function DynamicCollaborationHub() {
                 />
               </div>
               <div>
-                <Label htmlFor="language" className="text-white">Programming Language</Label>
-                <Select value={newSessionLanguage} onValueChange={setNewSessionLanguage}>
+                <Label htmlFor="description" className="text-white">Description (Optional)</Label>
+                <Input
+                  id="description"
+                  placeholder="Brief description of what you'll be working on"
+                  value={newSessionDescription}
+                  onChange={(e) => setNewSessionDescription(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="type" className="text-white">Session Type</Label>
+                <Select value={newSessionType} onValueChange={setNewSessionType}>
                   <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="solidity">Solidity</SelectItem>
-                    <SelectItem value="javascript">JavaScript</SelectItem>
-                    <SelectItem value="typescript">TypeScript</SelectItem>
-                    <SelectItem value="python">Python</SelectItem>
+                    <SelectItem value="PAIR_PROGRAMMING">Pair Programming</SelectItem>
+                    <SelectItem value="CODE_REVIEW">Code Review</SelectItem>
+                    <SelectItem value="PROJECT">Project Work</SelectItem>
+                    <SelectItem value="STUDY_GROUP">Study Group</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -267,11 +290,11 @@ function DynamicCollaborationHub() {
                   <CardHeader>
                     <div className="flex items-center justify-between mb-2">
                       <Badge variant="outline" className="text-xs">
-                        {session.language}
+                        {session.type.replace('_', ' ')}
                       </Badge>
                       <div className="flex items-center space-x-1 text-xs text-gray-400">
                         <Users className="w-3 h-3" />
-                        <span>{session.participants.length}/4</span>
+                        <span>{session.participants.length}/{session.maxParticipants || 4}</span>
                       </div>
                     </div>
                     <CardTitle className="text-lg text-white line-clamp-2">
