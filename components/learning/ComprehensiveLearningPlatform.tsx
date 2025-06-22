@@ -24,6 +24,8 @@ import ProjectBasedLearning from './ProjectBasedLearning';
 import { ParticleBackground } from '../ui/ThreeJSComponents';
 import { GSAPScrollAnimation, GSAPTextAnimation } from '../ui/GSAPAnimations';
 import { LottieLoading, LottieSuccess } from '../ui/LottieAnimations';
+import { useUserProgress, useAchievements, useLearningPaths, useProjects, useCommunityStats } from '@/lib/hooks/useApiData';
+import { useAuth } from '@/components/auth/EnhancedAuthProvider';
 
 interface LearningPlatformProps {
   className?: string;
@@ -176,21 +178,24 @@ contract HelloWorld {
 export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
   className = ''
 }) => {
+  const { user, isAuthenticated } = useAuth();
+
+  // API data hooks
+  const { progress: userProgress, loading: progressLoading } = useUserProgress();
+  const { achievements, loading: achievementsLoading } = useAchievements();
+  const { learningPaths, loading: pathsLoading } = useLearningPaths();
+  const { projects, loading: projectsLoading } = useProjects();
+  const { stats: communityStats, loading: statsLoading } = useCommunityStats();
+
   const [activeTab, setActiveTab] = useState<'dashboard' | 'curriculum' | 'projects' | 'gamification' | 'code' | 'community' | 'ai-tutor'>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [aiTutorActive, setAiTutorActive] = useState(false);
-  const [communityStats, setCommunityStats] = useState({
-    onlineUsers: 1247,
-    studyGroups: 89,
-    mentorsAvailable: 23
-  });
 
-  useEffect(() => {
-    // Simulate loading
-    setTimeout(() => setIsLoading(false), 2000);
-  }, []);
+  // Overall loading state
+  const isLoading = progressLoading || achievementsLoading || pathsLoading || projectsLoading;
+
+  // No need for loading simulation - using real API data
 
   // Handle AI Tutor activation
   const handleAiTutorToggle = () => {
@@ -201,30 +206,31 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
     }
   };
 
-  // Handle community features
-  const handleCommunityAction = (action: 'join-group' | 'find-mentor' | 'start-session') => {
-    console.log(`Community action: ${action}`);
+  // Handle community features with real API calls
+  const handleCommunityAction = async (action: 'join-group' | 'find-mentor' | 'start-session') => {
+    try {
+      const response = await fetch('/api/community/stats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: action.replace('-', '_'), // Convert to API format
+          data: {}
+        })
+      });
 
-    // Update community stats based on action
-    if (action === 'join-group') {
-      setCommunityStats(prev => ({
-        ...prev,
-        studyGroups: prev.studyGroups + 1
-      }));
-    } else if (action === 'find-mentor') {
-      setCommunityStats(prev => ({
-        ...prev,
-        mentorsAvailable: prev.mentorsAvailable - 1
-      }));
-    } else if (action === 'start-session') {
-      setCommunityStats(prev => ({
-        ...prev,
-        onlineUsers: prev.onlineUsers + 1
-      }));
+      if (response.ok) {
+        const result = await response.json();
+        setShowSuccessAnimation(true);
+        setTimeout(() => setShowSuccessAnimation(false), 2000);
+
+        // Optionally refresh community stats
+        // The useCommunityStats hook will automatically refresh
+      } else {
+        console.error('Community action failed:', await response.text());
+      }
+    } catch (error) {
+      console.error('Error performing community action:', error);
     }
-
-    setShowSuccessAnimation(true);
-    setTimeout(() => setShowSuccessAnimation(false), 2000);
   };
 
   // Handle quick learning boost
@@ -381,15 +387,15 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="text-center p-4 bg-white/10 rounded-lg">
-                          <div className="text-2xl font-bold text-blue-400">{mockUserProgress.lessonsCompleted}</div>
+                          <div className="text-2xl font-bold text-blue-400">{userProgress?.lessonsCompleted || 0}</div>
                           <div className="text-sm text-gray-400">Lessons Completed</div>
                         </div>
                         <div className="text-center p-4 bg-white/10 rounded-lg">
-                          <div className="text-2xl font-bold text-green-400">{mockUserProgress.projectsCompleted}</div>
+                          <div className="text-2xl font-bold text-green-400">{userProgress?.projectsCompleted || 0}</div>
                           <div className="text-sm text-gray-400">Projects Built</div>
                         </div>
                         <div className="text-center p-4 bg-white/10 rounded-lg">
-                          <div className="text-2xl font-bold text-yellow-400">#{mockUserProgress.rank}</div>
+                          <div className="text-2xl font-bold text-yellow-400">#{userProgress?.rank || 1}</div>
                           <div className="text-sm text-gray-400">Global Rank</div>
                         </div>
                       </div>
@@ -419,15 +425,22 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                       <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20">
                         <h3 className="text-xl font-semibold text-white mb-4">Recent Achievements</h3>
                         <div className="space-y-3">
-                          {mockAchievements.slice(0, 2).map((achievement) => (
+                          {achievements.filter(a => a.unlocked).slice(0, 2).map((achievement) => (
                             <div key={achievement.id} className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                              <div className="text-yellow-400">{achievement.icon}</div>
+                              <div className="text-yellow-400">
+                                <Trophy className="w-6 h-6" />
+                              </div>
                               <div>
                                 <div className="font-medium text-white">{achievement.title}</div>
                                 <div className="text-sm text-gray-400">+{achievement.xpReward} XP</div>
                               </div>
                             </div>
                           ))}
+                          {achievements.filter(a => a.unlocked).length === 0 && (
+                            <div className="text-center py-4 text-gray-400">
+                              No achievements unlocked yet. Keep learning to earn your first achievement!
+                            </div>
+                          )}
                         </div>
                       </Card>
                     </GSAPScrollAnimation>
@@ -443,8 +456,8 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                   exit={{ opacity: 0, y: -20 }}
                 >
                   <StructuredCurriculum
-                    learningPaths={mockLearningPaths}
-                    currentPath="solidity-fundamentals"
+                    learningPaths={learningPaths}
+                    currentPath={learningPaths[0]?.id || ""}
                   />
                 </motion.div>
               )}
@@ -457,8 +470,8 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                   exit={{ opacity: 0, y: -20 }}
                 >
                   <ProjectBasedLearning
-                    projects={mockProjects}
-                    currentProject="hello-world"
+                    projects={projects}
+                    currentProject={projects[0]?.id || ""}
                   />
                 </motion.div>
               )}
@@ -503,9 +516,10 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                         Community Hub
                       </h2>
                       <div className="flex items-center space-x-4 text-sm text-gray-400">
-                        <span>{communityStats.onlineUsers} online</span>
-                        <span>{communityStats.studyGroups} study groups</span>
-                        <span>{communityStats.mentorsAvailable} mentors available</span>
+                        <span>{communityStats.onlineUsers || 0} online</span>
+                        <span>{communityStats.studyGroups || 0} study groups</span>
+                        <span>{communityStats.mentorsAvailable || 0} mentors available</span>
+                        <span>{communityStats.activeCollaborations || 0} active sessions</span>
                       </div>
                     </div>
 
