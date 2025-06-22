@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+
+// Check if we're in static export mode
+const isStaticExport = process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
 import { 
   Plus, 
   Users, 
@@ -25,18 +28,28 @@ import { useToast } from '@/components/ui/use-toast';
 
 
 export function CollaborationHub() {
+  // For static export, return a simplified version without hooks
+  if (isStaticExport) {
+    return <StaticCollaborationHub />;
+  }
+
+  return <DynamicCollaborationHub />;
+}
+
+// Dynamic component that uses hooks (only loaded in non-static mode)
+function DynamicCollaborationHub() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newSessionTitle, setNewSessionTitle] = useState('');
   const [newSessionLanguage, setNewSessionLanguage] = useState('solidity');
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-  
-  const { 
-    currentSession, 
-    availableSessions, 
-    isConnected, 
-    createSession, 
-    joinSession 
+
+  const {
+    currentSession,
+    availableSessions,
+    isConnected,
+    createSession,
+    joinSession
   } = useCollaboration();
   
   const { toast } = useToast();
@@ -303,6 +316,170 @@ export function CollaborationHub() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Features */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+        {[
+          {
+            icon: Code,
+            title: "Real-time Coding",
+            description: "Code together with live cursor tracking and instant synchronization"
+          },
+          {
+            icon: Users,
+            title: "Team Collaboration",
+            description: "Work with up to 4 people simultaneously on the same codebase"
+          },
+          {
+            icon: Zap,
+            title: "Instant Compilation",
+            description: "Compile and test your Solidity contracts in real-time"
+          }
+        ].map((feature, index) => (
+          <motion.div
+            key={feature.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 + index * 0.1 }}
+          >
+            <Card className="glass border-white/10 text-center">
+              <CardContent className="pt-6">
+                <feature.icon className="w-12 h-12 mx-auto mb-4 text-blue-400" />
+                <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
+                <p className="text-gray-400 text-sm">{feature.description}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Simplified static version for static export
+function StaticCollaborationHub() {
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center">
+        <motion.h1
+          className="text-4xl font-bold gradient-text mb-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          Collaboration Hub
+        </motion.h1>
+        <motion.p
+          className="text-xl text-gray-300 mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          Learn together, code together, grow together.
+          This is a static demo showcasing the collaboration platform.
+        </motion.p>
+      </div>
+
+      {/* Connection Status */}
+      <Card className="glass border-white/10">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-center space-x-3">
+            <div className="w-3 h-3 rounded-full bg-yellow-500" />
+            <span className="text-sm text-gray-300">
+              Static demo mode - Real-time collaboration available in live version
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Demo Sessions */}
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
+          <h2 className="text-2xl font-bold text-white">Demo Sessions</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[
+            {
+              id: '1',
+              title: 'Building a DeFi Protocol',
+              language: 'solidity',
+              participants: 3,
+              createdAt: new Date().toISOString()
+            },
+            {
+              id: '2',
+              title: 'Smart Contract Security',
+              language: 'solidity',
+              participants: 2,
+              createdAt: new Date().toISOString()
+            },
+            {
+              id: '3',
+              title: 'NFT Marketplace Development',
+              language: 'solidity',
+              participants: 4,
+              createdAt: new Date().toISOString()
+            }
+          ].map((session) => (
+            <motion.div
+              key={session.id}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Card className="glass border-white/10 hover:border-white/20 transition-all h-full">
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge variant="outline" className="text-xs">
+                      {session.language}
+                    </Badge>
+                    <div className="flex items-center space-x-1 text-xs text-gray-400">
+                      <Users className="w-3 h-3" />
+                      <span>{session.participants}/4</span>
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg text-white line-clamp-2">
+                    {session.title}
+                  </CardTitle>
+                  <CardDescription className="flex items-center space-x-2 text-xs">
+                    <Clock className="w-3 h-3" />
+                    <span>Demo Session</span>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="flex -space-x-2">
+                        {[...Array(Math.min(session.participants, 3))].map((_, i) => (
+                          <div
+                            key={i}
+                            className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 border-2 border-slate-800 flex items-center justify-center text-white text-xs"
+                          >
+                            {i + 1}
+                          </div>
+                        ))}
+                        {session.participants > 3 && (
+                          <div className="w-6 h-6 rounded-full bg-gray-600 border-2 border-slate-800 flex items-center justify-center text-white text-xs">
+                            +{session.participants - 3}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      disabled
+                      className="opacity-50"
+                    >
+                      <Play className="w-3 h-3 mr-1" />
+                      Demo
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       {/* Features */}

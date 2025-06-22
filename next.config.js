@@ -14,10 +14,6 @@ const nextConfig = {
   generateBuildId: async () => {
     return 'static-build'
   },
-  // Set environment variable for static export
-  env: {
-    NEXT_PUBLIC_STATIC_EXPORT: 'true',
-  },
   experimental: {
     // Removed deprecated appDir option (App Router is now stable)
     // Moved serverComponentsExternalPackages to serverExternalPackages at root level
@@ -33,16 +29,18 @@ const nextConfig = {
         tls: false,
       };
     }
-    
+
     // Handle WASM files for Solidity compiler
     config.experiments = {
       ...config.experiments,
       asyncWebAssembly: true,
     };
-    
+
     return config;
   },
+  // Set environment variables including static export flag
   env: {
+    NEXT_PUBLIC_STATIC_EXPORT: 'true',
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     DATABASE_URL: process.env.DATABASE_URL,
