@@ -44,10 +44,26 @@ export class LearningAssistant {
   private streamingModel: any;
 
   constructor() {
-    // Placeholder implementation - in production, initialize with actual GoogleGenerativeAI
-    this.genAI = null as any;
-    this.model = null as any;
-    this.streamingModel = null as any;
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (apiKey && apiKey !== 'undefined' && apiKey.trim() !== '') {
+      try {
+        this.genAI = new GoogleGenerativeAI(apiKey);
+        this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
+        this.streamingModel = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
+        console.log('✅ LearningAssistant initialized with real Google Generative AI');
+      } catch (error) {
+        console.error('❌ Failed to initialize Google Generative AI:', error);
+        this.genAI = null as any;
+        this.model = null as any;
+        this.streamingModel = null as any;
+      }
+    } else {
+      console.warn('❌ GEMINI_API_KEY not found. LearningAssistant will use mock responses.');
+      this.genAI = null as any;
+      this.model = null as any;
+      this.streamingModel = null as any;
+    }
   }
 
   // Streaming response for real-time interaction

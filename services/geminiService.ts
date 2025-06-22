@@ -1,59 +1,112 @@
 
-// Note: Using placeholder implementation for Google Generative AI since the package may not be available
-// In a real implementation, you would install @google/generative-ai package
+import { GoogleGenerativeAI } from '@google/genai';
 
-// Mock implementation for development/demo purposes
-class GoogleGenAI {
+// Real Google Generative AI implementation
+class RealGoogleGenAI {
+  private genAI: GoogleGenerativeAI;
+  private model: any;
+
   constructor(config: { apiKey: string }) {
-    // Mock constructor - in real implementation this would initialize the actual SDK
-    console.log('Mock GoogleGenAI initialized with API key:', !!config.apiKey);
+    if (!config.apiKey) {
+      throw new Error('Google Generative AI API key is required');
+    }
+
+    this.genAI = new GoogleGenerativeAI(config.apiKey);
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
+    console.log('Real GoogleGenAI initialized successfully');
   }
 
   chats = {
-    create: (_config: any) => ({
-      sendMessage: async (message: any) => ({
-        text: `Mock AI response to: ${message.message || message}`
+    create: (config: any) => ({
+      sendMessage: async (message: any) => {
+        try {
+          const prompt = typeof message === 'string' ? message : message.message || message.content;
+          const result = await this.model.generateContent(prompt);
+          const response = await result.response;
+          return {
+            text: response.text()
+          };
+        } catch (error) {
+          console.error('Error in chat sendMessage:', error);
+          return {
+            text: 'I apologize, but I encountered an error processing your request. Please try again.'
+          };
+        }
       })
     })
   };
 
   models = {
-    generateContent: async (_config: any) => ({
-      text: `Mock explanation for: ${_config.contents}`,
-      candidates: [{ finishReason: 'STOP' }]
-    }),
-    generateImages: async (_config: any) => ({
-      generatedImages: [{
-        image: {
-          imageBytes: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' // 1x1 transparent PNG
+    generateContent: async (config: any) => {
+      try {
+        const prompt = config.contents || config.prompt || config;
+        const result = await this.model.generateContent(prompt);
+        const response = await result.response;
+        return {
+          text: response.text(),
+          candidates: response.candidates || [{ finishReason: 'STOP' }]
+        };
+      } catch (error) {
+        console.error('Error in generateContent:', error);
+        return {
+          text: 'I apologize, but I encountered an error generating content. Please try again.',
+          candidates: [{ finishReason: 'ERROR' }]
+        };
+      }
+    },
+    generateContentStream: async function* (config: any) {
+      try {
+        const prompt = config.contents || config.prompt || config;
+        const result = await this.model.generateContentStream(prompt);
+
+        for await (const chunk of result.stream) {
+          const chunkText = chunk.text();
+          if (chunkText) {
+            yield {
+              text: chunkText,
+              candidates: chunk.candidates || [{ finishReason: 'CONTINUE' }]
+            };
+          }
         }
-      }],
-      error: null
-    })
+      } catch (error) {
+        console.error('Error in generateContentStream:', error);
+        yield {
+          text: 'I apologize, but I encountered an error generating streaming content.',
+          candidates: [{ finishReason: 'ERROR' }]
+        };
+      }
+    },
+    generateImages: async (config: any) => {
+      // Note: Gemini Pro doesn't support image generation
+      // This would require a different model or service
+      return {
+        generatedImages: [],
+        error: 'Image generation not supported with current model'
+      };
+    }
   };
 }
 
 type Chat = any;
 type GenerateContentResponse = any;
-import { API_KEY, getValidatedApiKey } from '../src/config';
 
-// Get API key using our robust configuration system
-const GEMINI_API_KEY = API_KEY || getValidatedApiKey();
+// Get API key from environment
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-console.log('🔧 Gemini Service - Using configuration system');
+console.log('🔧 Gemini Service - Real implementation');
 console.log('- API Key configured:', !!GEMINI_API_KEY);
 
-let ai: GoogleGenAI | null = null;
+let ai: RealGoogleGenAI | null = null;
 let initializationError: string | null = null;
 
 // Wrap initialization in try-catch to prevent app crashes
 try {
   if (GEMINI_API_KEY && GEMINI_API_KEY !== 'undefined' && GEMINI_API_KEY.trim() !== '') {
-    ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-    console.log("✅ Gemini AI initialized successfully");
+    ai = new RealGoogleGenAI({ apiKey: GEMINI_API_KEY });
+    console.log("✅ Real Gemini AI initialized successfully");
   } else {
     console.warn("❌ Gemini API Key not found or invalid. AI features will be limited or unavailable.");
-    initializationError = "Gemini API Key is not configured. AI features will be unavailable. Please ensure the API_KEY environment variable is correctly set and accessible.";
+    initializationError = "Gemini API Key is not configured. AI features will be unavailable. Please ensure the GEMINI_API_KEY environment variable is correctly set.";
   }
 } catch (error) {
   console.error("❌ Failed to initialize Gemini AI:", error);

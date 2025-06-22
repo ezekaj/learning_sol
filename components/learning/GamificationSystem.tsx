@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Trophy, 
-  Star, 
-  Target, 
-  Zap, 
-  Award, 
-  Crown, 
-  Shield, 
+import {
+  Trophy,
+  Star,
+  Target,
+  Zap,
+  Award,
+  Crown,
+  Shield,
   Flame,
   TrendingUp,
   Users
@@ -15,6 +15,8 @@ import {
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
+import { useAuth } from '@/components/auth/EnhancedAuthProvider';
+import { useToast } from '@/components/ui/use-toast';
 
 interface Achievement {
   id: string;
@@ -52,10 +54,6 @@ interface LeaderboardEntry {
 }
 
 interface GamificationSystemProps {
-  userProgress: UserProgress;
-  achievements: Achievement[];
-  leaderboard: LeaderboardEntry[];
-  onClaimReward?: (achievementId: string) => void;
   className?: string;
 }
 
@@ -74,18 +72,122 @@ const rarityBorders = {
 };
 
 export const GamificationSystem: React.FC<GamificationSystemProps> = ({
-  userProgress,
-  achievements,
-  leaderboard,
-  onClaimReward,
   className = ''
 }) => {
+  const { user, isAuthenticated } = useAuth();
+  const { toast } = useToast();
+
   const [activeTab, setActiveTab] = useState<'overview' | 'achievements' | 'leaderboard'>('overview');
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [newAchievements, setNewAchievements] = useState<Achievement[]>([]);
+  const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user progress and achievements data
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch user progress
+        const progressResponse = await fetch('/api/user/progress');
+        if (progressResponse.ok) {
+          const progressData = await progressResponse.json();
+
+          // Transform API data to UserProgress interface
+          const transformedProgress: UserProgress = {
+            level: progressData.profile?.currentLevel || 1,
+            xp: progressData.profile?.totalXP || 0,
+            xpToNextLevel: ((progressData.profile?.currentLevel || 1) * 1000),
+            totalXp: progressData.profile?.totalXP || 0,
+            streak: progressData.profile?.streak || 0,
+            lessonsCompleted: progressData.stats?.completedLessons || 0,
+            projectsCompleted: 0, // TODO: Add projects tracking
+            challengesWon: 0, // TODO: Add challenges tracking
+            rank: 1, // TODO: Calculate rank from leaderboard
+            badges: progressData.achievements?.map((a: any) => a.achievement.title) || []
+          };
+          setUserProgress(transformedProgress);
+        }
+
+        // Fetch achievements
+        const achievementsResponse = await fetch('/api/achievements');
+        if (achievementsResponse.ok) {
+          const achievementsData = await achievementsResponse.json();
+
+          // Transform API data to Achievement interface
+          const transformedAchievements: Achievement[] = achievementsData.achievements.map((a: any) => ({
+            id: a.id,
+            title: a.title,
+            description: a.description,
+            icon: getAchievementIcon(a.category),
+            category: a.category.toLowerCase(),
+            xpReward: a.xpReward,
+            unlocked: a.isUnlocked,
+            unlockedAt: a.unlockedAt ? new Date(a.unlockedAt) : undefined,
+            rarity: a.rarity?.toLowerCase() || 'common'
+          }));
+          setAchievements(transformedAchievements);
+        }
+
+        // TODO: Fetch leaderboard data
+        // For now, use mock data
+        setLeaderboard([
+          {
+            id: '1',
+            username: 'SolidityMaster',
+            avatar: '',
+            level: 25,
+            xp: 25000,
+            rank: 1,
+            streak: 15
+          },
+          {
+            id: '2',
+            username: 'BlockchainDev',
+            avatar: '',
+            level: 22,
+            xp: 22000,
+            rank: 2,
+            streak: 12
+          }
+        ]);
+
+      } catch (error) {
+        console.error('Error fetching gamification data:', error);
+        toast({
+          title: 'Error loading progress',
+          description: 'Failed to load your progress data. Please try again.',
+          variant: 'destructive'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [isAuthenticated, toast]);
+
+  // Helper function to get achievement icons
+  const getAchievementIcon = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'learning': return <Star className="w-6 h-6" />;
+      case 'coding': return <Zap className="w-6 h-6" />;
+      case 'social': return <Users className="w-6 h-6" />;
+      case 'milestone': return <Trophy className="w-6 h-6" />;
+      default: return <Award className="w-6 h-6" />;
+    }
+  };
 
   // Calculate level progress percentage
-  const levelProgress = ((userProgress.xp / userProgress.xpToNextLevel) * 100);
+  const levelProgress = userProgress ? ((userProgress.xp % 1000) / 1000) * 100 : 0;
 
   // Filter achievements by category
   const achievementsByCategory = {
@@ -97,6 +199,8 @@ export const GamificationSystem: React.FC<GamificationSystemProps> = ({
 
   // Check for new achievements and level ups
   useEffect(() => {
+    if (!userProgress) return;
+
     const recentAchievements = achievements.filter(
       a => a.unlocked && a.unlockedAt &&
       Date.now() - a.unlockedAt.getTime() < 5000 // Last 5 seconds
@@ -112,12 +216,91 @@ export const GamificationSystem: React.FC<GamificationSystemProps> = ({
       setShowLevelUp(true);
       setTimeout(() => setShowLevelUp(false), 3000);
     }
-  }, [achievements, userProgress.xp, userProgress.xpToNextLevel]);
+  }, [achievements, userProgress]);
 
-  const handleClaimReward = (rewardId: string) => {
-    // Handle reward claiming logic
-    console.log('Claiming reward:', rewardId);
-    onClaimReward?.(rewardId); // Use the onClaimReward callback
+  // Show loading state
+  if (loading) {
+    return (
+      <div className={`space-y-6 ${className}`}>
+        <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-white/20 rounded w-1/3"></div>
+            <div className="h-4 bg-white/20 rounded w-2/3"></div>
+            <div className="h-2 bg-white/20 rounded w-full"></div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show authentication required
+  if (!isAuthenticated) {
+    return (
+      <div className={`space-y-6 ${className}`}>
+        <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20 text-center">
+          <Trophy className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+          <h3 className="text-xl font-semibold text-white mb-2">Sign In Required</h3>
+          <p className="text-gray-400">Please sign in to view your progress and achievements.</p>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show error state if no user progress
+  if (!userProgress) {
+    return (
+      <div className={`space-y-6 ${className}`}>
+        <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20 text-center">
+          <Trophy className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+          <h3 className="text-xl font-semibold text-white mb-2">No Progress Data</h3>
+          <p className="text-gray-400">Start learning to see your progress and achievements!</p>
+        </Card>
+      </div>
+    );
+  }
+
+  const handleClaimReward = async (achievementId: string) => {
+    try {
+      const response = await fetch('/api/achievements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ achievementId, action: 'claim' })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        // Update local state
+        setAchievements(prev => prev.map(a =>
+          a.id === achievementId
+            ? { ...a, unlocked: true, unlockedAt: new Date() }
+            : a
+        ));
+
+        // Update user progress with new XP
+        if (userProgress) {
+          setUserProgress(prev => prev ? {
+            ...prev,
+            xp: prev.xp + data.xpAwarded,
+            totalXp: prev.totalXp + data.xpAwarded
+          } : null);
+        }
+
+        toast({
+          title: 'Achievement Claimed!',
+          description: `You earned ${data.xpAwarded} XP!`,
+        });
+      } else {
+        throw new Error('Failed to claim achievement');
+      }
+    } catch (error) {
+      console.error('Error claiming reward:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to claim achievement. Please try again.',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleQuickAction = (actionType: 'boost' | 'shield' | 'star') => {
