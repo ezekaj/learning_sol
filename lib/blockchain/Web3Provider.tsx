@@ -66,9 +66,12 @@ export function Web3Provider({ children }: Web3ProviderProps) {
   const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
+    // Only run in browser environment
+    if (typeof window === 'undefined') return;
+
     // Check if already connected
     checkConnection();
-    
+
     // Listen for account changes
     if (window.ethereum) {
       window.ethereum.on('accountsChanged', handleAccountsChanged);
@@ -84,24 +87,25 @@ export function Web3Provider({ children }: Web3ProviderProps) {
   }, []);
 
   const checkConnection = async () => {
-    if (window.ethereum) {
-      try {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const accounts = await provider.listAccounts();
-        
-        if (accounts.length > 0) {
-          const signer = await provider.getSigner();
-          const network = await provider.getNetwork();
-          
-          setProvider(provider);
-          setSigner(signer);
-          setAccount(accounts[0].address);
-          setChainId(Number(network.chainId));
-          setIsConnected(true);
-        }
-      } catch (error) {
-        console.error('Error checking connection:', error);
+    // Only run in browser environment
+    if (typeof window === 'undefined' || !window.ethereum) return;
+
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const accounts = await provider.listAccounts();
+
+      if (accounts.length > 0) {
+        const signer = await provider.getSigner();
+        const network = await provider.getNetwork();
+
+        setProvider(provider);
+        setSigner(signer);
+        setAccount(accounts[0].address);
+        setChainId(Number(network.chainId));
+        setIsConnected(true);
       }
+    } catch (error) {
+      console.error('Error checking connection:', error);
     }
   };
 
@@ -120,7 +124,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
   };
 
   const connectWallet = async () => {
-    if (!window.ethereum) {
+    if (typeof window === 'undefined' || !window.ethereum) {
       throw new Error('MetaMask is not installed');
     }
 
@@ -128,7 +132,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       await provider.send('eth_requestAccounts', []);
-      
+
       const signer = await provider.getSigner();
       const address = await signer.getAddress();
       const network = await provider.getNetwork();
@@ -155,7 +159,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
   };
 
   const switchNetwork = async (targetChainId: number) => {
-    if (!window.ethereum) {
+    if (typeof window === 'undefined' || !window.ethereum) {
       throw new Error('MetaMask is not installed');
     }
 
