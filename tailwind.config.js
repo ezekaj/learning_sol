@@ -1,17 +1,57 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: ["class"],
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-    "./**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
   ],
   theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
     extend: {
-      // Design System Colors
       colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        // Brand colors for the learning platform
         brand: {
-          // Primary brand colors
           primary: {
             50: '#f5f3ff',
             100: '#ede9fe',
@@ -25,7 +65,6 @@ export default {
             900: '#4c1d95',
             950: '#2e1065',
           },
-          // Secondary accent colors
           accent: {
             50: '#fdf4ff',
             100: '#fae8ff',
@@ -39,79 +78,26 @@ export default {
             900: '#701a75',
             950: '#4a044e',
           },
-          // Background colors
-          bg: {
-            dark: '#1A202C',
-            medium: '#2D3748',
-            light: '#4A5568',
-            surface: '#262F3D',
-          },
-          // Text colors
-          text: {
-            primary: '#F7FAFC',
-            secondary: '#E2E8F0',
-            muted: '#A0AEC0',
-            inverse: '#1A202C',
-          },
-          // Status colors
-          success: {
-            50: '#f0fdf4',
-            500: '#22c55e',
-            600: '#16a34a',
-            700: '#15803d',
-          },
-          warning: {
-            50: '#fffbeb',
-            500: '#f59e0b',
-            600: '#d97706',
-            700: '#b45309',
-          },
-          error: {
-            50: '#fef2f2',
-            500: '#ef4444',
-            600: '#dc2626',
-            700: '#b91c1c',
-          },
-          info: {
-            50: '#eff6ff',
-            500: '#3b82f6',
-            600: '#2563eb',
-            700: '#1d4ed8',
-          },
         },
       },
-      // Typography
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
       },
-      fontSize: {
-        'xs': ['0.75rem', { lineHeight: '1rem' }],
-        'sm': ['0.875rem', { lineHeight: '1.25rem' }],
-        'base': ['1rem', { lineHeight: '1.5rem' }],
-        'lg': ['1.125rem', { lineHeight: '1.75rem' }],
-        'xl': ['1.25rem', { lineHeight: '1.75rem' }],
-        '2xl': ['1.5rem', { lineHeight: '2rem' }],
-        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
-        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
-        '5xl': ['3rem', { lineHeight: '1' }],
-      },
-      // Spacing scale
-      spacing: {
-        '18': '4.5rem',
-        '88': '22rem',
-        '128': '32rem',
-      },
-      // Animation and transitions
-      animation: {
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'slide-in': 'slideIn 0.3s ease-out',
-        'slide-up': 'slideUp 0.3s ease-out',
-        'bounce-subtle': 'bounceSubtle 0.6s ease-in-out',
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'glow': 'glow 2s ease-in-out infinite alternate',
-      },
       keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
@@ -124,76 +110,21 @@ export default {
           '0%': { transform: 'translateY(20px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
-        bounceSubtle: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-5px)' },
-        },
         glow: {
           '0%': { boxShadow: '0 0 5px rgba(139, 92, 246, 0.5)' },
           '100%': { boxShadow: '0 0 20px rgba(139, 92, 246, 0.8)' },
         },
       },
-      // Responsive breakpoints
-      screens: {
-        'xs': '475px',
-        'sm': '640px',
-        'md': '768px',
-        'lg': '1024px',
-        'xl': '1280px',
-        '2xl': '1536px',
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        'fade-in': 'fadeIn 0.5s ease-in-out',
+        'slide-in': 'slideIn 0.3s ease-out',
+        'slide-up': 'slideUp 0.3s ease-out',
+        'glow': 'glow 2s ease-in-out infinite alternate',
       },
-      // Box shadows
-      boxShadow: {
-        'glow': '0 0 20px rgba(139, 92, 246, 0.3)',
-        'glow-lg': '0 0 40px rgba(139, 92, 246, 0.4)',
-        'inner-glow': 'inset 0 0 10px rgba(139, 92, 246, 0.2)',
-        // Neumorphism shadows
-        'neomorphic': '6px 6px 12px rgba(0,0,0,0.15), -6px -6px 12px rgba(255,255,255,0.8)',
-        'neomorphic-inset': 'inset 6px 6px 12px rgba(0,0,0,0.15), inset -6px -6px 12px rgba(255,255,255,0.8)',
-        'neomorphic-hover': '8px 8px 16px rgba(0,0,0,0.2), -8px -8px 16px rgba(255,255,255,0.9)',
-        'neomorphic-pressed': 'inset 4px 4px 8px rgba(0,0,0,0.15), inset -4px -4px 8px rgba(255,255,255,0.8)',
-        'neomorphic-flat': '2px 2px 6px rgba(0,0,0,0.1), -2px -2px 6px rgba(255,255,255,0.6)',
-      },
-      // Border radius
-      borderRadius: {
-        'xl': '0.75rem',
-        '2xl': '1rem',
-        '3xl': '1.5rem',
-      },
+    },
     },
   },
-  plugins: [
-    // Custom scrollbar plugin
-    function({ addUtilities }) {
-      addUtilities({
-        '.scrollbar-thin': {
-          'scrollbar-width': 'thin',
-        },
-        '.scrollbar-thumb-brand-primary': {
-          'scrollbar-color': '#8b5cf6 transparent',
-        },
-        '.scrollbar-track-brand-bg-dark': {
-          'scrollbar-color': '#8b5cf6 #1A202C',
-        },
-        // Webkit scrollbar styles
-        '.scrollbar-webkit': {
-          '&::-webkit-scrollbar': {
-            width: '8px',
-            height: '8px',
-          },
-          '&::-webkit-scrollbar-track': {
-            background: '#1A202C',
-            borderRadius: '4px',
-          },
-          '&::-webkit-scrollbar-thumb': {
-            background: '#8b5cf6',
-            borderRadius: '4px',
-            '&:hover': {
-              background: '#7c3aed',
-            },
-          },
-        },
-      });
-    },
-  ],
+  plugins: [require("tailwindcss-animate")],
 };

@@ -29,7 +29,7 @@ import {
 import { useLearning } from '@/lib/context/LearningContext';
 
 // Check if we're in static export mode
-const isStaticExport = true; // Force static export mode for build
+const isStaticExport = process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);

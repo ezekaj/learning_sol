@@ -7,7 +7,7 @@ import { Footer } from '@/components/layout/Footer';
 import './globals.css';
 
 // Check if we're in static export mode
-const isStaticExport = true; // Force static export mode for build
+const isStaticExport = process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
 
 const inter = Inter({ subsets: ['latin'] });
 
