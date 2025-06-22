@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useSocket } from '@/lib/socket/SocketProvider';
-import { useSession } from 'next-auth/react';
 
 interface CollaborationSession {
   id: string;
@@ -53,7 +52,9 @@ export function CollaborationProvider({ children }: { children: React.ReactNode 
   const [availableSessions, setAvailableSessions] = useState<CollaborationSession[]>([]);
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const { socket, isConnected } = useSocket();
-  const { data: session } = useSession();
+
+  // For static export, we'll use a mock user session
+  const session = { user: { id: 'static-user', name: 'Demo User' } };
 
   useEffect(() => {
     if (socket && isConnected) {
