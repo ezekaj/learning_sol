@@ -2,13 +2,14 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, User, LogOut, Settings, Crown, Star } from 'lucide-react';
+import { UserRole } from '@prisma/client';
 
 interface UserProfile {
   id: string;
   name: string;
   email: string;
   image?: string;
-  role: 'student' | 'instructor' | 'admin';
+  role: 'STUDENT' | 'INSTRUCTOR' | 'MENTOR' | 'ADMIN';
   level: 'beginner' | 'intermediate' | 'advanced';
   xp: number;
   streak: number;
@@ -44,36 +45,97 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (status === 'loading') {
-      setIsLoading(true);
-      return;
-    }
+    const fetchUserProfile = async () => {
+      if (status === 'loading') {
+        setIsLoading(true);
+        return;
+      }
 
-    if (session?.user) {
-      // Transform session user to UserProfile
-      const userProfile: UserProfile = {
-        id: session.user.id || '',
-        name: session.user.name || '',
-        email: session.user.email || '',
-        image: session.user.image || undefined,
-        role: (session.user as any).role || 'student',
-        level: (session.user as any).level || 'beginner',
-        xp: (session.user as any).xp || 0,
-        streak: (session.user as any).streak || 0,
-        achievements: (session.user as any).achievements || [],
-        preferences: {
-          theme: (session.user as any).theme || 'auto',
-          notifications: (session.user as any).notifications ?? true,
-          language: (session.user as any).language || 'en'
+      if (session?.user) {
+        try {
+          // Fetch complete user profile from database
+          const response = await fetch('/api/user/profile');
+          if (response.ok) {
+            const profileData = await response.json();
+
+            // Transform database profile to UserProfile interface
+            const userProfile: UserProfile = {
+              id: session.user.id || '',
+              name: session.user.name || '',
+              email: session.user.email || '',
+              image: session.user.image || undefined,
+              role: (session.user as any).role || 'student',
+              level: mapSkillLevelToLevel(profileData.profile?.skillLevel || 'BEGINNER'),
+              xp: profileData.profile?.totalXP || 0,
+              streak: profileData.profile?.streak || 0,
+              achievements: profileData.achievements?.map((a: any) => a.achievement.title) || [],
+              preferences: {
+                theme: profileData.profile?.preferences?.theme || 'auto',
+                notifications: profileData.profile?.preferences?.notifications ?? true,
+                language: profileData.profile?.preferences?.language || 'en'
+              }
+            };
+            setUser(userProfile);
+          } else {
+            // Fallback to session data if profile fetch fails
+            const userProfile: UserProfile = {
+              id: session.user.id || '',
+              name: session.user.name || '',
+              email: session.user.email || '',
+              image: session.user.image || undefined,
+              role: (session.user as any).role || 'student',
+              level: 'beginner',
+              xp: 0,
+              streak: 0,
+              achievements: [],
+              preferences: {
+                theme: 'auto',
+                notifications: true,
+                language: 'en'
+              }
+            };
+            setUser(userProfile);
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+          // Fallback to session data
+          const userProfile: UserProfile = {
+            id: session.user.id || '',
+            name: session.user.name || '',
+            email: session.user.email || '',
+            image: session.user.image || undefined,
+            role: (session.user as any).role || 'student',
+            level: 'beginner',
+            xp: 0,
+            streak: 0,
+            achievements: [],
+            preferences: {
+              theme: 'auto',
+              notifications: true,
+              language: 'en'
+            }
+          };
+          setUser(userProfile);
         }
-      };
-      setUser(userProfile);
-    } else {
-      setUser(null);
-    }
+      } else {
+        setUser(null);
+      }
 
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+
+    fetchUserProfile();
   }, [session, status]);
+
+  // Helper function to map Prisma SkillLevel to component level
+  const mapSkillLevelToLevel = (skillLevel: string): 'beginner' | 'intermediate' | 'advanced' => {
+    switch (skillLevel) {
+      case 'INTERMEDIATE': return 'intermediate';
+      case 'ADVANCED': return 'advanced';
+      case 'EXPERT': return 'advanced';
+      default: return 'beginner';
+    }
+  };
 
   const login = async (provider: string = 'github') => {
     try {
@@ -96,18 +158,41 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
     if (!user) return;
 
     try {
-      // In a real app, this would make an API call
-      const updatedUser = { ...user, ...updates };
-      setUser(updatedUser);
-      
-      // Mock API call
-      await fetch('/api/user/profile', {
+      // Transform updates to match database schema
+      const profileUpdates = {
+        bio: updates.name !== user.name ? `Updated profile for ${updates.name}` : undefined,
+        skillLevel: updates.level ? mapLevelToSkillLevel(updates.level) : undefined,
+        preferences: updates.preferences ? {
+          ...user.preferences,
+          ...updates.preferences
+        } : undefined,
+      };
+
+      // Make real API call to update profile
+      const response = await fetch('/api/user/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates)
+        body: JSON.stringify(profileUpdates)
       });
+
+      if (response.ok) {
+        const updatedUser = { ...user, ...updates };
+        setUser(updatedUser);
+      } else {
+        throw new Error('Failed to update profile');
+      }
     } catch (error) {
       console.error('Profile update error:', error);
+      throw error;
+    }
+  };
+
+  // Helper function to map component level to Prisma SkillLevel
+  const mapLevelToSkillLevel = (level: string): string => {
+    switch (level) {
+      case 'intermediate': return 'INTERMEDIATE';
+      case 'advanced': return 'ADVANCED';
+      default: return 'BEGINNER';
     }
   };
 
@@ -115,9 +200,10 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
     if (!user) return false;
 
     const permissions = {
-      student: ['read:lessons', 'write:progress', 'read:profile'],
-      instructor: ['read:lessons', 'write:lessons', 'read:students', 'write:feedback'],
-      admin: ['*'] // All permissions
+      STUDENT: ['read:lessons', 'write:progress', 'read:profile', 'write:submissions'],
+      MENTOR: ['read:lessons', 'write:progress', 'read:profile', 'write:submissions', 'read:students', 'write:mentorship'],
+      INSTRUCTOR: ['read:lessons', 'write:lessons', 'read:students', 'write:feedback', 'write:courses', 'read:analytics'],
+      ADMIN: ['*'] // All permissions
     };
 
     const userPermissions = permissions[user.role] || [];
@@ -126,13 +212,14 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
 
   const getRoleColor = (): string => {
     if (!user) return 'text-gray-400';
-    
+
     const colors = {
-      student: 'text-blue-400',
-      instructor: 'text-green-400',
-      admin: 'text-purple-400'
+      STUDENT: 'text-blue-400',
+      MENTOR: 'text-cyan-400',
+      INSTRUCTOR: 'text-green-400',
+      ADMIN: 'text-purple-400'
     };
-    
+
     return colors[user.role] || 'text-gray-400';
   };
 
@@ -225,11 +312,13 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
           
           {/* Role Badge */}
           <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center ${
-            user.role === 'admin' ? 'bg-purple-500' :
-            user.role === 'instructor' ? 'bg-green-500' : 'bg-blue-500'
+            user.role === 'ADMIN' ? 'bg-purple-500' :
+            user.role === 'INSTRUCTOR' ? 'bg-green-500' :
+            user.role === 'MENTOR' ? 'bg-cyan-500' : 'bg-blue-500'
           }`}>
-            {user.role === 'admin' ? <Crown className="w-2 h-2 text-white" /> :
-             user.role === 'instructor' ? <Star className="w-2 h-2 text-white" /> :
+            {user.role === 'ADMIN' ? <Crown className="w-2 h-2 text-white" /> :
+             user.role === 'INSTRUCTOR' ? <Star className="w-2 h-2 text-white" /> :
+             user.role === 'MENTOR' ? <User className="w-2 h-2 text-white" /> :
              <Shield className="w-2 h-2 text-white" />}
           </div>
         </div>
@@ -349,9 +438,10 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({ role, size = 'md' }) => {
   };
 
   const roleConfig = {
-    student: { color: 'bg-blue-500/20 text-blue-300', icon: Shield },
-    instructor: { color: 'bg-green-500/20 text-green-300', icon: Star },
-    admin: { color: 'bg-purple-500/20 text-purple-300', icon: Crown }
+    STUDENT: { color: 'bg-blue-500/20 text-blue-300', icon: Shield },
+    MENTOR: { color: 'bg-cyan-500/20 text-cyan-300', icon: User },
+    INSTRUCTOR: { color: 'bg-green-500/20 text-green-300', icon: Star },
+    ADMIN: { color: 'bg-purple-500/20 text-purple-300', icon: Crown }
   };
 
   const config = roleConfig[role];
