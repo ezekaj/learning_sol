@@ -32,13 +32,12 @@ import { useLearning } from '@/lib/context/LearningContext';
 const isStaticExport = process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
 
 export function Navigation() {
-  const [isOpen, setIsOpen] = useState(false);
-
   // For static export, use simplified navigation without hooks
   if (isStaticExport) {
-    return <StaticNavigation isOpen={isOpen} setIsOpen={setIsOpen} />;
+    return <StaticNavigation />;
   }
 
+  const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
   const { state: learningState } = useLearning();
 
@@ -202,8 +201,8 @@ export function Navigation() {
   );
 }
 
-// Simplified navigation for static export
-function StaticNavigation({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (open: boolean) => void }) {
+// Simplified navigation for static export (no hooks, no interactive elements)
+function StaticNavigation() {
   const navigationItems = [
     { href: '/learn', label: 'Learn', icon: BookOpen },
     { href: '/code', label: 'Code Lab', icon: Code },
@@ -217,16 +216,12 @@ function StaticNavigation({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center space-x-2"
-            >
+            <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <Zap className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold gradient-text">SolanaLearn</span>
-            </motion.div>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
@@ -253,45 +248,25 @@ function StaticNavigation({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (
                 Get Started
               </Button>
             </div>
-
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden"
-              onClick={() => setIsOpen(!isOpen)}
-            >
-              {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Navigation */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden glass border-t border-white/10"
-          >
-            <div className="px-4 py-4 space-y-2">
-              {navigationItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <item.icon className="w-5 h-5" />
-                  <span>{item.label}</span>
-                </Link>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Static Mobile Navigation (always visible on mobile for static export) */}
+      <div className="md:hidden glass border-t border-white/10">
+        <div className="px-4 py-4 space-y-2">
+          {navigationItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <item.icon className="w-5 h-5" />
+              <span>{item.label}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
     </nav>
   );
 }

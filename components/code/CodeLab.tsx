@@ -18,7 +18,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WalletConnect } from '@/components/blockchain/WalletConnect';
 import { ContractDeployer } from '@/components/blockchain/ContractDeployer';
-import { useToast } from '@/components/ui/use-toast';
+// Check if we're in static export mode
+const isStaticExport = process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
 
 const DEFAULT_CODE = `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
@@ -61,6 +62,11 @@ interface CompilationResult {
   optimizationSuggestions?: string[];
 }
 
+// For static export, return a simplified version without hooks
+if (isStaticExport) {
+  return <StaticCodeLab />;
+}
+
 export function CodeLab() {
   const [code, setCode] = useState(DEFAULT_CODE);
   const [compilationResult, setCompilationResult] = useState<CompilationResult | null>(null);
@@ -68,7 +74,9 @@ export function CodeLab() {
   const [isSaving, setIsSaving] = useState(false);
   const editorRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
+  // Import toast hook only in non-static mode
+  const { useToast } = require('@/components/ui/use-toast');
   const { toast } = useToast();
 
   const handleCompile = async () => {
@@ -163,7 +171,7 @@ export function CodeLab() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     toast({
       title: "File downloaded!",
       description: `${contractName}.sol has been downloaded.`,
@@ -430,7 +438,7 @@ export function CodeLab() {
                 </TabsContent>
                 
                 <TabsContent value="deploy">
-                  <ContractDeployer 
+                  <ContractDeployer
                     bytecode={compilationResult.bytecode}
                     abi={compilationResult.abi}
                     contractName={extractContractName(code) || 'Contract'}
@@ -644,6 +652,128 @@ contract MultiSigWallet {
               </div>
             </CardContent>
           </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Simplified static version for static export
+function StaticCodeLab() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold gradient-text mb-4">
+            Solidity Code Lab
+          </h1>
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            Interactive Solidity development environment with real-time compilation and deployment.
+            This is a static demo showcasing the platform capabilities.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Main Editor Area */}
+          <div className="lg:col-span-3 space-y-4">
+            <Card className="glass border-white/10">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center justify-between">
+                  <span className="flex items-center">
+                    <Code className="w-5 h-5 mr-2" />
+                    Smart Contract Editor
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-slate-800 rounded-lg p-4 min-h-[400px] border border-slate-700">
+                  <pre className="text-green-400 font-mono text-sm">
+{`// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+/**
+ * @title SimpleStorage
+ * @dev Store and retrieve a value
+ */
+contract SimpleStorage {
+    uint256 private storedData;
+
+    event ValueChanged(uint256 newValue);
+
+    /**
+     * @dev Store a value
+     * @param value The value to store
+     */
+    function set(uint256 value) public {
+        storedData = value;
+        emit ValueChanged(value);
+    }
+
+    /**
+     * @dev Retrieve the stored value
+     * @return The stored value
+     */
+    function get() public view returns (uint256) {
+        return storedData;
+    }
+}`}
+                  </pre>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="glass border-white/10">
+              <CardHeader>
+                <CardTitle className="text-white">Compilation Results</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
+                  <div className="flex items-center text-green-400">
+                    <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                    Compilation successful! Contract compiled without errors.
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-4">
+            <Card className="glass border-white/10">
+              <CardHeader>
+                <CardTitle className="text-sm text-white">Wallet Connection</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-400 text-sm">
+                  Wallet connection is available in the full version.
+                  This is a static demo showcasing the platform.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass border-white/10">
+              <CardHeader>
+                <CardTitle className="text-sm text-white flex items-center">
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Code Examples
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700 cursor-pointer hover:bg-slate-700/50 transition-colors">
+                  <div className="font-medium text-white">💰 Token Contract</div>
+                  <div className="text-gray-400">ERC-20 token implementation</div>
+                </div>
+                <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700 cursor-pointer hover:bg-slate-700/50 transition-colors">
+                  <div className="font-medium text-white">🎮 Game Contract</div>
+                  <div className="text-gray-400">Simple blockchain game</div>
+                </div>
+                <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700 cursor-pointer hover:bg-slate-700/50 transition-colors">
+                  <div className="font-medium text-white">🏪 Marketplace</div>
+                  <div className="text-gray-400">NFT marketplace contract</div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

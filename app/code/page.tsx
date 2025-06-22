@@ -1,8 +1,14 @@
 'use client';
 
 import { Suspense } from 'react';
-import { CodeLab } from '@/components/code/CodeLab';
+import dynamic from 'next/dynamic';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+
+// Dynamically import CodeLab with SSR disabled to prevent build errors
+const CodeLab = dynamic(() => import('@/components/code/CodeLab').then(mod => ({ default: mod.CodeLab })), {
+  ssr: false,
+  loading: () => <LoadingSpinner />
+});
 
 export default function CodePage() {
   // For static export, we don't use authentication
