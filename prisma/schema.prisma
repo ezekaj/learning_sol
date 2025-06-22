@@ -117,6 +117,8 @@ model Module {
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lessons     Lesson[]
   progress    UserProgress[]
+
+  @@unique([courseId, title])
 }
 
 model Lesson {
@@ -134,6 +136,8 @@ model Lesson {
   module      Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   submissions CodeSubmission[]
   progress    UserProgress[]
+
+  @@unique([moduleId, title])
 }
 
 model UserProgress {
