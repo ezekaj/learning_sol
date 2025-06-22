@@ -1,18 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  trailingSlash: true,
-  basePath: '/learning_sol',
-  assetPrefix: '/learning_sol/',
+  // Removed static export configuration
   serverExternalPackages: ['@prisma/client'],
-  // Disable image optimization for static export
+  // Enable image optimization for live mode
   images: {
-    unoptimized: true,
     domains: ['avatars.githubusercontent.com', 'lh3.googleusercontent.com'],
-  },
-  // Skip API routes during static export
-  generateBuildId: async () => {
-    return 'static-build'
   },
   experimental: {
     // Removed deprecated appDir option (App Router is now stable)
@@ -38,9 +30,8 @@ const nextConfig = {
 
     return config;
   },
-  // Set environment variables including static export flag
+  // Set environment variables for live mode
   env: {
-    NEXT_PUBLIC_STATIC_EXPORT: 'true',
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     DATABASE_URL: process.env.DATABASE_URL,

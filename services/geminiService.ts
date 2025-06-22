@@ -36,7 +36,7 @@ class RealGoogleGenAI {
     })
   };
 
-  models = {
+  models: {
     generateContent: async (config: any) => {
       try {
         const prompt = config.contents || config.prompt || config;

@@ -48,16 +48,18 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   // Relations
-  accounts      Account[]
-  sessions      Session[]
-  profile       UserProfile?
-  progress      UserProgress[]
-  achievements  UserAchievement[]
-  submissions   CodeSubmission[]
+  accounts       Account[]
+  sessions       Session[]
+  profile        UserProfile?
+  progress       UserProgress[]
+  achievements   UserAchievement[]
+  submissions    CodeSubmission[]
   collaborations Collaboration[]
-  mentorships   Mentorship[] @relation("MentorRelation")
-  menteeships   Mentorship[] @relation("MenteeRelation")
-  chatMessages  ChatMessage[]
+  mentorships    Mentorship[]      @relation("MentorRelation")
+  menteeships    Mentorship[]      @relation("MenteeRelation")
+  chatMessages   ChatMessage[]
+  feedback       Feedback[]
+  uatSessions    UATSession[]
 }
 
 model VerificationToken {
@@ -69,38 +71,38 @@ model VerificationToken {
 }
 
 model UserProfile {
-  id              String   @id @default(cuid())
-  userId          String   @unique
+  id              String     @id @default(cuid())
+  userId          String     @unique
   bio             String?
   githubUsername  String?
   twitterUsername String?
   linkedinUrl     String?
   websiteUrl      String?
   skillLevel      SkillLevel @default(BEGINNER)
-  totalXP         Int      @default(0)
-  currentLevel    Int      @default(1)
-  streak          Int      @default(0)
-  lastActiveDate  DateTime @default(now())
+  totalXP         Int        @default(0)
+  currentLevel    Int        @default(1)
+  streak          Int        @default(0)
+  lastActiveDate  DateTime   @default(now())
   preferences     Json?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Course {
-  id          String      @id @default(cuid())
-  title       String
-  description String
-  difficulty  SkillLevel
+  id             String     @id @default(cuid())
+  title          String
+  description    String
+  difficulty     SkillLevel
   estimatedHours Int
-  isPublished Boolean     @default(false)
-  order       Int
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  isPublished    Boolean    @default(false)
+  order          Int
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
-  modules     Module[]
-  progress    UserProgress[]
+  modules  Module[]
+  progress UserProgress[]
 }
 
 model Module {
@@ -114,9 +116,9 @@ model Module {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lessons     Lesson[]
-  progress    UserProgress[]
+  course   Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons  Lesson[]
+  progress UserProgress[]
 
   @@unique([courseId, title])
 }
@@ -133,7 +135,7 @@ model Lesson {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-  module      Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  module      Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   submissions CodeSubmission[]
   progress    UserProgress[]
 
@@ -141,17 +143,17 @@ model Lesson {
 }
 
 model UserProgress {
-  id          String           @id @default(cuid())
+  id          String         @id @default(cuid())
   userId      String
   courseId    String?
   moduleId    String?
   lessonId    String?
-  status      ProgressStatus   @default(NOT_STARTED)
+  status      ProgressStatus @default(NOT_STARTED)
   score       Int?
-  timeSpent   Int              @default(0) // in minutes
+  timeSpent   Int            @default(0) // in minutes
   completedAt DateTime?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   course Course? @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -162,27 +164,27 @@ model UserProgress {
 }
 
 model Achievement {
-  id          String   @id @default(cuid())
+  id          String              @id @default(cuid())
   title       String
   description String
   icon        String
   category    AchievementCategory
   requirement Json
-  xpReward    Int      @default(0)
+  xpReward    Int                 @default(0)
   badgeUrl    String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
 
   userAchievements UserAchievement[]
 }
 
 model UserAchievement {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   userId        String
   achievementId String
-  unlockedAt    DateTime  @default(now())
-  progress      Int       @default(0)
-  isCompleted   Boolean   @default(false)
+  unlockedAt    DateTime @default(now())
+  progress      Int      @default(0)
+  isCompleted   Boolean  @default(false)
 
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
@@ -191,47 +193,47 @@ model UserAchievement {
 }
 
 model CodeSubmission {
-  id          String           @id @default(cuid())
-  userId      String
-  lessonId    String
-  code        String
-  language    String           @default("solidity")
-  status      SubmissionStatus @default(PENDING)
-  score       Int?
-  feedback    String?
-  gasUsed     String?
+  id           String           @id @default(cuid())
+  userId       String
+  lessonId     String
+  code         String
+  language     String           @default("solidity")
+  status       SubmissionStatus @default(PENDING)
+  score        Int?
+  feedback     String?
+  gasUsed      String?
   deploymentTx String?
-  testResults Json?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  testResults  Json?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 }
 
 model Collaboration {
-  id          String              @id @default(cuid())
-  title       String
-  description String?
-  type        CollaborationType
-  status      CollaborationStatus @default(ACTIVE)
-  maxParticipants Int             @default(2)
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  id              String              @id @default(cuid())
+  title           String
+  description     String?
+  type            CollaborationType
+  status          CollaborationStatus @default(ACTIVE)
+  maxParticipants Int                 @default(2)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 
   participants User[]
   chatMessages ChatMessage[]
 }
 
 model Mentorship {
-  id          String          @id @default(cuid())
-  mentorId    String
-  menteeId    String
-  status      MentorshipStatus @default(PENDING)
-  startDate   DateTime?
-  endDate     DateTime?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id        String           @id @default(cuid())
+  mentorId  String
+  menteeId  String
+  status    MentorshipStatus @default(PENDING)
+  startDate DateTime?
+  endDate   DateTime?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
   mentor User @relation("MentorRelation", fields: [mentorId], references: [id], onDelete: Cascade)
   mentee User @relation("MenteeRelation", fields: [menteeId], references: [id], onDelete: Cascade)
@@ -240,16 +242,88 @@ model Mentorship {
 }
 
 model ChatMessage {
-  id              String         @id @default(cuid())
+  id              String      @id @default(cuid())
   content         String
   userId          String
   collaborationId String?
-  type            MessageType    @default(TEXT)
+  type            MessageType @default(TEXT)
   metadata        Json?
-  createdAt       DateTime       @default(now())
+  createdAt       DateTime    @default(now())
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   collaboration Collaboration? @relation(fields: [collaborationId], references: [id], onDelete: Cascade)
+}
+
+model Feedback {
+  id               String   @id @default(cuid())
+  type             String // 'rating', 'survey', 'bug_report', 'feature_request', 'usability'
+  category         String
+  title            String
+  description      String
+  rating           Int?
+  severity         String? // 'low', 'medium', 'high', 'critical'
+  priority         String // 'low', 'medium', 'high', 'critical'
+  steps            String[] // Array of reproduction steps
+  expectedBehavior String?
+  actualBehavior   String?
+  browserInfo      String?
+  screenRecording  Boolean  @default(false)
+  contactEmail     String?
+  allowFollowUp    Boolean  @default(false)
+  page             String
+  sessionId        String
+  uatSessionId     String?   // For UAT feedback
+  userId           String?
+  timestamp        DateTime @default(now())
+  ipAddress        String?
+  userAgent        String?
+  assignedTeam     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  uatSession UATSession? @relation(fields: [uatSessionId], references: [id], onDelete: SetNull)
+}
+
+model UATSession {
+  id                String    @id @default(cuid())
+  testerId          String
+  testerExperience  String? // 'beginner', 'intermediate', 'expert'
+  testerBackground  String?
+  deviceInfo        String?
+  browserInfo       String?
+  assignedTasks     String[] // Array of task IDs
+  startTime         DateTime  @default(now())
+  endTime           DateTime?
+  status            String    @default("not_started") // 'not_started', 'in_progress', 'completed', 'abandoned'
+  errorsEncountered Int       @default(0)
+  helpRequests      Int       @default(0)
+  feedbackCount     Int       @default(0)
+  lastFeedbackAt    DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  tester      User            @relation(fields: [testerId], references: [id], onDelete: Cascade)
+  feedback    Feedback[]
+  taskResults UATTaskResult[]
+}
+
+model UATTaskResult {
+  id         String   @id @default(cuid())
+  sessionId  String
+  taskId     String
+  completed  Boolean  @default(false)
+  timeSpent  Int? // in seconds
+  errorCount Int      @default(0)
+  helpUsed   Boolean  @default(false)
+  rating     Int? // 1-5 rating
+  comments   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  session UATSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, taskId])
 }
 
 // Enums

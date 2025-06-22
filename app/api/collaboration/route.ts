@@ -56,13 +56,13 @@ export async function GET(request: NextRequest) {
     });
 
     // Transform collaborations to include missing properties for frontend compatibility
-    const transformedCollaborations = collaborations.map(collab => ({
+    const transformedCollaborations = collaborations.map((collab: any) => ({
       ...collab,
       maxParticipants: collab.maxParticipants || 4,
       language: 'solidity',
       code: collab.code || '// Start coding together!\n',
       isActive: collab.status === 'ACTIVE',
-      participants: collab.participants.map(p => ({
+      participants: collab.participants.map((p: any) => ({
         ...p,
         role: 'STUDENT' // Default role for collaboration participants
       }))

@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Get real-time community statistics
     const now = new Date();
@@ -143,14 +143,14 @@ export async function GET(request: NextRequest) {
       totalUsers,
       totalLessonsCompleted,
       totalAchievementsUnlocked,
-      topContributors: topContributors.map(user => ({
+      topContributors: topContributors.map((user: any) => ({
         id: user.id,
         name: user.name,
         image: user.image,
         completedLessons: user._count.progress,
         totalXP: user.profile?.totalXP || 0,
       })),
-      recentActivity: recentActivity.map(activity => ({
+      recentActivity: recentActivity.map((activity: any) => ({
         id: activity.id,
         user: activity.user,
         lesson: activity.lesson,

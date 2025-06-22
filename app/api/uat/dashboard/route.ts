@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/monitoring/logger';
 import { analytics } from '@/lib/monitoring/analytics';
+import { prisma } from '@/lib/prisma-client-wrapper';
 
 /**
  * UAT Dashboard API
  * Provides comprehensive data for UAT monitoring and analysis
  */
 
-const prisma = new PrismaClient();
+// Using extended Prisma client from wrapper
 
 interface UATDashboardData {
   metrics: {
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Fetch feedback data
-    const feedback = await prisma.uATFeedback.findMany({
+    const feedback = await prisma.feedback.findMany({
       where: {
         timestamp: {
           gte: startDate,
@@ -130,9 +130,12 @@ export async function GET(request: NextRequest) {
         ...(category !== 'all' && {
           category: category,
         }),
+        uatSessionId: {
+          not: null,
+        },
       },
       include: {
-        session: {
+        uatSession: {
           include: {
             tester: true,
           },
@@ -281,10 +284,10 @@ function generateAnalytics(sessions: any[], feedback: any[]) {
   // Format feedback
   const testerFeedback = feedback.map(f => ({
     id: f.id,
-    testerId: f.session.testerId,
-    taskId: f.taskId,
+    testerId: f.uatSession?.testerId || 'unknown',
+    taskId: f.category, // Use category as task identifier for now
     rating: f.rating,
-    comment: f.comment,
+    comment: f.description,
     category: f.category,
     timestamp: f.timestamp,
     priority: f.priority,
@@ -348,8 +351,8 @@ function generateTaskPerformance(sessions: any[], feedback: any[]) {
 
   // Aggregate feedback ratings
   feedback.forEach(f => {
-    const stats = taskStats.get(f.taskId);
-    if (stats && f.rating > 0) {
+    const stats = taskStats.get(f.category); // Use category as task identifier
+    if (stats && f.rating && f.rating > 0) {
       stats.ratings.push(f.rating);
     }
   });

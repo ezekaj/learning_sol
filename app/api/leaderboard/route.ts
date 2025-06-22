@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate additional stats for each user
     const leaderboardWithStats = await Promise.all(
-      topUsers.map(async (user, index) => {
+      topUsers.map(async (user: any, index: number) => {
         // Get user's completed lessons count
         const completedLessons = await prisma.userProgress.count({
           where: {
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
               gt: await prisma.userProfile.findUnique({
                 where: { userId: session.user.id },
                 select: { totalXP: true },
-              }).then(p => p?.totalXP || 0),
+              }).then((p: any) => p?.totalXP || 0),
             },
           },
         },

@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { action, courseId, moduleId, lessonId } = await request.json();
+    const { action, courseId, lessonId } = await request.json();
 
     switch (action) {
       case 'enroll':

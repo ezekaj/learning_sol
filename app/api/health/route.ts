@@ -3,7 +3,7 @@ import { env } from '@/lib/config/environment';
 import { logger } from '@/lib/monitoring/logger';
 import { errorTracker } from '@/lib/monitoring/errorTracking';
 import { analytics } from '@/lib/monitoring/analytics';
-import { rateLimiter, getRateLimitStats } from '@/lib/security/rateLimiting';
+import { getRateLimitStats } from '@/lib/security/rateLimiting';
 import { sessionSecurity } from '@/lib/security/session';
 
 /**
@@ -127,9 +127,11 @@ class HealthChecker {
 
       // Log health check
       logger.info('Health check completed', {
-        status: overallStatus,
-        duration: Date.now() - startTime,
-        metadata: { checks: Object.keys(checks).length },
+        metadata: {
+          status: overallStatus,
+          duration: Date.now() - startTime,
+          checks: Object.keys(checks).length
+        },
       });
 
       return result;
@@ -460,13 +462,13 @@ class HealthChecker {
   }
 }
 
-// Create singleton instance
+// Create singleton instance (not exported to avoid Next.js API route conflicts)
 const healthChecker = new HealthChecker();
 
 /**
  * Health check endpoint
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const start = Date.now();
   
   try {
@@ -511,5 +513,5 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Export health checker for use in other parts of the application
-export { healthChecker };
+// Note: healthChecker is not exported to avoid Next.js API route conflicts
+// If needed elsewhere, create a separate module for the HealthChecker class
