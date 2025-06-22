@@ -5,11 +5,15 @@ import { Star, Quote } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export function TestimonialsSection() {
+  // Check if we're in static export mode for GitHub Pages
+  const isStaticExport = process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
+  const basePath = isStaticExport ? '/learning_sol' : '';
+
   const testimonials = [
     {
       name: 'Alex Chen',
       role: 'Smart Contract Developer at ConsenSys',
-      avatar: '/avatars/alex.jpg',
+      avatar: `${basePath}/avatars/alex.jpg`,
       rating: 5,
       content: 'SolLearn transformed my understanding of Solidity. The AI-powered tutoring helped me identify and fix security vulnerabilities I never knew existed. Now I\'m confidently building DeFi protocols.',
       highlight: 'AI-powered tutoring',
@@ -17,7 +21,7 @@ export function TestimonialsSection() {
     {
       name: 'Sarah Johnson',
       role: 'Blockchain Engineer at Chainlink',
-      avatar: '/avatars/sarah.jpg',
+      avatar: `${basePath}/avatars/sarah.jpg`,
       rating: 5,
       content: 'The real-time collaboration feature is incredible. I learned more in 3 months with SolLearn than in a year of self-study. The gamification kept me motivated throughout my journey.',
       highlight: 'Real-time collaboration',
@@ -25,7 +29,7 @@ export function TestimonialsSection() {
     {
       name: 'Marcus Rodriguez',
       role: 'DeFi Protocol Founder',
-      avatar: '/avatars/marcus.jpg',
+      avatar: `${basePath}/avatars/marcus.jpg`,
       rating: 5,
       content: 'From zero to launching my own DeFi protocol in 6 months. SolLearn\'s project-based approach and testnet integration made the learning curve much smoother. Highly recommended!',
       highlight: 'Project-based learning',
@@ -33,7 +37,7 @@ export function TestimonialsSection() {
     {
       name: 'Emily Zhang',
       role: 'Solidity Instructor at Web3 University',
-      avatar: '/avatars/emily.jpg',
+      avatar: `${basePath}/avatars/emily.jpg`,
       rating: 5,
       content: 'As an educator, I\'m impressed by SolLearn\'s curriculum structure. The progressive difficulty and hands-on exercises create an optimal learning environment for blockchain development.',
       highlight: 'Curriculum structure',
@@ -41,7 +45,7 @@ export function TestimonialsSection() {
     {
       name: 'David Kim',
       role: 'Senior Developer at Uniswap',
-      avatar: '/avatars/david.jpg',
+      avatar: `${basePath}/avatars/david.jpg`,
       rating: 5,
       content: 'The security focus in SolLearn is unmatched. Every lesson includes best practices and vulnerability prevention. It\'s like having a security audit expert as your personal tutor.',
       highlight: 'Security focus',
@@ -49,7 +53,7 @@ export function TestimonialsSection() {
     {
       name: 'Lisa Thompson',
       role: 'Blockchain Consultant',
-      avatar: '/avatars/lisa.jpg',
+      avatar: `${basePath}/avatars/lisa.jpg`,
       rating: 5,
       content: 'SolLearn\'s modern UI and smooth animations make learning enjoyable. The glassmorphism design and interactive elements create an immersive experience that keeps you engaged.',
       highlight: 'Modern UI/UX',
