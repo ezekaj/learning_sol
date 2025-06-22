@@ -43,6 +43,7 @@ const mockUserProgress = {
   badges: ['first-contract', 'security-expert', 'defi-builder']
 };
 
+// Dynamic achievements data - will be fetched from API in real implementation
 const mockAchievements = [
   {
     id: 'first-contract',
@@ -68,6 +69,7 @@ const mockAchievements = [
   }
 ];
 
+// Dynamic leaderboard data - will be fetched from API in real implementation
 const mockLeaderboard = [
   {
     id: '1',
@@ -88,6 +90,10 @@ const mockLeaderboard = [
     streak: 32
   }
 ];
+
+
+
+
 
 const mockLearningPaths = [
   {
@@ -464,11 +470,7 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                 >
-                  <GamificationSystem
-                    userProgress={mockUserProgress}
-                    achievements={mockAchievements}
-                    leaderboard={mockLeaderboard}
-                  />
+                  <GamificationSystem />
                 </motion.div>
               )}
 

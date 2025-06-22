@@ -1,5 +1,5 @@
 import { Server as NetServer } from 'http';
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiResponse } from 'next';
 import { Server as ServerIO } from 'socket.io';
 import { prisma } from '@/lib/prisma';
 
@@ -26,7 +26,35 @@ interface CollaborationSession {
   code: string;
   language: string;
   createdAt: Date;
+  isActive: boolean;
+  maxParticipants: number;
 }
+
+interface ActiveSession {
+  session: CollaborationSession;
+  participants: Set<string>;
+  lastActivity: Date;
+}
+
+interface CollaborationSession {
+  id: string;
+  title: string;
+  type: string;
+  participants: User[];
+  code: string;
+  language: string;
+  createdAt: Date;
+  isActive: boolean;
+  maxParticipants: number;
+}
+
+interface ActiveSession {
+  session: CollaborationSession;
+  participants: Set<string>;
+  lastActivity: Date;
+}
+
+
 
 interface UserPresence {
   userId: string;
@@ -45,8 +73,8 @@ interface UserPresence {
   lastSeen: Date;
 }
 
-// Store active sessions and user presence
-const activeSessions = new Map<string, CollaborationSession>();
+// Store active sessions, user presence, and session participants
+const activeSessions = new Map<string, ActiveSession>();
 const userPresence = new Map<string, UserPresence[]>();
 const sessionParticipants = new Map<string, Set<string>>();
 
@@ -124,7 +152,7 @@ export const initializeSocket = (server: NetServer) => {
         }
 
         // Check if user is a participant
-        const isParticipant = session.participants.some(p => p.id === socket.data.user.id);
+        const isParticipant = session.participants.some((p: any) => p.id === socket.data.user.id);
         if (!isParticipant) {
           socket.emit('error', 'Not authorized to join this session');
           return;
@@ -143,16 +171,34 @@ export const initializeSocket = (server: NetServer) => {
         // Update user presence
         updateUserPresence(sessionId, socket.data.user, {});
 
+        // Create or update active session
+        const collaborationSession: CollaborationSession = {
+          id: session.id,
+          title: session.title,
+          type: session.type,
+          participants: session.participants.map((p: any) => ({
+            id: p.id,
+            name: p.name || 'Anonymous',
+            image: p.image,
+            role: p.role
+          })),
+          code: session.code || '// Start coding together!\n',
+          language: 'solidity',
+          createdAt: session.createdAt,
+          isActive: true,
+          maxParticipants: session.maxParticipants || 4
+        };
+
+        // Store active session
+        activeSessions.set(sessionId, {
+          session: collaborationSession,
+          participants: sessionParticipants.get(sessionId) || new Set(),
+          lastActivity: new Date()
+        });
+
         // Send session data to user
         socket.emit('session_joined', {
-          session: {
-            id: session.id,
-            title: session.title,
-            type: session.type,
-            participants: session.participants,
-            code: '', // Will be loaded separately
-            language: 'solidity',
-          },
+          session: collaborationSession,
           messages: session.chatMessages.reverse(),
           presence: userPresence.get(sessionId) || [],
         });
@@ -272,8 +318,7 @@ export const initializeSocket = (server: NetServer) => {
 // Helper functions
 async function getUserFromSession(sessionToken: string): Promise<User | null> {
   try {
-    // This would typically verify the JWT token and get user data
-    // For now, we'll use a simplified approach
+    // First try to find NextAuth session
     const session = await prisma.session.findUnique({
       where: { sessionToken },
       include: {
@@ -288,7 +333,36 @@ async function getUserFromSession(sessionToken: string): Promise<User | null> {
       },
     });
 
-    return session?.user || null;
+    if (session?.user) {
+      return {
+        id: session.user.id,
+        name: session.user.name || 'Anonymous',
+        image: session.user.image || undefined,
+        role: session.user.role
+      };
+    }
+
+    // Fallback: try to find user by session token as user ID (for development)
+    const user = await prisma.user.findUnique({
+      where: { id: sessionToken },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        role: true,
+      },
+    });
+
+    if (user) {
+      return {
+        id: user.id,
+        name: user.name || 'Anonymous',
+        image: user.image || undefined,
+        role: user.role
+      };
+    }
+
+    return null;
   } catch (error) {
     console.error('Error getting user from session:', error);
     return null;

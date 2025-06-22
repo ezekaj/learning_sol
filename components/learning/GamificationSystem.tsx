@@ -137,28 +137,38 @@ export const GamificationSystem: React.FC<GamificationSystemProps> = ({
           setAchievements(transformedAchievements);
         }
 
-        // TODO: Fetch leaderboard data
-        // For now, use mock data
-        setLeaderboard([
-          {
-            id: '1',
-            username: 'SolidityMaster',
-            avatar: '',
-            level: 25,
-            xp: 25000,
-            rank: 1,
-            streak: 15
-          },
-          {
-            id: '2',
-            username: 'BlockchainDev',
-            avatar: '',
-            level: 22,
-            xp: 22000,
-            rank: 2,
-            streak: 12
+        // Fetch leaderboard data
+        const leaderboardResponse = await fetch('/api/leaderboard');
+        if (leaderboardResponse.ok) {
+          const leaderboardData = await leaderboardResponse.json();
+
+          // Transform API data to LeaderboardEntry interface
+          const transformedLeaderboard: LeaderboardEntry[] = leaderboardData.leaderboard.map((entry: any, index: number) => ({
+            id: entry.id,
+            username: entry.name || 'Anonymous',
+            avatar: entry.image || '',
+            level: entry.profile?.currentLevel || 1,
+            xp: entry.profile?.totalXP || 0,
+            rank: index + 1,
+            streak: entry.profile?.streak || 0
+          }));
+          setLeaderboard(transformedLeaderboard);
+        } else {
+          // Fallback to current user data if leaderboard fails
+          if (user) {
+            setLeaderboard([
+              {
+                id: user.id,
+                username: user.name || 'You',
+                avatar: user.image || '',
+                level: userProgress?.level || 1,
+                xp: userProgress?.xp || 0,
+                rank: 1,
+                streak: userProgress?.streak || 0
+              }
+            ]);
           }
-        ]);
+        }
 
       } catch (error) {
         console.error('Error fetching gamification data:', error);

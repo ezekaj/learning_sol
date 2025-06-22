@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 let io: ServerIO | null = null;
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   if (!io) {
     console.log('Initializing Socket.io server...');
     

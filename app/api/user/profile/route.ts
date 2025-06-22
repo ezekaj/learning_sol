@@ -85,7 +85,7 @@ export async function GET(_request: NextRequest) {
       progress: user.progress,
       stats: {
         totalLessons: user.progress.length,
-        completedLessons: user.progress.filter(p => p.status === 'COMPLETED').length,
+        completedLessons: user.progress.filter((p: any) => p.status === 'COMPLETED').length,
         totalXP: totalXP,
         currentLevel,
         streak: user.profile?.streak || 0,
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'updateXP':
-        const { xpGained, source } = data;
+        const { xpGained } = data;
         
         // Update user XP
         const updatedProfile = await prisma.userProfile.upsert({

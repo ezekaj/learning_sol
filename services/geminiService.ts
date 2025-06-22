@@ -1,5 +1,5 @@
 
-import { GoogleGenerativeAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Real Google Generative AI implementation
 class RealGoogleGenAI {

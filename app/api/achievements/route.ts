@@ -25,7 +25,7 @@ export async function GET(_request: NextRequest) {
       orderBy: { createdAt: 'asc' },
     });
 
-    const achievementsWithProgress = achievements.map(achievement => ({
+    const achievementsWithProgress = achievements.map((achievement: any) => ({
       id: achievement.id,
       title: achievement.title,
       description: achievement.description,

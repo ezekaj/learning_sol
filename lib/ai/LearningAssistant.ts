@@ -1,6 +1,4 @@
-// Note: Using placeholder type for Google Generative AI since the package may not be available
-// In a real implementation, you would install @google/generative-ai package
-type GoogleGenerativeAI = any;
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export interface AIResponse {
   message: string;

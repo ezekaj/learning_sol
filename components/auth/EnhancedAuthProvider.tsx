@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, User, LogOut, Settings, Crown, Star } from 'lucide-react';
-import { UserRole } from '@prisma/client';
+
 
 interface UserProfile {
   id: string;

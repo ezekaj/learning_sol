@@ -55,7 +55,20 @@ export async function GET(request: NextRequest) {
       orderBy: { updatedAt: 'desc' },
     });
 
-    return NextResponse.json({ collaborations });
+    // Transform collaborations to include missing properties for frontend compatibility
+    const transformedCollaborations = collaborations.map(collab => ({
+      ...collab,
+      maxParticipants: collab.maxParticipants || 4,
+      language: 'solidity',
+      code: collab.code || '// Start coding together!\n',
+      isActive: collab.status === 'ACTIVE',
+      participants: collab.participants.map(p => ({
+        ...p,
+        role: 'STUDENT' // Default role for collaboration participants
+      }))
+    }));
+
+    return NextResponse.json({ collaborations: transformedCollaborations });
   } catch (error) {
     console.error('Error fetching collaborations:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -132,7 +145,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Collaboration not found' }, { status: 404 });
     }
 
-    const isParticipant = collaboration.participants.some(p => p.id === session.user.id);
+    const isParticipant = collaboration.participants.some((p: any) => p.id === session.user.id);
     
     if (!isParticipant) {
       return NextResponse.json({ error: 'Not authorized to modify this collaboration' }, { status: 403 });
