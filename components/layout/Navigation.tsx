@@ -4,13 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  BookOpen, 
-  Code, 
-  Users, 
-  Trophy, 
-  Settings, 
-  Menu, 
+import {
+  BookOpen,
+  Code,
+  Users,
+  Trophy,
+  Settings,
+  Menu,
   X,
   Zap,
   Brain,
@@ -28,8 +28,17 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useLearning } from '@/lib/context/LearningContext';
 
+// Check if we're in static export mode
+const isStaticExport = true; // Force static export mode for build
+
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+
+  // For static export, use simplified navigation without hooks
+  if (isStaticExport) {
+    return <StaticNavigation isOpen={isOpen} setIsOpen={setIsOpen} />;
+  }
+
   const { data: session } = useSession();
   const { state: learningState } = useLearning();
 
@@ -185,6 +194,100 @@ export function Navigation() {
                   </div>
                 </>
               )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </nav>
+  );
+}
+
+// Simplified navigation for static export
+function StaticNavigation({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (open: boolean) => void }) {
+  const navigationItems = [
+    { href: '/learn', label: 'Learn', icon: BookOpen },
+    { href: '/code', label: 'Code Lab', icon: Code },
+    { href: '/collaborate', label: 'Collaborate', icon: Users },
+    { href: '/achievements', label: 'Achievements', icon: Trophy },
+  ];
+
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center space-x-2">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center space-x-2"
+            >
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold gradient-text">SolanaLearn</span>
+            </motion.div>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {navigationItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
+              >
+                <item.icon className="w-4 h-4" />
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </div>
+
+          {/* Static User Section */}
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Button variant="ghost">
+                Sign In
+              </Button>
+              <Button>
+                Get Started
+              </Button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden glass border-t border-white/10"
+          >
+            <div className="px-4 py-4 space-y-2">
+              {navigationItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span>{item.label}</span>
+                </Link>
+              ))}
             </div>
           </motion.div>
         )}

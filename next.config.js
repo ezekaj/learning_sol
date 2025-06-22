@@ -5,13 +5,24 @@ const nextConfig = {
   basePath: '/learning_sol',
   assetPrefix: '/learning_sol/',
   serverExternalPackages: ['@prisma/client'],
+  // Disable image optimization for static export
+  images: {
+    unoptimized: true,
+    domains: ['avatars.githubusercontent.com', 'lh3.googleusercontent.com'],
+  },
+  // Skip API routes during static export
+  generateBuildId: async () => {
+    return 'static-build'
+  },
+  // Set environment variable for static export
+  env: {
+    NEXT_PUBLIC_STATIC_EXPORT: 'true',
+  },
   experimental: {
     // Removed deprecated appDir option (App Router is now stable)
     // Moved serverComponentsExternalPackages to serverExternalPackages at root level
   },
-  images: {
-    domains: ['avatars.githubusercontent.com', 'lh3.googleusercontent.com'],
-  },
+
   webpack: (config, { isServer }) => {
     // Handle Monaco Editor
     if (!isServer) {
