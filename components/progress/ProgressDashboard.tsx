@@ -65,108 +65,108 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({
   }, [userId, selectedTimeframe]);
 
   const loadCodeStats = async () => {
-    // Mock code statistics
-    setCodeStats({
-      linesWritten: 1247,
-      contractsDeployed: 8,
-      testsWritten: 156
-    });
+    try {
+      const response = await fetch('/api/user/code-stats');
+      if (response.ok) {
+        const data = await response.json();
+        setCodeStats(data.stats);
+      } else {
+        // Fallback to empty stats
+        setCodeStats({
+          linesWritten: 0,
+          contractsDeployed: 0,
+          testsWritten: 0
+        });
+      }
+    } catch (error) {
+      console.error('Error loading code stats:', error);
+      setCodeStats({
+        linesWritten: 0,
+        contractsDeployed: 0,
+        testsWritten: 0
+      });
+    }
   };
 
   const loadCommunityData = async () => {
-    // Mock community data
-    setCommunityData({
-      followers: 42,
-      following: 38,
-      contributions: 23
-    });
+    try {
+      const response = await fetch('/api/user/community-stats');
+      if (response.ok) {
+        const data = await response.json();
+        setCommunityData(data.stats);
+      } else {
+        // Fallback to empty stats
+        setCommunityData({
+          followers: 0,
+          following: 0,
+          contributions: 0
+        });
+      }
+    } catch (error) {
+      console.error('Error loading community data:', error);
+      setCommunityData({
+        followers: 0,
+        following: 0,
+        contributions: 0
+      });
+    }
   };
 
   const loadActivityFeed = async () => {
-    // Mock activity feed
-    setActivityFeed([
-      { id: '1', type: 'achievement', description: 'Earned "Smart Contract Master" badge', timestamp: new Date() },
-      { id: '2', type: 'lesson', description: 'Completed "Advanced Solidity Patterns"', timestamp: new Date(Date.now() - 3600000) },
-      { id: '3', type: 'code', description: 'Deployed contract to Sepolia testnet', timestamp: new Date(Date.now() - 7200000) },
-      { id: '4', type: 'social', description: 'Started following @soliditydev', timestamp: new Date(Date.now() - 10800000) }
-    ]);
+    try {
+      const response = await fetch('/api/user/activity-feed');
+      if (response.ok) {
+        const data = await response.json();
+        setActivityFeed(data.activities || []);
+      } else {
+        setActivityFeed([]);
+      }
+    } catch (error) {
+      console.error('Error loading activity feed:', error);
+      setActivityFeed([]);
+    }
   };
 
   const loadStudySchedule = async () => {
-    // Mock study schedule
-    const schedule = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date();
-      date.setDate(date.getDate() + i);
-      schedule.push({
-        date: date.toISOString().split('T')[0],
-        sessions: Math.floor(Math.random() * 3) + 1,
-        planned: Math.random() > 0.3
-      });
+    try {
+      const response = await fetch('/api/user/study-schedule');
+      if (response.ok) {
+        const data = await response.json();
+        setStudySchedule(data.schedule || []);
+      } else {
+        setStudySchedule([]);
+      }
+    } catch (error) {
+      console.error('Error loading study schedule:', error);
+      setStudySchedule([]);
     }
-    setStudySchedule(schedule);
   };
 
   const loadProgressStats = async () => {
     setIsLoading(true);
     try {
-      // Mock data - in real app, fetch from API
-      const mockStats: ProgressStats = {
-        totalXP: 2450,
-        currentLevel: 'Intermediate',
-        completedLessons: 23,
-        totalLessons: 45,
-        currentStreak: 7,
-        longestStreak: 15,
-        timeSpent: 1240, // 20.67 hours
-        achievements: [
-          {
-            id: '1',
-            title: 'First Steps',
-            description: 'Complete your first Solidity lesson',
-            icon: '🎯',
-            rarity: 'common',
-            unlockedAt: new Date('2024-01-15'),
-            xpReward: 100
-          },
-          {
-            id: '2',
-            title: 'Code Warrior',
-            description: 'Write 100 lines of Solidity code',
-            icon: '⚔️',
-            rarity: 'rare',
-            unlockedAt: new Date('2024-01-20'),
-            xpReward: 250
-          },
-          {
-            id: '3',
-            title: 'Smart Contract Master',
-            description: 'Deploy your first smart contract',
-            icon: '🏆',
-            rarity: 'epic',
-            unlockedAt: new Date('2024-01-25'),
-            xpReward: 500
-          }
-        ],
-        weeklyProgress: [
-          { day: 'Mon', xp: 150, lessons: 2 },
-          { day: 'Tue', xp: 200, lessons: 3 },
-          { day: 'Wed', xp: 100, lessons: 1 },
-          { day: 'Thu', xp: 300, lessons: 4 },
-          { day: 'Fri', xp: 250, lessons: 3 },
-          { day: 'Sat', xp: 180, lessons: 2 },
-          { day: 'Sun', xp: 120, lessons: 1 }
-        ],
-        skillProgress: [
-          { skill: 'Solidity Basics', level: 8, maxLevel: 10 },
-          { skill: 'Smart Contracts', level: 6, maxLevel: 10 },
-          { skill: 'DeFi Development', level: 4, maxLevel: 10 },
-          { skill: 'Security Auditing', level: 2, maxLevel: 10 },
-          { skill: 'Gas Optimization', level: 5, maxLevel: 10 }
-        ]
-      };
+      // Fetch real progress stats from API
 
-      setStats(mockStats);
+      const response = await fetch('/api/user/progress-stats');
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data.stats);
+      } else {
+        // Fallback to empty stats
+        const emptyStats: ProgressStats = {
+          totalXP: 0,
+          currentLevel: 'Beginner',
+          completedLessons: 0,
+          totalLessons: 0,
+          currentStreak: 0,
+          longestStreak: 0,
+          timeSpent: 0,
+          achievements: [],
+          weeklyProgress: [],
+          skillProgress: []
+        };
+        setStats(emptyStats);
+      }
     } catch (error) {
       console.error('Failed to load progress stats:', error);
     } finally {

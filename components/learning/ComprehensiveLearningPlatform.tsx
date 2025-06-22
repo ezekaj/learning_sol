@@ -31,149 +31,19 @@ interface LearningPlatformProps {
   className?: string;
 }
 
-// Mock data for demonstration
-const mockUserProgress = {
-  level: 12,
-  xp: 8450,
-  xpToNextLevel: 10000,
-  totalXp: 45230,
-  streak: 7,
-  lessonsCompleted: 34,
-  projectsCompleted: 8,
-  challengesWon: 15,
-  rank: 156,
-  badges: ['first-contract', 'security-expert', 'defi-builder']
-};
-
-// Dynamic achievements data - will be fetched from API in real implementation
-const mockAchievements = [
-  {
-    id: 'first-contract',
-    title: 'First Contract',
-    description: 'Deploy your first smart contract',
-    icon: <Code className="w-6 h-6" />,
-    category: 'milestone' as const,
-    xpReward: 100,
-    unlocked: true,
-    unlockedAt: new Date(Date.now() - 86400000),
-    rarity: 'common' as const
-  },
-  {
-    id: 'security-expert',
-    title: 'Security Expert',
-    description: 'Complete all security lessons',
-    icon: <Trophy className="w-6 h-6" />,
-    category: 'learning' as const,
-    xpReward: 500,
-    unlocked: true,
-    unlockedAt: new Date(Date.now() - 172800000),
-    rarity: 'epic' as const
-  }
-];
-
-// Dynamic leaderboard data - will be fetched from API in real implementation
-const mockLeaderboard = [
-  {
-    id: '1',
-    username: 'SolidityMaster',
-    avatar: '/api/placeholder/40/40',
-    level: 25,
-    xp: 125000,
-    rank: 1,
-    streak: 45
-  },
-  {
-    id: '2',
-    username: 'BlockchainDev',
-    avatar: '/api/placeholder/40/40',
-    level: 22,
-    xp: 98000,
-    rank: 2,
-    streak: 32
-  }
-];
+// All mock data has been replaced with live API data through useApiData hooks
 
 
 
 
 
-const mockLearningPaths = [
-  {
-    id: 'solidity-fundamentals',
-    title: 'Solidity Fundamentals',
-    description: 'Master the basics of Solidity programming',
-    modules: [
-      {
-        id: 'intro',
-        title: 'Introduction to Solidity',
-        description: 'Learn the basics of smart contract development',
-        icon: <BookOpen className="w-6 h-6 text-blue-400" />,
-        category: 'fundamentals' as const,
-        difficulty: 'beginner' as const,
-        estimatedHours: 4,
-        lessons: [
-          {
-            id: 'lesson-1',
-            title: 'What is Solidity?',
-            description: 'Introduction to Solidity programming language',
-            duration: 30,
-            difficulty: 'beginner' as const,
-            type: 'video' as const,
-            completed: true,
-            locked: false,
-            xpReward: 50
-          }
-        ],
-        completed: false,
-        progress: 25,
-        unlocked: true
-      }
-    ],
-    totalHours: 40,
-    completionRate: 25,
-    studentsEnrolled: 15420,
-    rating: 4.8
-  }
-];
 
-const mockProjects = [
-  {
-    id: 'hello-world',
-    title: 'Hello World Contract',
-    description: 'Create your first smart contract',
-    difficulty: 'beginner' as const,
-    category: 'utility' as const,
-    estimatedHours: 2,
-    xpReward: 200,
-    steps: [
-      {
-        id: 'step-1',
-        title: 'Setup Contract',
-        description: 'Create the basic contract structure',
-        instructions: [
-          'Create a new contract called HelloWorld',
-          'Add a state variable to store a message',
-          'Create a constructor to initialize the message'
-        ],
-        code: `// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
 
-contract HelloWorld {
-    string public message;
-    
-    constructor() {
-        message = "Hello, World!";
-    }
-}`,
-        completed: false,
-        estimatedTime: 30
-      }
-    ],
-    currentStep: 0,
-    completed: false,
-    deployed: false
-  }
-];
+
+
+
+
+
 
 export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
   className = ''

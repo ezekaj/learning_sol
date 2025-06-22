@@ -101,31 +101,14 @@ const ModuleContent: React.FC<ModuleContentProps> = ({ module, isApiKeyMissing, 
       <div className="p-8 text-center text-brand-text-muted">
         <h2 className="text-2xl font-semibold mb-4 text-brand-text-primary">Welcome to Solidity DevPath!</h2>
         <p className="text-lg mb-6">{welcomeDetail}</p>
-        <img 
-          src="https://images.unsplash.com/photo-1639322537228-f710d846310a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YmxvY2tjaGFpbnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=600&q=60" 
-          alt="Blockchain learning placeholder" 
-          className="mt-8 rounded-lg shadow-xl mx-auto opacity-70 max-w-md w-full h-auto" 
-        />
-        <p className="text-xs text-brand-text-muted text-center mt-2 opacity-60">
-          Photo by{" "}
-          <a 
-            href="https://unsplash.com/@eaterscollective" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="underline hover:text-brand-accent transition-colors"
-          >
-            Eaters Collective
-          </a>{" "}
-          on{" "}
-          <a 
-            href="https://unsplash.com" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="underline hover:text-brand-accent transition-colors"
-          >
-            Unsplash
-          </a>
-        </p>
+        <div className="mt-8 p-12 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg border border-white/10">
+          <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center">
+            <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <p className="text-gray-300">Select a module to begin your learning journey</p>
+        </div>
       </div>
     );
   }

@@ -22,6 +22,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CollaborativeEditor } from './CollaborativeEditor';
 import { useToast } from '@/components/ui/use-toast';
+import RealTimeCodeEditor from './RealTimeCodeEditor';
+import UserPresenceIndicator from './UserPresenceIndicator';
 
 
 
@@ -163,29 +165,45 @@ function RealTimeCollaborationHub() {
     session.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // If user is in a session, show the collaborative editor
+  // If user is in a session, show the real-time collaborative editor
   if (session) {
     return (
       <div className="space-y-6">
-        <div className="text-center">
-          <motion.h1
-            className="text-4xl font-bold gradient-text mb-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            Collaborative Coding
-          </motion.h1>
-          <motion.p
-            className="text-xl text-gray-300"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            Code together in real-time with {participants.length} participant{participants.length !== 1 ? 's' : ''}
-          </motion.p>
+        <div className="flex items-center justify-between">
+          <div>
+            <motion.h1
+              className="text-3xl font-bold gradient-text mb-2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {session.title}
+            </motion.h1>
+            <motion.p
+              className="text-lg text-gray-300"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              Collaborative coding session • {participants.length} participant{participants.length !== 1 ? 's' : ''}
+            </motion.p>
+          </div>
+
+          <UserPresenceIndicator compact={true} />
         </div>
 
-        <CollaborativeEditor />
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-3">
+            <RealTimeCodeEditor
+              sessionId={session.id}
+              initialCode={session.code}
+              language="solidity"
+            />
+          </div>
+
+          <div className="lg:col-span-1">
+            <UserPresenceIndicator showDetails={true} />
+          </div>
+        </div>
       </div>
     );
   }

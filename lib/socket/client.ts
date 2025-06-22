@@ -30,7 +30,10 @@ interface UserPresence {
     endLine: number;
     endColumn: number;
   };
+  isTyping: boolean;
+  typingLocation?: 'chat' | 'code';
   lastSeen: Date;
+  status: 'online' | 'away' | 'offline';
 }
 
 interface CollaborationSession {
@@ -51,10 +54,14 @@ interface UseSocketReturn {
   updateCode: (code: string, changes?: any) => void;
   updateCursor: (line: number, column: number) => void;
   updateSelection: (startLine: number, startColumn: number, endLine: number, endColumn: number) => void;
+  startTyping: (location: 'chat' | 'code') => void;
+  stopTyping: (location: 'chat' | 'code') => void;
+  updateUserStatus: (status: 'online' | 'away' | 'offline') => void;
   session: CollaborationSession | null;
   messages: ChatMessage[];
   presence: UserPresence[];
   participants: User[];
+  typingUsers: UserPresence[];
 }
 
 export const useSocket = (): UseSocketReturn => {
@@ -65,7 +72,9 @@ export const useSocket = (): UseSocketReturn => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [presence, setPresence] = useState<UserPresence[]>([]);
   const [participants, setParticipants] = useState<User[]>([]);
+  const [typingUsers, setTypingUsers] = useState<UserPresence[]>([]);
   const currentSessionId = useRef<string | null>(null);
+  const typingTimeouts = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   useEffect(() => {
     if (!sessionData?.user) return;
@@ -166,6 +175,51 @@ export const useSocket = (): UseSocketReturn => {
       setMessages(prev => [...prev, message]);
     });
 
+    // Typing indicator event handlers
+    newSocket.on('user_typing', (data: { userId: string; location: 'chat' | 'code'; isTyping: boolean }) => {
+      setTypingUsers(prev => {
+        const filtered = prev.filter(u => u.userId !== data.userId || u.typingLocation !== data.location);
+        if (data.isTyping) {
+          const userPresence = presence.find(p => p.userId === data.userId);
+          if (userPresence) {
+            return [...filtered, {
+              ...userPresence,
+              isTyping: true,
+              typingLocation: data.location,
+              lastSeen: new Date()
+            }];
+          }
+        }
+        return filtered;
+      });
+
+      // Auto-clear typing indicator after 3 seconds
+      const timeoutKey = `${data.userId}-${data.location}`;
+      const existingTimeout = typingTimeouts.current.get(timeoutKey);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+      }
+
+      if (data.isTyping) {
+        const timeout = setTimeout(() => {
+          setTypingUsers(prev => prev.filter(u =>
+            !(u.userId === data.userId && u.typingLocation === data.location)
+          ));
+          typingTimeouts.current.delete(timeoutKey);
+        }, 3000);
+        typingTimeouts.current.set(timeoutKey, timeout);
+      }
+    });
+
+    // User status updates
+    newSocket.on('user_status_updated', (data: { userId: string; status: 'online' | 'away' | 'offline' }) => {
+      setPresence(prev => prev.map(p =>
+        p.userId === data.userId
+          ? { ...p, status: data.status, lastSeen: new Date() }
+          : p
+      ));
+    });
+
     // Error handling
     newSocket.on('error', (error: string) => {
       console.error('Socket error:', error);
@@ -231,6 +285,24 @@ export const useSocket = (): UseSocketReturn => {
     }
   };
 
+  const startTyping = (location: 'chat' | 'code') => {
+    if (socket && currentSessionId.current) {
+      socket.emit('typing_start', { location });
+    }
+  };
+
+  const stopTyping = (location: 'chat' | 'code') => {
+    if (socket && currentSessionId.current) {
+      socket.emit('typing_stop', { location });
+    }
+  };
+
+  const updateUserStatus = (status: 'online' | 'away' | 'offline') => {
+    if (socket) {
+      socket.emit('status_update', { status });
+    }
+  };
+
   return {
     socket,
     isConnected,
@@ -240,10 +312,14 @@ export const useSocket = (): UseSocketReturn => {
     updateCode,
     updateCursor,
     updateSelection,
+    startTyping,
+    stopTyping,
+    updateUserStatus,
     session,
     messages,
     presence,
     participants,
+    typingUsers,
   };
 };
 
