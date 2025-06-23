@@ -53,14 +53,20 @@ jobs:
         NEXTAUTH_SECRET: "build-only-nextauth-secret-32-chars-minimum-required-for-validation"
       run: npm run build
 
+    - name: Clean build cache
+      run: |
+        echo "🧹 Cleaning webpack cache to reduce build size..."
+        rm -rf ./.next/cache
+        echo "✅ Cache cleaned successfully"
+
     - name: Check for large files in build
       run: |
-        echo "🔍 Checking for large files in build output..."
-        find ./.next -type f -size +50M -exec ls -lh {} \; | while read line; do
+        echo "🔍 Checking for large files in build output (excluding cache)..."
+        find ./.next -type f -size +50M -not -path "*/.next/cache/*" -exec ls -lh {} \; | while read line; do
           echo "❌ Large file found: $line"
           exit 1
         done
-        echo "✅ No large files found in build output"
+        echo "✅ No large files found in deployable build output"
 
     - name: Verify build output
       run: |
