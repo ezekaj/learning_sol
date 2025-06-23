@@ -381,7 +381,7 @@ export const RealTimeCodeEditor: React.FC<RealTimeCodeEditorProps> = ({
                 size="sm"
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => onSave?.(code)}
+                onClick={handleSaveCode}
               >
                 <Save className="w-3 h-3 mr-2" />
                 Save Code
