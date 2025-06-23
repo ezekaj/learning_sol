@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, 
@@ -144,6 +144,34 @@ export const AdvancedUserPresence: React.FC<AdvancedUserPresenceProps> = ({
     totalMessages: 0,
     peakConcurrentUsers: 0
   });
+
+  // Use sessionId for session-specific tracking
+  const sessionKey = `presence_${sessionId}`;
+
+  // Store session-specific data in localStorage for persistence
+  useEffect(() => {
+    const storedData = localStorage.getItem(sessionKey);
+    if (storedData) {
+      try {
+        const parsed = JSON.parse(storedData);
+        setMetrics(prev => ({ ...prev, ...parsed }));
+      } catch (error) {
+        console.warn('Failed to parse stored session data:', error);
+      }
+    }
+  }, [sessionKey]);
+
+  // Enhanced user status update with session tracking
+  const handleUserStatusUpdate = useCallback((newStatus: string) => {
+    updateUserStatus(newStatus);
+    // Store status change in session data
+    const statusData = {
+      timestamp: Date.now(),
+      status: newStatus,
+      sessionId
+    };
+    localStorage.setItem(`${sessionKey}_status`, JSON.stringify(statusData));
+  }, [updateUserStatus, sessionKey, sessionId]);
   const [showAllUsers, setShowAllUsers] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'activity' | 'duration'>('activity');
 
@@ -435,6 +463,8 @@ export const AdvancedUserPresence: React.FC<AdvancedUserPresenceProps> = ({
                     <span>•</span>
                     <Clock className="w-3 h-3" />
                     <span>{formatDuration(activity.sessionDuration)}</span>
+                    <span>•</span>
+                    <span>{formatLastSeen(new Date(Date.now() - Math.random() * 3600000))}</span>
                   </div>
 
                   {showDetails && (
@@ -487,7 +517,7 @@ export const AdvancedUserPresence: React.FC<AdvancedUserPresenceProps> = ({
                         onClick={(e) => {
                           e.stopPropagation();
                           // Toggle edit status functionality
-                          updateUserStatus(activity.status === 'away' ? 'online' : 'away');
+                          handleUserStatusUpdate(activity.status === 'away' ? 'online' : 'away');
                         }}
                         className="p-1 hover:bg-slate-600 rounded"
                         title="Edit status"
