@@ -210,7 +210,6 @@ function RealTimeCollaborationHub() {
 
           <UserPresenceIndicator
             compact={true}
-            onUserClick={handleUserInteraction}
           />
         </div>
 
@@ -226,7 +225,6 @@ function RealTimeCollaborationHub() {
           <div className="lg:col-span-1">
             <UserPresenceIndicator
               showDetails={true}
-              onUserClick={handleUserInteraction}
             />
           </div>
         </div>
