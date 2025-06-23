@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WalletConnect } from '@/components/blockchain/WalletConnect';
 import { ContractDeployer } from '@/components/blockchain/ContractDeployer';
+import { useToast } from '@/components/ui/use-toast';
 // Check if we're in static export mode
 const isStaticExport = process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
 
@@ -80,8 +81,7 @@ function DynamicCodeLab() {
   const editorRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Import toast hook only in non-static mode
-  const { useToast } = require('@/components/ui/use-toast');
+  // Use toast hook
   const { toast } = useToast();
 
   const handleCompile = async () => {

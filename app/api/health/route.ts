@@ -5,6 +5,7 @@ import { errorTracker } from '@/lib/monitoring/errorTracking';
 import { analytics } from '@/lib/monitoring/analytics';
 import { getRateLimitStats } from '@/lib/security/rateLimiting';
 import { sessionSecurity } from '@/lib/security/session';
+import os from 'os';
 
 /**
  * Comprehensive Health Check API
@@ -373,7 +374,7 @@ class HealthChecker {
       },
       cpu: {
         usage: (cpuUsage.user + cpuUsage.system) / 1000000, // Convert to seconds
-        loadAverage: process.platform !== 'win32' ? require('os').loadavg() : [0, 0, 0],
+        loadAverage: process.platform !== 'win32' ? os.loadavg() : [0, 0, 0],
       },
       requests: {
         total: this.requestCount,

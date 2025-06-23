@@ -32,14 +32,15 @@ import { useLearning } from '@/lib/context/LearningContext';
 const isStaticExport = process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
 
 export function Navigation() {
+  // Always call hooks at the top level
+  const [isOpen, setIsOpen] = useState(false);
+  const { data: session } = useSession();
+  const { state: learningState } = useLearning();
+
   // For static export, use simplified navigation without hooks
   if (isStaticExport) {
     return <StaticNavigation />;
   }
-
-  const [isOpen, setIsOpen] = useState(false);
-  const { data: session } = useSession();
-  const { state: learningState } = useLearning();
 
   const navigationItems = [
     { href: '/learn', label: 'Learn', icon: BookOpen },

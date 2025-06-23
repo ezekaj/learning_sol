@@ -691,12 +691,12 @@ export const StructuredCurriculum: React.FC<StructuredCurriculumProps> = ({
 
                 <div className="space-y-4">
                   {Object.entries(earnedRewards).map(([moduleId, coins]) => {
-                    const module = currentLearningPath.modules.find(m => m.id === moduleId);
+                    const moduleData = currentLearningPath.modules.find(m => m.id === moduleId);
                     return coins > 0 ? (
                       <div key={moduleId} className="flex items-center justify-between p-3 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
                         <div className="flex items-center space-x-3">
-                          {module?.icon}
-                          <span className="text-white">{module?.title}</span>
+                          {moduleData?.icon}
+                          <span className="text-white">{moduleData?.title}</span>
                         </div>
                         <div className="flex items-center space-x-1 text-yellow-400 font-semibold">
                           <Coins className="w-4 h-4" />

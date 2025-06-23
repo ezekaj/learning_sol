@@ -82,7 +82,11 @@ export const GSAPTimelineAnimation: React.FC<GSAPTimelineAnimationProps> = ({
         break;
       case 'click':
         element.addEventListener('click', () => {
-          tl.isActive() ? tl.reverse() : tl.play();
+          if (tl.isActive()) {
+            tl.reverse();
+          } else {
+            tl.play();
+          }
         });
         break;
     }
