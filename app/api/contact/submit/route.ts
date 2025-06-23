@@ -97,11 +97,15 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Contact form submission failed', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      metadata: { processingTime: Date.now() - startTime },
-    });
+    logger.error(
+      'Contact form submission failed',
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        metadata: {
+          processingTime: Date.now() - startTime
+        },
+      }
+    );
 
     return NextResponse.json(
       { 
@@ -134,10 +138,12 @@ async function simulateContactProcessing(data: any, submissionId: string) {
 async function simulateEmailNotification(data: any, submissionId: string) {
   // In production, this would use a service like SendGrid, AWS SES, or similar
   logger.info('Email notification sent', {
-    metadata: { submissionId },
-    to: 'support@soliditylearn.com',
-    subject: `New Contact Form Submission: ${data.subject}`,
-    from: data.email,
+    metadata: {
+      submissionId,
+      to: 'support@soliditylearn.com',
+      subject: `New Contact Form Submission: ${data.subject}`,
+      from: data.email
+    },
   });
 }
 
@@ -147,10 +153,12 @@ async function simulateEmailNotification(data: any, submissionId: string) {
 async function simulateCRMIntegration(data: any, submissionId: string) {
   // In production, this would integrate with CRM systems like HubSpot, Salesforce, etc.
   logger.info('CRM record created', {
-    metadata: { submissionId },
-    contact: data.email,
-    source: 'contact_form',
-    priority: getPriorityFromSubject(data.subject),
+    metadata: {
+      submissionId,
+      contact: data.email,
+      source: 'contact_form',
+      priority: getPriorityFromSubject(data.subject)
+    },
   });
 }
 
