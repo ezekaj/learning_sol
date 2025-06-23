@@ -23,6 +23,9 @@ import { GlassCard } from '@/components/ui/Glassmorphism';
 import { loginSchema, registrationSchema, PasswordUtils } from '@/lib/auth/password';
 import type { LoginData, RegistrationData } from '@/lib/auth/password';
 
+// Check if we're in development mode without database
+const isDevelopmentMode = process.env.NODE_ENV === 'development' && !process.env.DATABASE_URL;
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -163,11 +166,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {mode === 'login' ? 'Welcome Back' : 'Create Account'}
               </h2>
               <p className="text-gray-400">
-                {mode === 'login' 
-                  ? 'Sign in to continue your Solidity journey' 
+                {mode === 'login'
+                  ? 'Sign in to continue your Solidity journey'
                   : 'Join thousands of developers learning Solidity'
                 }
               </p>
+              {isDevelopmentMode && (
+                <div className="mt-3 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                  <p className="text-blue-300 text-sm">
+                    🧪 Development Mode: Database authentication disabled.
+                    <br />
+                    Visit <span className="font-mono">/auth/local-test</span> for full testing.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Error/Success Messages */}

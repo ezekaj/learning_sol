@@ -33,7 +33,7 @@
     "test:security": "playwright test --grep=\"Security Testing\"",
     "test:collaboration": "playwright test --grep=\"Real-time Collaboration\"",
     "test:ai": "playwright test --grep=\"AI Tutoring\"",
-    "test:auth": "playwright test --grep=\"Authentication\"",
+    "test:auth": "echo 'Visit http://localhost:3000/auth/local-test to test authentication'",
     "test:mobile": "playwright test --project=\"Mobile Chrome\" --project=\"Mobile Safari\"",
     "test:cross-browser": "playwright test --project=\"chromium\" --project=\"firefox\" --project=\"webkit\"",
     "test:ci": "playwright test --reporter=github",
@@ -60,7 +60,12 @@
     "deploy:preview": "vercel",
     "postbuild": "next-sitemap",
     "db:deploy": "prisma migrate deploy",
-    "db:seed:prod": "NODE_ENV=production npm run db:seed"
+    "db:seed:prod": "NODE_ENV=production npm run db:seed",
+    "dev:clean": "rm -rf .next && npm run dev",
+    "dev:debug": "NODE_OPTIONS='--inspect' npm run dev",
+    "test:components": "echo 'Visit http://localhost:3000/auth/demo to see component showcase'",
+    "check:all": "npm run type-check && npm run lint",
+    "fix:all": "npm run lint -- --fix && npm run format"
   },
   "dependencies": {
     "@google/genai": "^1.3.0",

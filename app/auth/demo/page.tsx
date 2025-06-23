@@ -2,12 +2,11 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Shield, 
-  User, 
-  Lock, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Shield,
+  User,
+  Lock,
+  CheckCircle,
   Key,
   Server,
   Database,
@@ -21,7 +20,6 @@ import {
 import { GlassCard } from '@/components/ui/Glassmorphism';
 
 export default function AuthDemoPage() {
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({

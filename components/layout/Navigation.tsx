@@ -15,7 +15,9 @@ import {
   X,
   Zap,
   Brain,
-  Rocket
+  Rocket,
+  Shield,
+  Palette
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -51,6 +53,15 @@ export function Navigation() {
     { href: '/achievements', label: 'Achievements', icon: Trophy },
   ];
 
+  // Development-only navigation items
+  const devNavigationItems = process.env.NODE_ENV === 'development' ? [
+    { href: '/auth/local-test', label: 'Auth Test', icon: Shield },
+    { href: '/auth/demo', label: 'Auth Demo', icon: Palette },
+    { href: '/admin', label: 'Admin', icon: Settings },
+  ] : [];
+
+  const allNavigationItems = [...navigationItems, ...devNavigationItems];
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -71,7 +82,7 @@ export function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {navigationItems.map((item) => (
+            {allNavigationItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -171,7 +182,7 @@ export function Navigation() {
             className="md:hidden glass border-t border-white/10"
           >
             <div className="px-4 py-4 space-y-2">
-              {navigationItems.map((item) => (
+              {allNavigationItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
