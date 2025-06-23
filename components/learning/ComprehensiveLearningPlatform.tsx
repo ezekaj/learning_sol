@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  BookOpen, 
-  Code, 
-  Trophy, 
-  Users, 
-  Rocket, 
+import {
+  BookOpen,
+  Code,
+  Trophy,
+  Users,
+  Rocket,
   Brain,
   Target,
   Zap,
   Play,
   Settings,
   Menu,
-  X
+  X,
+  Shield,
+  Coins
 } from 'lucide-react';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
@@ -50,6 +52,10 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
 }) => {
   const { user, isAuthenticated } = useAuth();
 
+  // User authentication status for personalized experience
+  const userDisplayName = user?.name || user?.email || 'Guest User';
+  const isUserLoggedIn = isAuthenticated && user;
+
   // API data hooks
   const { progress: userProgress, loading: progressLoading } = useUserProgress();
   const { achievements, loading: achievementsLoading } = useAchievements();
@@ -65,7 +71,46 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
   // Overall loading state
   const isLoading = progressLoading || achievementsLoading || pathsLoading || projectsLoading;
 
-  // No need for loading simulation - using real API data
+  // Transform API data to match component expectations
+  const transformedLearningPaths = useMemo(() => {
+    if (!learningPaths) return [];
+
+    return learningPaths.map(path => ({
+      ...path,
+      modules: path.modules.map(module => ({
+        ...module,
+        icon: module.category === 'security' ? <Shield className="w-6 h-6" /> :
+              module.category === 'defi' ? <Coins className="w-6 h-6" /> :
+              module.category === 'fundamentals' ? <BookOpen className="w-6 h-6" /> :
+              <Code className="w-6 h-6" />,
+        category: (module.category === 'security' || module.category === 'defi' ||
+                  module.category === 'fundamentals' || module.category === 'patterns' ||
+                  module.category === 'advanced') ?
+                  module.category as 'security' | 'defi' | 'fundamentals' | 'patterns' | 'advanced' :
+                  'fundamentals' as const,
+        difficulty: module.difficulty as 'beginner' | 'intermediate' | 'advanced',
+        lessons: module.lessons.map(lesson => ({
+          ...lesson,
+          difficulty: lesson.difficulty as 'beginner' | 'intermediate' | 'advanced',
+          type: lesson.type as 'video' | 'interactive' | 'quiz' | 'project'
+        }))
+      }))
+    }));
+  }, [learningPaths]);
+
+  const transformedProjects = useMemo(() => {
+    if (!projects) return [];
+
+    return projects.map(project => ({
+      ...project,
+      difficulty: project.difficulty as 'beginner' | 'intermediate' | 'advanced',
+      category: (project.category === 'defi' || project.category === 'nft' ||
+                project.category === 'dao' || project.category === 'gaming' ||
+                project.category === 'utility') ?
+                project.category as 'defi' | 'nft' | 'dao' | 'gaming' | 'utility' :
+                'utility' as const
+    }));
+  }, [projects]);
 
   // Handle AI Tutor activation
   const handleAiTutorToggle = () => {
@@ -90,6 +135,7 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
 
       if (response.ok) {
         const result = await response.json();
+        console.log('Community action completed:', result);
         setShowSuccessAnimation(true);
         setTimeout(() => setShowSuccessAnimation(false), 2000);
 
@@ -249,9 +295,11 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                 >
                   <GSAPScrollAnimation animationType="fadeUp">
                     <Card className="p-6 bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-md border border-white/20">
-                      <h2 className="text-2xl font-bold text-white mb-4">Welcome Back!</h2>
+                      <h2 className="text-2xl font-bold text-white mb-4">
+                        Welcome Back{isUserLoggedIn ? `, ${userDisplayName}` : ''}!
+                      </h2>
                       <p className="text-gray-300 mb-6">
-                        Continue your journey to becoming a Solana blockchain developer. 
+                        Continue your journey to becoming a Solana blockchain developer.
                         You're making great progress!
                       </p>
                       
@@ -326,8 +374,8 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                   exit={{ opacity: 0, y: -20 }}
                 >
                   <StructuredCurriculum
-                    learningPaths={learningPaths || []}
-                    currentPath={learningPaths?.[0]?.id || ""}
+                    learningPaths={transformedLearningPaths}
+                    currentPath={transformedLearningPaths[0]?.id || ""}
                   />
                 </motion.div>
               )}
@@ -340,8 +388,8 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                   exit={{ opacity: 0, y: -20 }}
                 >
                   <ProjectBasedLearning
-                    projects={projects || []}
-                    currentProject={projects?.[0]?.id || ""}
+                    projects={transformedProjects}
+                    currentProject={transformedProjects[0]?.id || ""}
                   />
                 </motion.div>
               )}
