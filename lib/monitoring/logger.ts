@@ -18,6 +18,22 @@ interface LogContext {
   statusCode?: number;
   error?: Error;
   metadata?: Record<string, any>;
+  // Additional properties for comprehensive logging
+  count?: number;
+  query?: string;
+  service?: string;
+  operation?: string;
+  tokens?: number;
+  success?: boolean;
+  event?: string;
+  metrics?: Record<string, any>;
+  events?: number;
+  critical?: number;
+  high?: number;
+  completions?: number;
+  achievements?: number;
+  securityEvent?: any;
+  learningEvent?: any;
 }
 
 interface PerformanceMetrics {

@@ -303,7 +303,7 @@ export function getClientInfo(request: NextRequest): {
   const forwarded = request.headers.get('x-forwarded-for');
   const ipAddress = forwarded ? forwarded.split(',')[0].trim() : 
                    request.headers.get('x-real-ip') || 
-                   request.ip || 
+                   request.headers.get('x-real-ip') ||
                    'unknown';
 
   const userAgent = request.headers.get('user-agent') || 'unknown';

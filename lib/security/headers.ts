@@ -90,7 +90,7 @@ function generateCSP(): string {
 
   // Add report URI if configured
   if (securityConfig.csp.reportUri) {
-    cspDirectives['report-uri'] = [securityConfig.csp.reportUri];
+    (cspDirectives as any)['report-uri'] = [securityConfig.csp.reportUri];
   }
 
   // Convert to CSP string
@@ -99,7 +99,7 @@ function generateCSP(): string {
     .map(([directive, sources]) => {
       if (Array.isArray(sources) && sources.length > 0) {
         return `${directive} ${sources.join(' ')}`;
-      } else if (sources === []) {
+      } else if (sources.length === 0) {
         return directive; // For directives without sources
       }
       return '';

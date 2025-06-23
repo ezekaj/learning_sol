@@ -37,7 +37,7 @@ class RateLimiter {
   constructor() {
     if (env.REDIS_URL) {
       this.redis = new Redis(env.REDIS_URL, {
-        retryDelayOnFailover: 100,
+        retryDelayOnClusterDown: 100,
         maxRetriesPerRequest: 3,
         lazyConnect: true,
       });
@@ -45,11 +45,26 @@ class RateLimiter {
   }
 
   /**
+   * Extract client IP address from request headers
+   */
+  private getClientIP(req: NextRequest): string {
+    const forwarded = req.headers.get('x-forwarded-for');
+    const realIP = req.headers.get('x-real-ip');
+    const cfConnectingIP = req.headers.get('cf-connecting-ip');
+
+    // Priority: CF-Connecting-IP > X-Real-IP > X-Forwarded-For > fallback
+    if (cfConnectingIP) return cfConnectingIP.trim();
+    if (realIP) return realIP.trim();
+    if (forwarded) return forwarded.split(',')[0].trim();
+
+    return '127.0.0.1'; // Default fallback for development
+  }
+
+  /**
    * Default key generator based on IP address
    */
   private defaultKeyGenerator(req: NextRequest): string {
-    const forwarded = req.headers.get('x-forwarded-for');
-    const ip = forwarded ? forwarded.split(',')[0] : req.ip || 'unknown';
+    const ip = this.getClientIP(req);
     return `rate_limit:${ip}`;
   }
 
@@ -287,8 +302,7 @@ export const rateLimitConfigs = {
     message: 'Too many authentication attempts',
     algorithm: 'fixed-window' as const,
     keyGenerator: (req: NextRequest) => {
-      const forwarded = req.headers.get('x-forwarded-for');
-      const ip = forwarded ? forwarded.split(',')[0] : req.ip || 'unknown';
+      const ip = this.getClientIP(req);
       return `auth_limit:${ip}`;
     },
   },
@@ -305,8 +319,7 @@ export const rateLimitConfigs = {
       if (userId) {
         return `ai_limit:user:${userId}`;
       }
-      const forwarded = req.headers.get('x-forwarded-for');
-      const ip = forwarded ? forwarded.split(',')[0] : req.ip || 'unknown';
+      const ip = this.getClientIP(req);
       return `ai_limit:ip:${ip}`;
     },
   },
@@ -322,8 +335,7 @@ export const rateLimitConfigs = {
       if (userId) {
         return `collab_limit:user:${userId}`;
       }
-      const forwarded = req.headers.get('x-forwarded-for');
-      const ip = forwarded ? forwarded.split(',')[0] : req.ip || 'unknown';
+      const ip = this.getClientIP(req);
       return `collab_limit:ip:${ip}`;
     },
   },
