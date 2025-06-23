@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { useSession } from 'next-auth/react';
 import { useSocket, useCollaborationSessions } from '@/lib/socket/client';
-import { useAuth } from '@/components/auth/EnhancedAuthProvider';
 import { 
   Plus, 
   Users, 
@@ -33,7 +33,9 @@ export function CollaborationHub() {
 
 // Real-time collaboration component with Socket.io integration
 function RealTimeCollaborationHub() {
-  const { user, isAuthenticated } = useAuth();
+  const { data: sessionData, status } = useSession();
+  const user = sessionData?.user;
+  const isAuthenticated = !!sessionData?.user;
   const { socket, isConnected, joinSession: socketJoinSession, session, participants, presence } = useSocket();
 
   // Enhanced collaboration features using previously unused variables
@@ -91,7 +93,7 @@ function RealTimeCollaborationHub() {
   }, [presence, handlePresenceUpdate]);
 
   // Show loading state
-  if (loading) {
+  if (loading || status === 'loading') {
     return (
       <div className="space-y-6">
         <div className="text-center">
