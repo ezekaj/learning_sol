@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
         },
       });
 
-      const dayXP = dayProgress.reduce((total, progress) => 
+      const dayXP = dayProgress.reduce((total: number, progress: any) =>
         total + (progress.lesson.xpReward || 50), 0);
 
       weeklyProgress.push({
@@ -163,7 +163,7 @@ export async function GET(request: NextRequest) {
       currentStreak,
       longestStreak,
       timeSpent,
-      achievements: achievements.map(ua => ({
+      achievements: achievements.map((ua: any) => ({
         id: ua.achievement.id,
         title: ua.achievement.title,
         description: ua.achievement.description,

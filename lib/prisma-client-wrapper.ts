@@ -1,8 +1,28 @@
 import { PrismaClient } from '@prisma/client';
 
-// Define interfaces for the mock models
+// Define interfaces for the enhanced models with proper typing
 interface FeedbackModel {
-  create: (args: any) => Promise<any>;
+  create: (args: {
+    data: {
+      type: string;
+      category: string;
+      title: string;
+      description: string;
+      rating?: number;
+      severity?: string;
+      priority?: string;
+      steps?: string[];
+      expectedBehavior?: string;
+      actualBehavior?: string;
+      browserInfo?: string;
+      screenRecording?: boolean;
+      contactEmail?: string;
+      allowFollowUp?: boolean;
+      page?: string;
+      sessionId?: string;
+      userId?: string;
+    };
+  }) => Promise<any>;
   findMany: (args?: any) => Promise<any[]>;
   findFirst: (args?: any) => Promise<any | null>;
   update: (args: any) => Promise<any>;
@@ -13,7 +33,17 @@ interface UATSessionModel {
   findMany: (args?: any) => Promise<any[]>;
   findFirst: (args?: any) => Promise<any | null>;
   update: (args: any) => Promise<any>;
-  create: (args: any) => Promise<any>;
+  create: (args: {
+    data: {
+      testerId: string;
+      assignedTasks: string[];
+      status?: string;
+      startTime?: Date;
+      endTime?: Date;
+      taskResults?: any[];
+      errorsEncountered?: number;
+    };
+  }) => Promise<any>;
 }
 
 // Create a simple wrapper that adds missing models as mock implementations
@@ -55,10 +85,35 @@ class ExtendedPrismaClient extends PrismaClient {
     },
 
     async findMany(args?: any) {
+      // Enhanced findMany with localStorage persistence
+      if (typeof window !== 'undefined') {
+        const storedFeedback = JSON.parse(localStorage.getItem('uat_feedback') || '[]');
+
+        // Apply basic filtering if provided
+        if (args?.where) {
+          return storedFeedback.filter((feedback: any) => {
+            if (args.where.category && feedback.category !== args.where.category) return false;
+            if (args.where.priority && feedback.priority !== args.where.priority) return false;
+            if (args.where.userId && feedback.userId !== args.where.userId) return false;
+            return true;
+          });
+        }
+
+        return storedFeedback;
+      }
       return [];
     },
 
     async findFirst(args?: any) {
+      if (typeof window !== 'undefined') {
+        const storedFeedback = JSON.parse(localStorage.getItem('uat_feedback') || '[]');
+
+        if (args?.where?.id) {
+          return storedFeedback.find((feedback: any) => feedback.id === args.where.id) || null;
+        }
+
+        return storedFeedback[0] || null;
+      }
       return null;
     },
 
@@ -77,6 +132,21 @@ class ExtendedPrismaClient extends PrismaClient {
 
     this.uATSession = {
     async findMany(args?: any) {
+      // Enhanced UAT session management with localStorage
+      if (typeof window !== 'undefined') {
+        const storedSessions = JSON.parse(localStorage.getItem('uat_sessions') || '[]');
+
+        // Apply filtering if provided
+        if (args?.where) {
+          return storedSessions.filter((session: any) => {
+            if (args.where.testerId && session.testerId !== args.where.testerId) return false;
+            if (args.where.status && session.status !== args.where.status) return false;
+            return true;
+          });
+        }
+
+        return storedSessions;
+      }
       return [];
     },
 
@@ -104,13 +174,40 @@ class ExtendedPrismaClient extends PrismaClient {
       };
     },
 
-    async create(args: any) {
-      return {
-        id: `uat_session_${Date.now()}`,
-        ...args.data,
+    async create(args: {
+      data: {
+        testerId: string;
+        assignedTasks: string[];
+        status?: string;
+        startTime?: Date;
+        endTime?: Date;
+        taskResults?: any[];
+        errorsEncountered?: number;
+      };
+    }) {
+      const sessionData = {
+        id: `uat_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        testerId: args.data.testerId,
+        assignedTasks: args.data.assignedTasks,
+        status: args.data.status || 'in_progress',
+        startTime: args.data.startTime || new Date(),
+        endTime: args.data.endTime || null,
+        taskResults: args.data.taskResults || [],
+        errorsEncountered: args.data.errorsEncountered || 0,
+        feedbackCount: 0,
+        lastFeedbackAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
+
+      // Store in localStorage for persistence
+      if (typeof window !== 'undefined') {
+        const existingSessions = JSON.parse(localStorage.getItem('uat_sessions') || '[]');
+        existingSessions.push(sessionData);
+        localStorage.setItem('uat_sessions', JSON.stringify(existingSessions));
+      }
+
+      return sessionData;
     }
     };
   }

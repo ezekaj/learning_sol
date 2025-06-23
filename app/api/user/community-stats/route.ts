@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -120,9 +120,9 @@ export async function POST(request: NextRequest) {
 
       case 'answer_question':
         const { questionId, answer } = data;
-        
+
         // TODO: Implement Q&A system
-        console.log(`User ${session.user.id} answered question ${questionId}`);
+        console.log(`User ${session.user.id} answered question ${questionId} with answer:`, answer);
 
         return NextResponse.json({ 
           success: true, 

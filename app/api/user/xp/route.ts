@@ -3,10 +3,6 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
 
-// Configure for static export
-export const dynamic = 'force-static';
-export const revalidate = false;
-
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

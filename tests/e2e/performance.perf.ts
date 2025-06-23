@@ -254,12 +254,12 @@ test.describe('Performance Testing', () => {
       url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/));
     
     // Check JavaScript bundle sizes
-    const totalJSSize = jsFiles.reduce((total, url) => total + resourceSizes[url], 0);
+    const totalJSSize = jsFiles.reduce((total: number, url) => total + resourceSizes[url], 0);
     console.log(`Total JS size: ${(totalJSSize / 1024).toFixed(2)} KB`);
     expect(totalJSSize).toBeLessThan(1024 * 1024); // < 1MB total JS
     
     // Check CSS bundle sizes
-    const totalCSSSize = cssFiles.reduce((total, url) => total + resourceSizes[url], 0);
+    const totalCSSSize = cssFiles.reduce((total: number, url) => total + resourceSizes[url], 0);
     console.log(`Total CSS size: ${(totalCSSSize / 1024).toFixed(2)} KB`);
     expect(totalCSSSize).toBeLessThan(200 * 1024); // < 200KB total CSS
     
@@ -370,9 +370,9 @@ test.describe('Performance Testing', () => {
     }
     
     // Analyze performance degradation
-    const averageTime = performanceMetrics.reduce((a, b) => a + b, 0) / performanceMetrics.length;
-    const firstTenAverage = performanceMetrics.slice(0, 10).reduce((a, b) => a + b, 0) / 10;
-    const lastTenAverage = performanceMetrics.slice(-10).reduce((a, b) => a + b, 0) / 10;
+    const averageTime = performanceMetrics.reduce((a: number, b) => a + b, 0) / performanceMetrics.length;
+    const firstTenAverage = performanceMetrics.slice(0, 10).reduce((a: number, b) => a + b, 0) / 10;
+    const lastTenAverage = performanceMetrics.slice(-10).reduce((a: number, b) => a + b, 0) / 10;
     
     console.log(`Average operation time: ${averageTime.toFixed(2)}ms`);
     console.log(`First 10 operations average: ${firstTenAverage.toFixed(2)}ms`);

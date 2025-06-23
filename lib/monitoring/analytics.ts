@@ -526,9 +526,9 @@ class AnalyticsManager {
     const engagement = {
       totalSessions: this.userSessions.size,
       avgSessionDuration: Array.from(this.userSessions.values())
-        .reduce((sum, session) => sum + session.sessionDuration, 0) / this.userSessions.size,
+        .reduce((sum: number, session) => sum + session.sessionDuration, 0) / this.userSessions.size,
       totalInteractions: Array.from(this.userSessions.values())
-        .reduce((sum, session) => sum + session.interactions, 0),
+        .reduce((sum: number, session) => sum + session.interactions, 0),
     };
 
     return {

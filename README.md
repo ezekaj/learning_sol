@@ -2,8 +2,8 @@
 
 > Next-generation Solidity learning platform with AI-powered features, interactive coding, and immersive blockchain education.
 
-[![Deploy to GitHub Pages](https://github.com/ezekaj/learning_sol/actions/workflows/deploy.yml/badge.svg)](https://github.com/ezekaj/learning_sol/actions/workflows/deploy.yml)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-blue)](https://ezekaj.github.io/learning_sol)
+[![Build and Test](https://github.com/ezekaj/learning_sol/actions/workflows/deploy.yml/badge.svg)](https://github.com/ezekaj/learning_sol/actions/workflows/deploy.yml)
+[![Server Deployment](https://img.shields.io/badge/Deployment-Server%20Ready-green)](https://github.com/ezekaj/learning_sol)
 [![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-15.1.0-black)](https://nextjs.org/)
 
@@ -44,9 +44,10 @@
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18.0.0 or higher
-- npm 9.0.0 or higher
+- Node.js 20.0.0 or higher
+- npm 10.0.0 or higher
 - Git
+- Database (PostgreSQL recommended)
 
 ### Installation
 
@@ -110,6 +111,71 @@ npm run docker:build
 # Run Docker container
 npm run docker:run
 ```
+
+## 🚀 Deployment
+
+This application uses server-side functionality and requires a hosting platform that supports Next.js server features.
+
+### Recommended Platforms
+
+#### Vercel (Recommended)
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy to Vercel
+npm run deploy:vercel
+```
+
+#### Railway
+```bash
+# Install Railway CLI
+npm i -g @railway/cli
+
+# Deploy to Railway
+npm run deploy:railway
+```
+
+#### Other Options
+- **Netlify**: Supports Next.js with serverless functions
+- **Render**: Full-stack hosting with PostgreSQL support
+- **DigitalOcean App Platform**: Container-based deployment
+- **AWS Amplify**: Serverless deployment with database integration
+
+### Environment Variables
+
+Ensure these environment variables are configured in your deployment platform:
+
+```env
+# Database
+DATABASE_URL=your_postgresql_connection_string
+REDIS_URL=your_redis_connection_string
+
+# Authentication
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_URL=your_deployment_url
+GITHUB_CLIENT_ID=your_github_oauth_id
+GITHUB_CLIENT_SECRET=your_github_oauth_secret
+GOOGLE_CLIENT_ID=your_google_oauth_id
+GOOGLE_CLIENT_SECRET=your_google_oauth_secret
+
+# AI Services
+GEMINI_API_KEY=your_gemini_api_key
+
+# Optional: Monitoring
+SENTRY_DSN=your_sentry_dsn
+```
+
+### Migration from Static Deployment
+
+⚠️ **Important**: This application has been migrated from static export to server-side functionality to enable:
+- API routes for real-time features
+- Database integration
+- Authentication systems
+- AI-powered tutoring
+- Real-time collaboration
+
+If you were previously using GitHub Pages deployment, you'll need to migrate to one of the server-compatible platforms listed above.
 
 ## 📁 Project Structure
 

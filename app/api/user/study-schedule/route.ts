@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     // Analyze activity patterns by day of week
     const activityByDay = new Array(7).fill(0);
-    userActivity.forEach(activity => {
+    userActivity.forEach((activity: any) => {
       if (activity.completedAt) {
         const dayOfWeek = activity.completedAt.getDay();
         activityByDay[dayOfWeek]++;
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
 
       case 'complete_session':
         const { sessionId, actualDuration, notes } = data;
-        
+
         // TODO: Track completed study sessions
         console.log(`User ${session.user.id} completed study session ${sessionId}:`, {
           actualDuration,
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
 
       case 'update_preferences':
         const { preferredTimes, studyGoals, reminderSettings } = data;
-        
+
         // TODO: Store user study preferences
         console.log(`User ${session.user.id} updated study preferences:`, {
           preferredTimes,
@@ -148,10 +148,11 @@ export async function POST(request: NextRequest) {
 }
 
 // Helper function to get recommended topics based on user progress
-async function getRecommendedTopics(userId: string, date: Date): Promise<string[]> {
+async function getRecommendedTopics(userId: string, _date: Date): Promise<string[]> {
   try {
     // Get user's recent progress to recommend next topics
-    const recentProgress = await prisma.userProgress.findMany({
+    // TODO: Use this data to provide personalized recommendations
+    const _recentProgress = await prisma.userProgress.findMany({
       where: {
         userId,
         status: 'COMPLETED',
@@ -168,6 +169,9 @@ async function getRecommendedTopics(userId: string, date: Date): Promise<string[
       },
       take: 5,
     });
+
+    // Use the progress data for future recommendation logic
+    console.log(`Found ${_recentProgress.length} recent progress entries for user ${userId}`);
 
     // Simple recommendation logic - suggest next lessons in sequence
     const topics = [

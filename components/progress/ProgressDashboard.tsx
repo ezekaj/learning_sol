@@ -616,7 +616,7 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({
                   <div className="absolute inset-4 bg-gray-800 rounded-full flex items-center justify-center">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-white">
-                        {Math.round(stats.skillProgress.reduce((acc, skill) => acc + (skill.level / skill.maxLevel), 0) / stats.skillProgress.length * 100)}%
+                        {Math.round(stats.skillProgress.reduce((acc: number, skill) => acc + (skill.level / skill.maxLevel), 0) / stats.skillProgress.length * 100)}%
                       </div>
                       <div className="text-xs text-gray-400">Overall</div>
                     </div>

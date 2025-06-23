@@ -32,11 +32,11 @@ class RealGoogleGenAI {
             text: 'I apologize, but I encountered an error processing your request. Please try again.'
           };
         }
-      })
+      }
     })
   };
 
-  models: {
+  models = {
     generateContent: async (config: any) => {
       try {
         const prompt = config.contents || config.prompt || config;

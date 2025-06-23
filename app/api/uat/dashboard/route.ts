@@ -240,7 +240,7 @@ function calculateMetrics(sessions: any[], feedback: any[]) {
   // Calculate satisfaction score
   const ratings = feedback.map(f => f.rating).filter(r => r > 0);
   const averageSatisfactionScore = ratings.length > 0
-    ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
+    ? ratings.reduce((sum: number, rating) => sum + rating, 0) / ratings.length
     : 0;
 
   // Calculate critical issues
@@ -248,7 +248,7 @@ function calculateMetrics(sessions: any[], feedback: any[]) {
 
   // Calculate average task time
   const completedSessions = sessions.filter(s => s.status === 'completed');
-  const totalTime = completedSessions.reduce((sum, session) => {
+  const totalTime = completedSessions.reduce((sum: number, session) => {
     if (session.endTime) {
       return sum + (session.endTime.getTime() - session.startTime.getTime());
     }
@@ -259,7 +259,7 @@ function calculateMetrics(sessions: any[], feedback: any[]) {
     : 0;
 
   // Calculate error rate
-  const totalErrors = sessions.reduce((sum, session) => 
+  const totalErrors = sessions.reduce((sum: number, session) =>
     sum + (session.errorsEncountered || 0), 0
   );
   const errorRate = totalAssignedTasks > 0
@@ -425,20 +425,20 @@ function generatePerformanceTrends(sessions: any[], feedback: any[]) {
     );
     
     // Calculate metrics for this day
-    const completedTasks = daySessions.reduce((sum, session) => 
+    const completedTasks = daySessions.reduce((sum: number, session) =>
       sum + (session.taskResults?.length || 0), 0
     );
-    const totalTasks = daySessions.reduce((sum, session) => 
+    const totalTasks = daySessions.reduce((sum: number, session) =>
       sum + session.assignedTasks.length, 0
     );
     const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
     
     const ratings = dayFeedback.map(f => f.rating).filter(r => r > 0);
     const satisfactionScore = ratings.length > 0
-      ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
+      ? ratings.reduce((sum: number, rating) => sum + rating, 0) / ratings.length
       : 0;
     
-    const errors = daySessions.reduce((sum, session) => 
+    const errors = daySessions.reduce((sum: number, session) =>
       sum + (session.errorsEncountered || 0), 0
     );
     const errorRate = totalTasks > 0 ? (errors / totalTasks) * 100 : 0;

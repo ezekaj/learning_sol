@@ -423,7 +423,7 @@ class Logger {
       aggregated[operation] = {
         count: operationMetrics.length,
         successRate: successCount / operationMetrics.length,
-        avgDuration: durations.reduce((a, b) => a + b, 0) / durations.length,
+        avgDuration: durations.reduce((a: number, b) => a + b, 0) / durations.length,
         minDuration: Math.min(...durations),
         maxDuration: Math.max(...durations),
         p95Duration: this.percentile(durations, 0.95),

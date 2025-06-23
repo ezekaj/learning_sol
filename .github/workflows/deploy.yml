@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Build and Test Next.js Application
 
 on:
   push:
@@ -6,23 +6,18 @@ on:
   pull_request:
     branches: [ main ]
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+# Sets permissions for the workflow
 permissions:
   contents: read
-  pages: write
-  id-token: write
+  pull-requests: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# Allow only one concurrent build, skipping runs queued between the run in-progress and latest queued.
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: "build-${{ github.ref }}"
+  cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build-and-test:
     runs-on: ubuntu-latest
     
     steps:
@@ -32,7 +27,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
         
     - name: Install dependencies
@@ -52,10 +47,10 @@ jobs:
         API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: npm run build
 
-    - name: Check for large files
+    - name: Check for large files in build
       run: |
         echo "🔍 Checking for large files in build output..."
-        find ./out -type f -size +50M -exec ls -lh {} \; | while read line; do
+        find ./.next -type f -size +50M -exec ls -lh {} \; | while read line; do
           echo "❌ Large file found: $line"
           exit 1
         done
@@ -64,19 +59,29 @@ jobs:
     - name: Verify build output
       run: |
         echo "📊 Build output summary:"
-        du -sh ./out
+        du -sh ./.next
         echo "📁 Build output structure:"
-        find ./out -type f -name "*.js" -o -name "*.css" -o -name "*.html" | head -20
+        find ./.next -type f -name "*.js" -o -name "*.css" -o -name "*.html" | head -20
 
-    - name: Setup Pages
-      uses: actions/configure-pages@v4
+    - name: Run type check
+      run: npm run type-check
 
-    - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: ./out
+    - name: Run linting
+      run: npm run lint
 
-    - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v4
-      if: github.ref == 'refs/heads/main'
+    - name: Deployment Notice
+      run: |
+        echo "🚀 Build completed successfully!"
+        echo ""
+        echo "⚠️  Note: This application now uses server-side functionality and cannot be deployed to GitHub Pages."
+        echo ""
+        echo "🌐 Recommended deployment platforms:"
+        echo "   • Vercel: https://vercel.com (recommended for Next.js)"
+        echo "   • Netlify: https://netlify.com"
+        echo "   • Railway: https://railway.app"
+        echo "   • Render: https://render.com"
+        echo ""
+        echo "📖 To deploy to Vercel:"
+        echo "   1. Connect your GitHub repository to Vercel"
+        echo "   2. Set environment variables in Vercel dashboard"
+        echo "   3. Deploy automatically on push to main branch"
