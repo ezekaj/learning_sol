@@ -1,18 +1,17 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CheckCircle, 
-  AlertCircle, 
-  Info, 
-  X, 
-  Trophy, 
-  Star, 
-  Zap, 
+import {
+  CheckCircle,
+  AlertCircle,
+  Info,
+  X,
+  Trophy,
+  Star,
+  Zap,
   Users,
-  Bell,
-  Gift
+  Bell
 } from 'lucide-react';
 import { notificationVariants } from '@/lib/animations/micro-interactions';
 import { cn } from '@/lib/utils';
@@ -237,7 +236,7 @@ function NotificationCard({
   notification: Notification; 
   onRemove: () => void;
 }) {
-  const [isHovered, setIsHovered] = useState(false);
+  const [, setIsHovered] = useState(false);
 
   const getIcon = () => {
     const iconProps = { className: "w-5 h-5" };

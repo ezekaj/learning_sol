@@ -343,7 +343,7 @@ export function Table({ children, className, eyeFriendly = false }: Omit<Typogra
 
 export function TableHeader({ children, className, eyeFriendly = false }: Omit<TypographyProps, 'animate'>) {
   return (
-    <thead className={cn('[&_tr]:border-b', className)}>
+    <thead className={cn('[&_tr]:border-b', eyeFriendly && '[&_tr]:border-b-2', className)}>
       {children}
     </thead>
   );

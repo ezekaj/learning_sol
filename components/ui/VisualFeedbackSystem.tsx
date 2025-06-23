@@ -1,8 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, AlertCircle, Info, Loader2, Zap, Heart, Star } from 'lucide-react';
+import { Check, X, AlertCircle, Info, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FeedbackItem {

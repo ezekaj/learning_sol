@@ -361,7 +361,7 @@ export function auditPageAccessibility(): {
   interactiveElements.forEach((element, index) => {
     const hasLabel = element.getAttribute('aria-label') ||
                     element.getAttribute('aria-labelledby') ||
-                    (element as HTMLInputElement).labels?.length > 0 ||
+                    ((element as HTMLInputElement).labels?.length ?? 0) > 0 ||
                     element.textContent?.trim();
 
     if (!hasLabel) {
@@ -376,6 +376,9 @@ export function auditPageAccessibility(): {
 
   // Calculate accessibility score
   const totalElements = images.length + headings.length + interactiveElements.length;
+
+  // Log total elements for debugging
+  console.debug(`Accessibility audit found ${totalElements} elements to check`);
   const errorCount = issues.filter(issue => issue.severity === 'error').length;
   const warningCount = issues.filter(issue => issue.severity === 'warning').length;
 

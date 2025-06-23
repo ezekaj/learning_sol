@@ -110,7 +110,7 @@ export function SettingsPage() {
     setSettings(prev => ({
       ...prev,
       [section]: {
-        ...(prev[section as keyof typeof prev] || {}),
+        ...(prev[section as keyof typeof prev] as Record<string, any> || {}),
         [key]: value,
       },
     }));

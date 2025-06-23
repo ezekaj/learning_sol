@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Star, Trophy, Target } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
+// Using custom progress implementation instead of base Progress component
 import { progressVariants } from '@/lib/animations/micro-interactions';
 import { cn } from '@/lib/utils';
 

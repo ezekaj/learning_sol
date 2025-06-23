@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-  User,
   Mail,
   Calendar,
   MapPin,
@@ -15,14 +14,13 @@ import {
   X,
   Trophy,
   Target,
-  Zap,
   Clock,
   Code,
   Users,
   Star,
   TrendingUp
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// Card components not used - using GlassCard instead
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -418,7 +416,7 @@ export function UserProfile() {
               <div className="space-y-2">
                 <Progress value={levelProgress} className="h-3" />
                 <div className="text-sm text-gray-400">
-                  {profile.stats.totalXP % 500} / 500 XP to next level
+                  {profile.stats.totalXP % 500} / 500 XP ({xpToNextLevel} XP needed)
                 </div>
               </div>
               <div className="text-lg text-white">

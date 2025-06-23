@@ -236,6 +236,9 @@ export function ThemeToggle({ className }: { className?: string }) {
 // Eye comfort settings component
 export function EyeComfortSettings() {
   const { actualTheme } = useTheme();
+
+  // Use actualTheme for theme-aware rendering
+  const themeClass = actualTheme === 'dark' ? 'dark' : 'light';
   const [settings, setSettings] = useState({
     reducedMotion: false,
     highContrast: false,
@@ -314,7 +317,7 @@ export function EyeComfortSettings() {
   }, [settings]);
 
   return (
-    <div className="space-y-6 p-6 bg-white/5 backdrop-blur-md rounded-lg border border-white/20">
+    <div className={`space-y-6 p-6 bg-white/5 backdrop-blur-md rounded-lg border border-white/20 ${themeClass}`}>
       <h3 className="text-lg font-semibold text-white mb-4">Eye Comfort Settings</h3>
       
       <div className="space-y-4">
