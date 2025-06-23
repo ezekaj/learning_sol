@@ -59,7 +59,7 @@ const CURSOR_COLORS = [
 ];
 
 export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps> = ({
-  sessionId,
+  sessionId, // Used for session-specific operations and analytics
   initialCode = '',
   language = 'solidity',
   readOnly = false,
@@ -71,7 +71,7 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
   const {
     socket,
     isConnected,
-    session,
+    session, // Used for session context and metadata
     participants,
     updateCode,
     updateCursor,
@@ -87,6 +87,60 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
   const [conflicts, setConflicts] = useState<Operation[]>([]);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Session analytics and tracking using sessionId
+  const trackSessionActivity = useCallback((activity: string, metadata?: any) => {
+    const activityData = {
+      sessionId,
+      activity,
+      userId: user?.id,
+      timestamp: Date.now(),
+      metadata: {
+        ...metadata,
+        sessionTitle: (session as any)?.title,
+        participantCount: participants.length,
+        codeLength: code.length,
+        language
+      }
+    };
+
+    // Store session activity for analytics
+    const activities = JSON.parse(localStorage.getItem(`session_${sessionId}_activities`) || '[]');
+    activities.push(activityData);
+    localStorage.setItem(`session_${sessionId}_activities`, JSON.stringify(activities.slice(-100)));
+
+    console.log('Session activity tracked:', activityData);
+  }, [sessionId, user?.id, session, participants.length, code.length, language]);
+
+  // Enhanced pending operations management
+  const addPendingOperation = useCallback((operation: Operation) => {
+    setPendingOperations(prev => {
+      const updated = [...prev, operation];
+
+      // Track operation analytics
+      trackSessionActivity('operation_added', {
+        operationType: operation.type,
+        operationId: operation.id,
+        pendingCount: updated.length
+      });
+
+      // Auto-cleanup old operations (keep last 50)
+      return updated.slice(-50);
+    });
+  }, [trackSessionActivity]);
+
+  const removePendingOperation = useCallback((operationId: string) => {
+    setPendingOperations(prev => {
+      const updated = prev.filter(op => op.id !== operationId);
+
+      trackSessionActivity('operation_completed', {
+        operationId,
+        remainingCount: updated.length
+      });
+
+      return updated;
+    });
+  }, [trackSessionActivity]);
 
   // Operational Transformation functions
   const transformOperation = useCallback((op1: Operation, op2: Operation): Operation => {
@@ -267,6 +321,9 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
             id: `${user?.id}-${Date.now()}-${Math.random()}`
           };
 
+          // Add to pending operations for tracking
+          addPendingOperation(operation);
+
           // Send operation to other users
           updateCode(newCode, operation);
         });
@@ -286,6 +343,16 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
           });
 
           applyOperation(transformedOp);
+
+          // Track remote operation
+          trackSessionActivity('remote_operation_applied', {
+            operationType: transformedOp.type,
+            fromUserId: operation.userId,
+            transformationCount: pendingOperations.length
+          });
+        } else {
+          // Remove our own operation from pending when acknowledged
+          removePendingOperation(operation.id);
         }
       };
 

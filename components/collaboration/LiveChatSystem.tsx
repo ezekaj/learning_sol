@@ -84,22 +84,91 @@ export const LiveChatSystem: React.FC<LiveChatSystemProps> = ({
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [editingMessage, setEditingMessage] = useState<string | null>(null);
 
-  // Enhanced message interaction features using unused icons
+  // Enhanced message interaction features with real functionality
   const handleMessageReaction = useCallback((messageId: string, reaction: 'heart' | 'thumbsUp') => {
     console.log(`Adding ${reaction} reaction to message ${messageId}`);
-    // Could integrate with real-time reaction system
-  }, []);
+
+    // Convert reaction type to emoji
+    const emojiMap = {
+      heart: '❤️',
+      thumbsUp: '👍'
+    };
+
+    // Use the existing handleReaction function
+    handleReaction(messageId, emojiMap[reaction]);
+
+    // Store reaction analytics
+    const reactionData = {
+      messageId,
+      reaction,
+      userId: user?.id,
+      timestamp: Date.now(),
+      sessionId
+    };
+
+    const reactions = JSON.parse(localStorage.getItem('message-reactions') || '[]');
+    reactions.push(reactionData);
+    localStorage.setItem('message-reactions', JSON.stringify(reactions.slice(-200))); // Keep last 200
+  }, [handleReaction, user?.id, sessionId]);
 
   const handleMessageOptions = useCallback((messageId: string) => {
     console.log(`Opening options for message ${messageId}`);
-    setEditingMessage(messageId);
-  }, []);
 
-  // User management features
+    // Enhanced message options with context menu functionality
+    const message = messages.find(m => m.id === messageId);
+    if (message) {
+      // Store message interaction for analytics
+      const optionData = {
+        messageId,
+        action: 'options-opened',
+        userId: user?.id,
+        timestamp: Date.now(),
+        messageType: message.type,
+        sessionId
+      };
+
+      const interactions = JSON.parse(localStorage.getItem('message-interactions') || '[]');
+      interactions.push(optionData);
+      localStorage.setItem('message-interactions', JSON.stringify(interactions.slice(-100)));
+
+      // Set editing state for immediate action
+      setEditingMessage(messageId);
+    }
+  }, [messages, user?.id, sessionId]);
+
+  // Enhanced user management features with mention system
   const handleUserMention = useCallback((userId: string) => {
     console.log(`Mentioning user ${userId}`);
-    // Could integrate with user mention system
-  }, []);
+
+    // Find user in participants
+    const mentionedUser = participants.find(p => p.id === userId);
+    if (mentionedUser) {
+      // Add mention to current message
+      const mention = `@${mentionedUser.name || 'User'} `;
+      setNewMessage(prev => prev + mention);
+
+      // Focus input for continued typing
+      inputRef.current?.focus();
+
+      // Store mention analytics
+      const mentionData = {
+        mentionedUserId: userId,
+        mentionedUserName: mentionedUser.name,
+        mentioningUserId: user?.id,
+        timestamp: Date.now(),
+        sessionId
+      };
+
+      const mentions = JSON.parse(localStorage.getItem('user-mentions') || '[]');
+      mentions.push(mentionData);
+      localStorage.setItem('user-mentions', JSON.stringify(mentions.slice(-50)));
+
+      // Emit socket event for real-time mention notification
+      if (socket) {
+        socket.emit('user-mentioned', mentionData);
+      }
+    }
+  }, [participants, user?.id, sessionId, socket]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);

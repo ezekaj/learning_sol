@@ -66,6 +66,7 @@ interface ActivityMetrics {
   totalLinesWritten: number;
   totalMessages: number;
   peakConcurrentUsers: number;
+  totalInteractions?: number;
 }
 
 const getStatusColor = (status: string) => {
@@ -127,21 +128,44 @@ export const AdvancedUserPresence: React.FC<AdvancedUserPresenceProps> = ({
   className = '',
   onUserClick
 }) => {
+  // Use sessionId for session-specific tracking
+  const sessionKey = `presence_${sessionId}`;
+
   // Session tracking and analytics using sessionId
   const trackSessionActivity = useCallback((activity: string) => {
     console.log(`Session ${sessionId}: ${activity}`);
     // Could integrate with analytics service
   }, [sessionId]);
 
-  // Enhanced user interaction with activity tracking
+  // Enhanced user interaction with activity tracking and analytics
   const handleUserInteraction = useCallback((userId: string, action: string) => {
     console.log(`User ${userId} performed ${action}`);
     trackSessionActivity(`User interaction: ${action} by ${userId}`);
+
+    // Store interaction data for analytics
+    const interactionData = {
+      userId,
+      action,
+      timestamp: Date.now(),
+      sessionId
+    };
+
+    // Store in localStorage for persistence
+    const existingInteractions = JSON.parse(localStorage.getItem(`${sessionKey}_interactions`) || '[]');
+    existingInteractions.push(interactionData);
+    localStorage.setItem(`${sessionKey}_interactions`, JSON.stringify(existingInteractions.slice(-50))); // Keep last 50 interactions
+
+    // Trigger user click callback
     if (onUserClick) {
       onUserClick(userId);
     }
-    // Could integrate with analytics or activity tracking
-  }, [onUserClick, trackSessionActivity]);
+
+    // Update user activity metrics
+    setMetrics(prev => ({
+      ...prev,
+      totalInteractions: (prev.totalInteractions || 0) + 1
+    }));
+  }, [onUserClick, trackSessionActivity, sessionId, sessionKey]);
 
   const { user } = useAuth();
   const { 
@@ -162,9 +186,6 @@ export const AdvancedUserPresence: React.FC<AdvancedUserPresenceProps> = ({
     peakConcurrentUsers: 0
   });
 
-  // Use sessionId for session-specific tracking
-  const sessionKey = `presence_${sessionId}`;
-
   // Store session-specific data in localStorage for persistence
   useEffect(() => {
     const storedData = localStorage.getItem(sessionKey);
@@ -178,17 +199,26 @@ export const AdvancedUserPresence: React.FC<AdvancedUserPresenceProps> = ({
     }
   }, [sessionKey]);
 
-  // Enhanced user status update with session tracking
+  // Enhanced user status update with session tracking and validation
   const handleUserStatusUpdate = useCallback((newStatus: string) => {
-    updateUserStatus(newStatus);
+    // Validate status before updating
+    const validStatuses = ['online', 'away', 'offline'] as const;
+    const validatedStatus = validStatuses.includes(newStatus as any) ? newStatus as typeof validStatuses[number] : 'online';
+
+    updateUserStatus(validatedStatus);
+
     // Store status change in session data
     const statusData = {
       timestamp: Date.now(),
-      status: newStatus,
-      sessionId
+      status: validatedStatus,
+      sessionId,
+      previousStatus: localStorage.getItem(`${sessionKey}_status`) ? JSON.parse(localStorage.getItem(`${sessionKey}_status`)!).status : 'unknown'
     };
     localStorage.setItem(`${sessionKey}_status`, JSON.stringify(statusData));
-  }, [updateUserStatus, sessionKey, sessionId]);
+
+    // Track status change analytics
+    trackSessionActivity(`Status changed to ${validatedStatus}`);
+  }, [updateUserStatus, sessionKey, sessionId, trackSessionActivity]);
 
   // Enhanced location tracking functionality using MapPin
   const handleLocationUpdate = useCallback((location: { city: string; country: string }) => {

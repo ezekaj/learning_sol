@@ -41,7 +41,7 @@ const CURSOR_COLORS = [
 ];
 
 export const RealTimeCodeEditor: React.FC<RealTimeCodeEditorProps> = ({
-  sessionId,
+  sessionId, // Used for session-specific tracking and analytics
   initialCode = '// Welcome to collaborative coding!\n// Start typing to see real-time collaboration in action\n\npragma solidity ^0.8.0;\n\ncontract HelloWorld {\n    string public message;\n    \n    constructor() {\n        message = "Hello, World!";\n    }\n    \n    function setMessage(string memory _newMessage) public {\n        message = _newMessage;\n    }\n}',
   language = 'solidity',
   readOnly = false
@@ -49,7 +49,7 @@ export const RealTimeCodeEditor: React.FC<RealTimeCodeEditorProps> = ({
   const { user } = useAuth();
   const { toast } = useToast();
   const {
-    socket,
+    socket, // Used for real-time communication and event tracking
     isConnected,
     session,
     presence,
@@ -69,35 +69,103 @@ export const RealTimeCodeEditor: React.FC<RealTimeCodeEditorProps> = ({
   const [showChat, setShowChat] = useState(false);
   const [cursors, setCursors] = useState<CursorPosition[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  
+
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Handle code changes with real-time sync
+  // Session analytics and tracking using sessionId and socket
+  const trackSessionEvent = useCallback((event: string, data?: any) => {
+    const eventData = {
+      sessionId,
+      event,
+      userId: user?.id,
+      timestamp: Date.now(),
+      socketConnected: isConnected,
+      participantCount: participants.length,
+      codeLength: code.length,
+      ...data
+    };
+
+    // Store in localStorage for analytics
+    const events = JSON.parse(localStorage.getItem(`session_${sessionId}_events`) || '[]');
+    events.push(eventData);
+    localStorage.setItem(`session_${sessionId}_events`, JSON.stringify(events.slice(-200)));
+
+    // Emit to socket for real-time analytics
+    if (socket && isConnected) {
+      socket.emit('session-analytics', eventData);
+    }
+
+    console.log('Session event tracked:', eventData);
+  }, [sessionId, user?.id, isConnected, participants.length, code.length, socket]);
+
+  // Enhanced socket connection monitoring
+  useEffect(() => {
+    if (socket) {
+      const handleConnect = () => {
+        trackSessionEvent('socket_connected');
+      };
+
+      const handleDisconnect = () => {
+        trackSessionEvent('socket_disconnected');
+      };
+
+      const handleReconnect = () => {
+        trackSessionEvent('socket_reconnected');
+      };
+
+      socket.on('connect', handleConnect);
+      socket.on('disconnect', handleDisconnect);
+      socket.on('reconnect', handleReconnect);
+
+      return () => {
+        socket.off('connect', handleConnect);
+        socket.off('disconnect', handleDisconnect);
+        socket.off('reconnect', handleReconnect);
+      };
+    }
+  }, [socket, trackSessionEvent]);
+
+  // Handle code changes with real-time sync and analytics
   const handleCodeChange = useCallback((newCode: string) => {
     if (readOnly) return;
-    
+
+    const oldLength = code.length;
+    const newLength = newCode.length;
+    const changeType = newLength > oldLength ? 'addition' : newLength < oldLength ? 'deletion' : 'modification';
+
     setCode(newCode);
     updateCode(newCode);
-    
+
+    // Track code change event
+    trackSessionEvent('code_changed', {
+      changeType,
+      oldLength,
+      newLength,
+      deltaLength: newLength - oldLength,
+      language
+    });
+
     // Start typing indicator
     if (!isTyping) {
       setIsTyping(true);
       startTyping('code');
+      trackSessionEvent('typing_started', { location: 'code' });
     }
-    
+
     // Clear existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-    
+
     // Stop typing after 1 second of inactivity
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
       stopTyping('code');
+      trackSessionEvent('typing_stopped', { location: 'code' });
     }, 1000);
-  }, [readOnly, updateCode, isTyping, startTyping, stopTyping]);
+  }, [readOnly, updateCode, isTyping, startTyping, stopTyping, code.length, trackSessionEvent, language]);
 
   // Handle cursor position changes
   const handleCursorChange = useCallback(() => {

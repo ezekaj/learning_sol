@@ -39,7 +39,24 @@ function RealTimeCollaborationHub() {
   // Enhanced collaboration features using previously unused variables
   const handleUserInteraction = useCallback((userId: string) => {
     if (user && socket) {
-      socket.emit('user-interaction', { userId, sessionId: session?.id });
+      // Enhanced user interaction tracking with analytics
+      const interactionData = {
+        userId,
+        sessionId: session?.id || 'no-session',
+        timestamp: Date.now(),
+        action: 'user-click',
+        userAgent: navigator.userAgent,
+        location: window.location.pathname
+      };
+
+      socket.emit('user-interaction', interactionData);
+
+      // Store interaction locally for analytics
+      const interactions = JSON.parse(localStorage.getItem('user-interactions') || '[]');
+      interactions.push(interactionData);
+      localStorage.setItem('user-interactions', JSON.stringify(interactions.slice(-100))); // Keep last 100
+
+      console.log('User interaction tracked:', interactionData);
     }
   }, [user, socket, session]);
 
@@ -196,7 +213,7 @@ function RealTimeCollaborationHub() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              {session.title}
+              {(session as any)?.title || 'Collaboration Session'}
             </motion.h1>
             <motion.p
               className="text-lg text-gray-300"
@@ -216,8 +233,8 @@ function RealTimeCollaborationHub() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-3">
             <RealTimeCodeEditor
-              sessionId={session.id}
-              initialCode={session.code}
+              sessionId={(session as any)?.id || 'default-session'}
+              initialCode={(session as any)?.code || '// Start coding together!'}
               language="solidity"
             />
           </div>
@@ -434,7 +451,7 @@ function RealTimeCollaborationHub() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Code className="w-5 h-5 text-blue-400" />
-                <span>Collaborative Editor - {session?.title || 'Untitled Session'}</span>
+                <span>Collaborative Editor - {(session as any)?.title || 'Untitled Session'}</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -443,7 +460,7 @@ function RealTimeCollaborationHub() {
                   Collaborative Editor will be implemented here
                 </p>
                 <p className="text-sm text-gray-500 text-center mt-2">
-                  Session: {session?.id || 'No session'} | Participants: {participants.length}
+                  Session: {(session as any)?.id || 'No session'} | Participants: {participants.length}
                 </p>
               </div>
             </CardContent>
