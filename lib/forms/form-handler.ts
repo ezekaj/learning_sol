@@ -45,7 +45,7 @@ export function useForm<T extends Record<string, any>>(config: FormConfig<T>) {
     if (!config.validationSchema) return null;
 
     try {
-      const fieldSchema = config.validationSchema.shape[name];
+      const fieldSchema = (config.validationSchema as any).shape?.[name];
       if (fieldSchema) {
         fieldSchema.parse(value);
       }
@@ -91,7 +91,7 @@ export function useForm<T extends Record<string, any>>(config: FormConfig<T>) {
       };
 
       const values = Object.keys(newFields).reduce((acc, key) => {
-        acc[key] = newFields[key].value;
+        (acc as any)[key] = newFields[key].value;
         return acc;
       }, {} as T);
 
@@ -150,7 +150,7 @@ export function useForm<T extends Record<string, any>>(config: FormConfig<T>) {
     }));
 
     const values = Object.keys(formState.fields).reduce((acc, key) => {
-      acc[key] = formState.fields[key].value;
+      (acc as any)[key] = formState.fields[key].value;
       return acc;
     }, {} as T);
 
@@ -211,7 +211,7 @@ export function useForm<T extends Record<string, any>>(config: FormConfig<T>) {
       },
       onBlur: () => setFieldTouched(name, true),
       error: field?.touched ? field?.error : undefined,
-      'aria-invalid': field?.touched && field?.error ? 'true' : 'false',
+      'aria-invalid': field?.touched && field?.error ? true : false,
       'aria-describedby': field?.error ? `${name}-error` : undefined,
     };
   }, [formState.fields, setValue, setFieldTouched]);
@@ -237,7 +237,7 @@ export function useForm<T extends Record<string, any>>(config: FormConfig<T>) {
   }, [formState.fields, setValue]);
 
   const values = Object.keys(formState.fields).reduce((acc, key) => {
-    acc[key] = formState.fields[key].value;
+    (acc as any)[key] = formState.fields[key].value;
     return acc;
   }, {} as T);
 

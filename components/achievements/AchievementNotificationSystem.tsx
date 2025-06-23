@@ -168,7 +168,7 @@ const rarityBorders = {
 // Study reminder system
 export function StudyReminderSystem() {
   const { addNotification } = useNotifications();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -211,7 +211,7 @@ export function StudyReminderSystem() {
 }
 
 export function AchievementNotificationSystem({ className }: AchievementNotificationSystemProps) {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { showAchievement, showXPGain } = useNotifications();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [userStats, setUserStats] = useState<Record<string, number>>({});

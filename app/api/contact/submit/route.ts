@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { logger } from '@/lib/monitoring/logger';
 import { analytics } from '@/lib/monitoring/analytics';
-import { sanitize, validate } from '@/lib/security/validation';
+import { sanitize } from '@/lib/security/validation';
 
 /**
  * Contact Form Submission API
@@ -30,8 +30,9 @@ export async function POST(request: NextRequest) {
     
     if (!validationResult.success) {
       logger.warn('Contact form validation failed', {
-        errors: validationResult.error.errors,
-        body: sanitize(body),
+        message: 'Validation failed',
+        details: validationResult.error.errors,
+        body: sanitize.text(body),
       });
       
       return NextResponse.json(
@@ -47,10 +48,10 @@ export async function POST(request: NextRequest) {
 
     // Sanitize input data
     const sanitizedData = {
-      name: sanitize(name),
-      email: sanitize(email),
-      subject: sanitize(subject),
-      message: sanitize(message),
+      name: sanitize.text(name),
+      email: sanitize.text(email),
+      subject: sanitize.text(subject),
+      message: sanitize.text(message),
       timestamp,
       source: source || 'contact_form',
     };
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     // Log successful submission
     logger.info('Contact form submitted successfully', {
-      submissionId,
+      metadata: { submissionId },
       email: sanitizedData.email,
       subject: sanitizedData.subject,
       source: sanitizedData.source,
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Track analytics
-    analytics.track('contact_form_submitted', {
+    analytics.trackEvent('contact_form_submitted', {
       submissionId,
       source: sanitizedData.source,
       subject_category: categorizeSubject(sanitizedData.subject),
@@ -93,9 +94,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logger.error('Contact form submission failed', {
-      error: error instanceof Error ? error.message : 'Unknown error',
+      message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
-      processingTime: Date.now() - startTime,
+      metadata: { processingTime: Date.now() - startTime },
     });
 
     return NextResponse.json(
@@ -129,7 +130,7 @@ async function simulateContactProcessing(data: any, submissionId: string) {
 async function simulateEmailNotification(data: any, submissionId: string) {
   // In production, this would use a service like SendGrid, AWS SES, or similar
   logger.info('Email notification sent', {
-    submissionId,
+    metadata: { submissionId },
     to: 'support@soliditylearn.com',
     subject: `New Contact Form Submission: ${data.subject}`,
     from: data.email,
@@ -142,7 +143,7 @@ async function simulateEmailNotification(data: any, submissionId: string) {
 async function simulateCRMIntegration(data: any, submissionId: string) {
   // In production, this would integrate with CRM systems like HubSpot, Salesforce, etc.
   logger.info('CRM record created', {
-    submissionId,
+    metadata: { submissionId },
     contact: data.email,
     source: 'contact_form',
     priority: getPriorityFromSubject(data.subject),

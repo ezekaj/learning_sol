@@ -70,6 +70,14 @@ interface UserProfile {
 export function UserProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    bio: '',
+    location: '',
+    github: '',
+    twitter: '',
+    linkedin: ''
+  });
 
   const profileForm = useForm({
     initialValues: {

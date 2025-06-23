@@ -3,24 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Settings,
   User,
   Bell,
   Shield,
   Palette,
-  Globe,
-  Volume2,
   Monitor,
   Moon,
   Sun,
-  Smartphone,
-  Mail,
-  MessageSquare,
-  Trophy,
   Save,
   RotateCcw
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -28,7 +20,7 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { GlassCard } from '@/components/ui/Glassmorphism';
-import { useForm, submitForm } from '@/lib/forms/form-handler';
+// import { useForm, submitForm } from '@/lib/forms/form-handler';
 
 interface UserSettings {
   theme: 'light' | 'dark' | 'system';
@@ -118,7 +110,7 @@ export function SettingsPage() {
     setSettings(prev => ({
       ...prev,
       [section]: {
-        ...prev[section],
+        ...(prev[section as keyof typeof prev] || {}),
         [key]: value,
       },
     }));
@@ -243,7 +235,7 @@ export function SettingsPage() {
           </div>
           <Switch
             checked={settings.notifications.email}
-            onCheckedChange={(checked) => updateSetting('notifications', 'email', checked)}
+            onCheckedChange={(checked: boolean) => updateSetting('notifications', 'email', checked)}
           />
         </div>
 
@@ -254,7 +246,7 @@ export function SettingsPage() {
           </div>
           <Switch
             checked={settings.notifications.push}
-            onCheckedChange={(checked) => updateSetting('notifications', 'push', checked)}
+            onCheckedChange={(checked: boolean) => updateSetting('notifications', 'push', checked)}
           />
         </div>
 
