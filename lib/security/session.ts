@@ -366,7 +366,7 @@ export async function createSecureSession(
     ipAddress,
     userAgent: userAgent?.substring(0, 50) + '...', // Truncate for privacy
     timestamp: sessionInfo.createdAt,
-    expiresAt: sessionInfo.expiresAt
+    expiresAt: (sessionInfo as any).expiresAt || new Date(Date.now() + 24 * 60 * 60 * 1000)
   });
 
   // Store session analytics

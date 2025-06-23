@@ -118,10 +118,10 @@ class RealGoogleGenAI {
           localStorage.setItem('gemini-stream-analytics', JSON.stringify(streamAnalytics.slice(-30)));
         }
 
-        const result: any = await this.model.generateContentStream(processedConfig.prompt);
+        const result: any = await (this as any).model.generateContentStream(processedConfig.prompt);
         let chunkCount = 0;
 
-        for await (const chunk: any of result.stream) {
+        for await (const chunk of result.stream) {
           const chunkText: string = chunk.text();
           chunkCount++;
 

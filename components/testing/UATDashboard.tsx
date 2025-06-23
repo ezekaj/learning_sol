@@ -104,8 +104,9 @@ export const UATDashboard: React.FC = () => {
       const loadingData = {
         component: 'UATDashboard',
         loadTime: Date.now(),
-        testsCount: tests.length,
-        feedbackCount: feedback.length,
+        sessionsCount: sessions.length,
+        analyticsCount: analytics.taskPerformance.length,
+        metricsLoaded: !!metrics,
         timestamp: Date.now()
       };
 
@@ -115,7 +116,7 @@ export const UATDashboard: React.FC = () => {
     }, 1500); // Simulate loading time
 
     return () => clearTimeout(loadingTimer);
-  }, [tests.length, feedback.length]);
+  }, [sessions.length, analytics.taskPerformance.length, metrics]);
   const [showAnalytics, setShowAnalytics] = useState(false);
 
   useEffect(() => {
@@ -420,6 +421,20 @@ export const UATDashboard: React.FC = () => {
       </CardContent>
     </Card>
   );
+
+  // Show loading state while data is being fetched
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading UAT Dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
