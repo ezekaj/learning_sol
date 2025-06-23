@@ -5,6 +5,9 @@ import { CompetitiveAnalysisSection } from '@/components/sections/CompetitiveAna
 import { TestimonialsSection } from '@/components/sections/TestimonialsSection';
 import { CTASection } from '@/components/sections/CTASection';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { EnhancedFeaturesShowcase } from '@/components/sections/EnhancedFeaturesShowcase';
+import { GamificationPreview } from '@/components/sections/GamificationPreview';
+import { InteractiveDemoSection } from '@/components/sections/InteractiveDemoSection';
 
 export default function HomePage() {
   return (
@@ -12,6 +15,21 @@ export default function HomePage() {
       {/* Hero Section */}
       <Suspense fallback={<LoadingSpinner />}>
         <HeroSection />
+      </Suspense>
+
+      {/* Enhanced Features Showcase */}
+      <Suspense fallback={<LoadingSpinner />}>
+        <EnhancedFeaturesShowcase />
+      </Suspense>
+
+      {/* Interactive Demo Section */}
+      <Suspense fallback={<LoadingSpinner />}>
+        <InteractiveDemoSection />
+      </Suspense>
+
+      {/* Gamification Preview */}
+      <Suspense fallback={<LoadingSpinner />}>
+        <GamificationPreview />
       </Suspense>
 
       {/* Features Section */}

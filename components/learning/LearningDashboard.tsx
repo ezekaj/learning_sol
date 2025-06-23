@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { GlassCard } from '@/components/ui/Glassmorphism';
 import { useLearning } from '@/lib/context/LearningContext';
 import Link from 'next/link';
 
@@ -165,43 +166,63 @@ function DynamicLearningDashboard() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="text-center">
-        <motion.h1
-          className="text-4xl font-bold gradient-text mb-4"
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Enhanced Header */}
+        <motion.div
+          className="text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          Welcome Back, Developer!
-        </motion.h1>
-        <motion.p
-          className="text-xl text-gray-300"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          Continue your journey to Solidity mastery
-        </motion.p>
-      </div>
+          <h1 className="text-4xl md:text-5xl font-bold gradient-text mb-4">
+            Welcome Back, Developer!
+          </h1>
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
+            Continue your journey to Solidity mastery with interactive learning and real-time progress tracking
+          </p>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-        {stats.map((stat, index) => (
+          {/* Quick Stats */}
           <motion.div
-            key={stat.title}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
+            transition={{ delay: 0.2 }}
           >
-            <Card className="glass border-white/10 hover:border-white/20 transition-all">
-              <CardContent className="p-6">
+            <GlassCard className="p-4 text-center bg-gradient-to-br from-blue-500/20 to-cyan-500/20">
+              <div className="text-2xl font-bold text-blue-400 mb-1">{state.level}</div>
+              <div className="text-sm text-gray-300">Current Level</div>
+            </GlassCard>
+            <GlassCard className="p-4 text-center bg-gradient-to-br from-green-500/20 to-emerald-500/20">
+              <div className="text-2xl font-bold text-green-400 mb-1">{state.completedChallenges || 0}</div>
+              <div className="text-sm text-gray-300">Completed</div>
+            </GlassCard>
+            <GlassCard className="p-4 text-center bg-gradient-to-br from-yellow-500/20 to-orange-500/20">
+              <div className="text-2xl font-bold text-yellow-400 mb-1">{state.xp.toLocaleString()}</div>
+              <div className="text-sm text-gray-300">Total XP</div>
+            </GlassCard>
+            <GlassCard className="p-4 text-center bg-gradient-to-br from-purple-500/20 to-pink-500/20">
+              <div className="text-2xl font-bold text-purple-400 mb-1">{state.streak}</div>
+              <div className="text-sm text-gray-300">Day Streak</div>
+            </GlassCard>
+          </motion.div>
+        </motion.div>
+
+        {/* Enhanced Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+          {stats.map((stat, index) => (
+            <motion.div
+              key={stat.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <GlassCard className={`p-6 hover:scale-105 transition-all duration-300 ${stat.bgColor} border-white/20`}>
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <p className="text-sm text-gray-400 mb-1">{stat.title}</p>
                     <p className="text-2xl font-bold text-white">{stat.value}</p>
                   </div>
-                  <div className={`p-3 rounded-lg ${stat.bgColor}`}>
+                  <div className={`p-3 rounded-lg ${stat.bgColor} border border-white/20`}>
                     <stat.icon className={`w-6 h-6 ${stat.color}`} />
                   </div>
                 </div>
@@ -241,34 +262,32 @@ function DynamicLearningDashboard() {
                     )}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+              </GlassCard>
+            </motion.div>
+          ))}
+        </div>
 
-      {/* Main Content */}
-      <Tabs defaultValue="courses" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 glass">
-          <TabsTrigger value="courses">Courses</TabsTrigger>
-          <TabsTrigger value="achievements">Achievements</TabsTrigger>
-          <TabsTrigger value="activity">Recent Activity</TabsTrigger>
-          <TabsTrigger value="community">Community</TabsTrigger>
-        </TabsList>
+        {/* Enhanced Main Content */}
+        <Tabs defaultValue="courses" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 glass bg-white/10 border border-white/20">
+            <TabsTrigger value="courses" className="data-[state=active]:bg-white/20">Courses</TabsTrigger>
+            <TabsTrigger value="achievements" className="data-[state=active]:bg-white/20">Achievements</TabsTrigger>
+            <TabsTrigger value="activity" className="data-[state=active]:bg-white/20">Recent Activity</TabsTrigger>
+            <TabsTrigger value="community" className="data-[state=active]:bg-white/20">Community</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="courses" className="space-y-6">
-          {/* Continue Learning Section */}
-          <Card className="glass border-white/10">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Play className="w-5 h-5" />
-                Continue Learning
-              </CardTitle>
-              <CardDescription>
-                Pick up where you left off
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <TabsContent value="courses" className="space-y-6">
+            {/* Continue Learning Section */}
+            <GlassCard className="p-6 bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-white/20">
+              <div className="mb-6">
+                <h3 className="flex items-center gap-2 text-xl font-bold text-white mb-2">
+                  <Play className="w-5 h-5" />
+                  Continue Learning
+                </h3>
+                <p className="text-gray-300">
+                  Pick up where you left off
+                </p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {courses
                   .filter(course => course.progress > 0 && course.progress < 100)
@@ -277,8 +296,9 @@ function DynamicLearningDashboard() {
                     <motion.div
                       key={course.id}
                       whileHover={{ scale: 1.02 }}
-                      className="p-4 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all"
                     >
+                      <GlassCard className="p-4 bg-gradient-to-br from-white/5 to-white/10 border-white/20 hover:border-white/30 transition-all"
+                      >
                       <div className="flex items-center justify-between mb-3">
                         <Badge variant="outline" className="text-xs">
                           {course.difficulty}
@@ -296,16 +316,16 @@ function DynamicLearningDashboard() {
                         <span>{course.completedLessons}/{course.totalLessons} lessons</span>
                         <span>{course.totalModules} modules</span>
                       </div>
-                      <Button asChild className="w-full" size="sm">
-                        <Link href={`/learn/course/${course.id}`}>
-                          Continue
-                        </Link>
-                      </Button>
+                        <Button asChild className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600" size="sm">
+                          <Link href={`/learn/course/${course.id}`}>
+                            Continue
+                          </Link>
+                        </Button>
+                      </GlassCard>
                     </motion.div>
                   ))}
               </div>
-            </CardContent>
-          </Card>
+            </GlassCard>
 
           {/* All Courses */}
           <Card className="glass border-white/10">
@@ -548,6 +568,7 @@ function DynamicLearningDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }
