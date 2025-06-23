@@ -89,8 +89,7 @@ class ErrorTracker {
         },
 
         integrations: [
-          // Note: Sentry v8 integrations are auto-enabled
-          // Custom integrations can be added here if needed
+          // Sentry v8 integrations are auto-enabled by default
         ],
 
         // Performance monitoring
@@ -376,13 +375,11 @@ class ErrorTracker {
   startTransaction(name: string, operation: string): any {
     if (!this.initialized) return null;
 
-    // Sentry v8 uses startSpan instead of startTransaction
+    // Sentry v8 uses startSpan for performance monitoring
     return Sentry.startSpan({
       name,
       op: operation,
-    }, (span) => {
-      return span;
-    });
+    }, (span) => span);
   }
 
   /**
@@ -473,7 +470,17 @@ export function withErrorBoundary<P extends object>(
 
   return Sentry.withErrorBoundary(Component, {
     fallback: fallback ? ({ error, resetError }: any) =>
-      React.createElement(fallback, { error: error as Error, resetError }) : undefined,
+      React.createElement('div', {
+        className: 'error-boundary p-4 bg-red-50 border border-red-200 rounded-md'
+      }, [
+        React.createElement('h2', { key: 'title', className: 'text-red-800 font-semibold' }, 'Something went wrong'),
+        React.createElement('p', { key: 'message', className: 'text-red-600 mt-2' }, error?.message || 'An unexpected error occurred'),
+        React.createElement('button', {
+          key: 'retry',
+          onClick: resetError,
+          className: 'mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700'
+        }, 'Try again')
+      ]) : undefined,
     beforeCapture: (scope: any, _error: any, errorInfo: any) => {
       scope.setTag('errorBoundary', true);
       scope.setContext('errorInfo', errorInfo);

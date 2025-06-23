@@ -1,4 +1,29 @@
-import { PrismaClient, SkillLevel, LessonType, AchievementCategory } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+
+// Define enums locally since they might not be exported from Prisma client
+enum SkillLevel {
+  BEGINNER = 'BEGINNER',
+  INTERMEDIATE = 'INTERMEDIATE',
+  ADVANCED = 'ADVANCED'
+}
+
+enum LessonType {
+  THEORY = 'THEORY',
+  PRACTICE = 'PRACTICE',
+  PROJECT = 'PROJECT',
+  QUIZ = 'QUIZ',
+  CODING = 'CODING'
+}
+
+enum AchievementCategory {
+  LEARNING = 'LEARNING',
+  CODING = 'CODING',
+  COLLABORATION = 'COLLABORATION',
+  MILESTONE = 'MILESTONE',
+  STREAK = 'STREAK',
+  SOCIAL = 'SOCIAL',
+  SPECIAL = 'SPECIAL'
+}
 import { LEARNING_MODULES } from '../constants';
 
 const prisma = new PrismaClient();

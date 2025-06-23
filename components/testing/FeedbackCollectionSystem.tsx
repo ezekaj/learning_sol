@@ -389,12 +389,45 @@ export const FeedbackCollectionSystem: React.FC<FeedbackCollectionSystemProps> =
             </>
           ) : (
             <>
-              <Camera className="w-4 h-4" />
-              <span>Record Screen</span>
+              {recordingPermissions.screen ? (
+                <Camera className="w-4 h-4" />
+              ) : (
+                <CameraOff className="w-4 h-4 text-gray-400" />
+              )}
+              <span>{recordingPermissions.screen ? 'Record Screen' : 'Enable Camera'}</span>
             </>
           )}
         </Button>
-        
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            // Toggle voice recording functionality
+            if (recordingPermissions.audio) {
+              toast({
+                title: 'Voice Recording',
+                description: 'Voice recording feature coming soon!',
+              });
+            } else {
+              requestRecordingPermissions();
+            }
+          }}
+          className="flex items-center space-x-2"
+        >
+          {recordingPermissions.audio ? (
+            <>
+              <Mic className="w-4 h-4 text-green-500" />
+              <span>Record Voice</span>
+            </>
+          ) : (
+            <>
+              <MicOff className="w-4 h-4 text-gray-400" />
+              <span>Enable Mic</span>
+            </>
+          )}
+        </Button>
+
         {formData.screenRecording && (
           <span className="text-sm text-green-600">✓ Recording attached</span>
         )}
@@ -476,7 +509,8 @@ export const FeedbackCollectionSystem: React.FC<FeedbackCollectionSystemProps> =
                       { type: 'rating', label: 'Rating & Review', icon: Star },
                       { type: 'bug_report', label: 'Bug Report', icon: FileText },
                       { type: 'feature_request', label: 'Feature Request', icon: ThumbsUp },
-                      { type: 'usability', label: 'Usability Issue', icon: MessageSquare }
+                      { type: 'usability', label: 'Usability Issue', icon: MessageSquare },
+                      { type: 'negative_feedback', label: 'Report Issue', icon: ThumbsDown }
                     ].map(({ type, label, icon: Icon }) => (
                       <Button
                         key={type}

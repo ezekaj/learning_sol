@@ -92,6 +92,8 @@ export const UATDashboard: React.FC = () => {
   const [filterCategory, setFilterCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [selectedTimeRange, setSelectedTimeRange] = useState('week');
 
   useEffect(() => {
     loadUATData();
@@ -159,7 +161,12 @@ export const UATDashboard: React.FC = () => {
   };
 
   const renderMetricsOverview = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <motion.div
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
@@ -240,7 +247,7 @@ export const UATDashboard: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   );
 
   const renderTaskPerformance = () => (
@@ -270,7 +277,10 @@ export const UATDashboard: React.FC = () => {
                 </div>
                 
                 <div>
-                  <p className="text-gray-600">Avg. Time</p>
+                  <p className="text-gray-600 flex items-center space-x-1">
+                    <Clock className="w-3 h-3" />
+                    <span>Avg. Time</span>
+                  </p>
                   <p className="font-semibold">{task.averageTime}m</p>
                 </div>
                 
@@ -398,6 +408,15 @@ export const UATDashboard: React.FC = () => {
         </div>
         
         <div className="flex items-center space-x-4">
+          <Button
+            variant="outline"
+            onClick={() => setShowAnalytics(!showAnalytics)}
+            className="flex items-center space-x-2"
+          >
+            <BarChart3 className="w-4 h-4" />
+            <span>Analytics</span>
+          </Button>
+
           <Select value={selectedTimeRange} onValueChange={setSelectedTimeRange}>
             <SelectTrigger className="w-32">
               <SelectValue />
@@ -409,7 +428,7 @@ export const UATDashboard: React.FC = () => {
               <SelectItem value="all">All time</SelectItem>
             </SelectContent>
           </Select>
-          
+
           <Button onClick={exportReport} className="flex items-center space-x-2">
             <Download className="w-4 h-4" />
             <span>Export Report</span>
@@ -442,6 +461,7 @@ export const UATDashboard: React.FC = () => {
           
           <Select value={filterCategory} onValueChange={setFilterCategory}>
             <SelectTrigger className="w-48">
+              <Filter className="w-4 h-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -453,6 +473,21 @@ export const UATDashboard: React.FC = () => {
               <SelectItem value="social">Social Features</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button
+            variant="outline"
+            onClick={() => {
+              // Calendar date picker functionality
+              toast({
+                title: 'Date Range Picker',
+                description: 'Advanced date filtering coming soon!',
+              });
+            }}
+            className="flex items-center space-x-2"
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Date Range</span>
+          </Button>
         </div>
 
         <TabsContent value="performance">
