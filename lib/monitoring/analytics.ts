@@ -1,4 +1,4 @@
-import { env, monitoringConfig, isProduction } from '@/lib/config/environment';
+import { monitoringConfig, isProduction } from '@/lib/config/environment';
 import { logger } from './logger';
 
 /**
@@ -59,6 +59,13 @@ class AnalyticsManager {
   private performanceMetrics: PerformanceMetrics[] = [];
   private userSessions: Map<string, UserEngagement> = new Map();
   private initialized = false;
+
+  /**
+   * Check if analytics is initialized
+   */
+  public isInitialized(): boolean {
+    return this.initialized;
+  }
 
   constructor() {
     this.initializeAnalytics();

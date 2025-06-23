@@ -24,17 +24,17 @@ test.describe('Performance Testing', () => {
     const webVitals = await page.evaluate(() => {
       return new Promise((resolve) => {
         const vitals: any = {};
-        
+
         // Largest Contentful Paint (LCP)
         new PerformanceObserver((list) => {
           const entries = list.getEntries();
           const lastEntry = entries[entries.length - 1];
           vitals.lcp = lastEntry.startTime;
         }).observe({ entryTypes: ['largest-contentful-paint'] });
-        
+
         // First Input Delay (FID) - simulated
         vitals.fid = 0; // Will be measured on actual interaction
-        
+
         // Cumulative Layout Shift (CLS)
         let clsValue = 0;
         new PerformanceObserver((list) => {
@@ -45,16 +45,16 @@ test.describe('Performance Testing', () => {
           }
           vitals.cls = clsValue;
         }).observe({ entryTypes: ['layout-shift'] });
-        
+
         // First Contentful Paint (FCP)
         new PerformanceObserver((list) => {
           const entries = list.getEntries();
           vitals.fcp = entries[0].startTime;
         }).observe({ entryTypes: ['paint'] });
-        
+
         setTimeout(() => resolve(vitals), 2000);
       });
-    });
+    }) as { lcp?: number; fcp?: number; cls?: number; fid?: number };
     
     console.log('Web Vitals:', webVitals);
     
@@ -181,7 +181,7 @@ test.describe('Performance Testing', () => {
     expect(connectionEvents.filter(e => e === 'error')).toHaveLength(0);
   });
 
-  test('should handle concurrent user load', async ({ page, context }) => {
+  test('should handle concurrent user load', async ({ context }) => {
     const userSessions = [];
     const loadTimes: number[] = [];
     

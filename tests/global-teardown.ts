@@ -38,9 +38,11 @@ async function cleanupTestDatabase() {
 
   try {
     // Clean up test collaboration sessions
-    await prisma.collaborationSession.deleteMany({
-      where: { title: { contains: 'test-' } },
-    });
+    try {
+      await prisma.$executeRaw`DELETE FROM "CollaborationSession" WHERE title LIKE '%test-%'`;
+    } catch (error) {
+      console.log('CollaborationSession table not found during cleanup');
+    }
 
     // Clean up test users (keep them for next run)
     // await prisma.user.deleteMany({

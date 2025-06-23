@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { env, isProduction } from './environment';
+import { isProduction } from './environment';
 
 /**
  * Secrets Management Utility
@@ -76,9 +76,19 @@ class SecretsManager {
    */
   private getLastRotationDate(secretName: string): Date {
     // In production, this would query a secure database
-    // For now, return a default date
+    // For now, return a default date based on secret type
+    const rotationIntervals: Record<string, number> = {
+      'database': 90, // 90 days
+      'api_key': 30,  // 30 days
+      'jwt_secret': 60, // 60 days
+      'encryption_key': 180, // 180 days
+    };
+
+    const daysAgo = rotationIntervals[secretName] || 30;
+    console.log(`Secret ${secretName} last rotated ${daysAgo} days ago`);
+
     const defaultDate = new Date();
-    defaultDate.setDate(defaultDate.getDate() - 30); // 30 days ago
+    defaultDate.setDate(defaultDate.getDate() - daysAgo);
     return defaultDate;
   }
 

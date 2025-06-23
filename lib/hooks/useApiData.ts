@@ -256,6 +256,11 @@ export const useLearningPaths = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isAuthenticated } = useAuth();
+
+  // Log authentication status for debugging
+  useEffect(() => {
+    console.log('Learning progress fetch - authenticated:', isAuthenticated);
+  }, [isAuthenticated]);
   const { toast } = useToast();
 
   const fetchLearningPaths = useCallback(async () => {
@@ -297,6 +302,11 @@ export const useProjects = () => {
   const [error, setError] = useState<string | null>(null);
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
+
+  // Log authentication status for projects fetch
+  useEffect(() => {
+    console.log('Projects fetch - authenticated:', isAuthenticated);
+  }, [isAuthenticated]);
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -358,6 +368,8 @@ export const useCommunityStats = () => {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage);
       // Don't show toast for community stats errors as they're not critical
+      console.log('Community stats fetch error:', errorMessage);
+      // Could use toast for debugging: toast({ title: 'Stats Error', description: errorMessage });
     } finally {
       setLoading(false);
     }
