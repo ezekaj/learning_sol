@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useSession, signIn, signOut } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AuthModal } from '@/components/auth/AuthModal';
 import {
   BookOpen,
   Code,
@@ -34,6 +35,7 @@ const isStaticExport = process.env.NODE_ENV === 'production' && process.env.NEXT
 export function Navigation() {
   // Always call hooks at the top level
   const [isOpen, setIsOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const { data: session } = useSession();
   const { state: learningState } = useLearning();
 
@@ -137,10 +139,10 @@ export function Navigation() {
               </>
             ) : (
               <div className="flex items-center space-x-2">
-                <Button variant="ghost" onClick={() => signIn()}>
+                <Button variant="ghost" onClick={() => setShowAuthModal(true)}>
                   Sign In
                 </Button>
-                <Button onClick={() => signIn()}>
+                <Button onClick={() => setShowAuthModal(true)}>
                   Get Started
                 </Button>
               </div>
@@ -198,6 +200,12 @@ export function Navigation() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </nav>
   );
 }

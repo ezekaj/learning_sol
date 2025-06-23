@@ -19,7 +19,6 @@ const contactFormSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const startTime = Date.now();
   
   try {
     // Parse request body
@@ -29,13 +28,7 @@ export async function POST(request: NextRequest) {
     const validationResult = contactFormSchema.safeParse(body);
     
     if (!validationResult.success) {
-      logger.warn('Contact form validation failed', {
-        metadata: {
-          message: 'Validation failed',
-          details: validationResult.error.errors,
-          body: sanitize.text(body)
-        },
-      });
+      logger.warn('Contact form validation failed');
       
       return NextResponse.json(
         { 
@@ -71,15 +64,7 @@ export async function POST(request: NextRequest) {
     await simulateContactProcessing(sanitizedData, submissionId);
 
     // Log successful submission
-    logger.info('Contact form submitted successfully', {
-      metadata: {
-        submissionId,
-        email: sanitizedData.email,
-        subject: sanitizedData.subject,
-        source: sanitizedData.source,
-        processingTime: Date.now() - startTime
-      },
-    });
+    logger.info('Contact form submitted successfully');
 
     // Track analytics
     analytics.trackEvent('contact_form_submitted', {
@@ -99,12 +84,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     logger.error(
       'Contact form submission failed',
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        metadata: {
-          processingTime: Date.now() - startTime
-        },
-      }
+      error instanceof Error ? error : new Error(String(error))
     );
 
     return NextResponse.json(
@@ -135,31 +115,17 @@ async function simulateContactProcessing(data: any, submissionId: string) {
 /**
  * Simulate email notification to support team
  */
-async function simulateEmailNotification(data: any, submissionId: string) {
+async function simulateEmailNotification(_data: any, _submissionId: string) {
   // In production, this would use a service like SendGrid, AWS SES, or similar
-  logger.info('Email notification sent', {
-    metadata: {
-      submissionId,
-      to: 'support@soliditylearn.com',
-      subject: `New Contact Form Submission: ${data.subject}`,
-      from: data.email
-    },
-  });
+  logger.info('Email notification sent');
 }
 
 /**
  * Simulate CRM integration
  */
-async function simulateCRMIntegration(data: any, submissionId: string) {
+async function simulateCRMIntegration(_data: any, _submissionId: string) {
   // In production, this would integrate with CRM systems like HubSpot, Salesforce, etc.
-  logger.info('CRM record created', {
-    metadata: {
-      submissionId,
-      contact: data.email,
-      source: 'contact_form',
-      priority: getPriorityFromSubject(data.subject)
-    },
-  });
+  logger.info('CRM record created');
 }
 
 /**
@@ -187,24 +153,7 @@ function categorizeSubject(subject: string): string {
   return 'general';
 }
 
-/**
- * Determine priority based on subject content
- */
-function getPriorityFromSubject(subject: string): 'low' | 'medium' | 'high' | 'urgent' {
-  const lowerSubject = subject.toLowerCase();
-  
-  if (lowerSubject.includes('urgent') || lowerSubject.includes('critical') || lowerSubject.includes('down')) {
-    return 'urgent';
-  }
-  if (lowerSubject.includes('bug') || lowerSubject.includes('error') || lowerSubject.includes('broken')) {
-    return 'high';
-  }
-  if (lowerSubject.includes('help') || lowerSubject.includes('support') || lowerSubject.includes('question')) {
-    return 'medium';
-  }
-  
-  return 'low';
-}
+
 
 /**
  * Handle GET requests for contact form configuration
