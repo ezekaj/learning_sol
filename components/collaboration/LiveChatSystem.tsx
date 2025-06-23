@@ -84,6 +84,52 @@ export const LiveChatSystem: React.FC<LiveChatSystemProps> = ({
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [editingMessage, setEditingMessage] = useState<string | null>(null);
 
+  // Define handleReaction first to avoid dependency issues
+  const handleReaction = async (messageId: string, emoji: string) => {
+    if (!user) return;
+
+    try {
+      const response = await fetch('/api/chat/reactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messageId,
+          emoji,
+          sessionId
+        })
+      });
+
+      if (response.ok) {
+        // Update local state optimistically
+        setMessages(prev => prev.map(msg => {
+          if (msg.id === messageId) {
+            const existingReaction = msg.reactions.find(r => r.userId === user.id && r.emoji === emoji);
+            if (existingReaction) {
+              // Remove reaction
+              return {
+                ...msg,
+                reactions: msg.reactions.filter(r => !(r.userId === user.id && r.emoji === emoji))
+              };
+            } else {
+              // Add reaction
+              return {
+                ...msg,
+                reactions: [...msg.reactions, {
+                  emoji,
+                  userId: user.id,
+                  userName: user.name || 'Anonymous'
+                }]
+              };
+            }
+          }
+          return msg;
+        }));
+      }
+    } catch (error) {
+      console.error('Error adding reaction:', error);
+    }
+  };
+
   // Enhanced message interaction features with real functionality
   const handleMessageReaction = useCallback((messageId: string, reaction: 'heart' | 'thumbsUp') => {
     console.log(`Adding ${reaction} reaction to message ${messageId}`);
@@ -279,51 +325,6 @@ export const LiveChatSystem: React.FC<LiveChatSystemProps> = ({
     }
   }, [editingMessage, newMessage, socket, sessionId]);
 
-  const handleReaction = async (messageId: string, emoji: string) => {
-    if (!user) return;
-
-    try {
-      const response = await fetch('/api/chat/reactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messageId,
-          emoji,
-          sessionId
-        })
-      });
-
-      if (response.ok) {
-        // Update local state optimistically
-        setMessages(prev => prev.map(msg => {
-          if (msg.id === messageId) {
-            const existingReaction = msg.reactions.find(r => r.userId === user.id && r.emoji === emoji);
-            if (existingReaction) {
-              // Remove reaction
-              return {
-                ...msg,
-                reactions: msg.reactions.filter(r => !(r.userId === user.id && r.emoji === emoji))
-              };
-            } else {
-              // Add reaction
-              return {
-                ...msg,
-                reactions: [...msg.reactions, {
-                  emoji,
-                  userId: user.id,
-                  userName: user.name || 'Anonymous'
-                }]
-              };
-            }
-          }
-          return msg;
-        }));
-      }
-    } catch (error) {
-      console.error('Error adding reaction:', error);
-    }
-  };
-
   const handlePinMessage = async (messageId: string) => {
     try {
       const response = await fetch('/api/chat/pin', {
@@ -471,7 +472,11 @@ export const LiveChatSystem: React.FC<LiveChatSystemProps> = ({
                   {/* Message content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-1">
-                      <span className="font-semibold text-white text-sm">
+                      <span
+                        className="font-semibold text-white text-sm cursor-pointer hover:text-blue-400"
+                        onClick={() => handleUserMention(message.userId)}
+                        title="Mention this user"
+                      >
                         {message.userName}
                       </span>
                       <span className="text-xs text-gray-400">
@@ -561,10 +566,7 @@ export const LiveChatSystem: React.FC<LiveChatSystemProps> = ({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => {
-                          // More options menu functionality
-                          console.log('More options for message:', message.id);
-                        }}
+                        onClick={() => handleMessageOptions(message.id)}
                         title="More options"
                       >
                         <MoreVertical className="w-4 h-4" />
@@ -592,11 +594,11 @@ export const LiveChatSystem: React.FC<LiveChatSystemProps> = ({
                               {emoji}
                             </button>
                           ))}
-                          {/* Quick reaction buttons using unused icons */}
+                          {/* Quick reaction buttons using enhanced reaction functions */}
                           <div className="border-l border-slate-600 pl-2 ml-2 flex space-x-1">
                             <button
                               onClick={() => {
-                                handleReaction(message.id, '❤️');
+                                handleMessageReaction(message.id, 'heart');
                                 setShowEmojiPicker(null);
                               }}
                               className="hover:bg-slate-600 p-1 rounded"
@@ -606,7 +608,7 @@ export const LiveChatSystem: React.FC<LiveChatSystemProps> = ({
                             </button>
                             <button
                               onClick={() => {
-                                handleReaction(message.id, '👍');
+                                handleMessageReaction(message.id, 'thumbsUp');
                                 setShowEmojiPicker(null);
                               }}
                               className="hover:bg-slate-600 p-1 rounded"

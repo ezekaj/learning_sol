@@ -400,7 +400,10 @@ export const AdvancedUserPresence: React.FC<AdvancedUserPresenceProps> = ({
               key={activity.userId}
               className="relative cursor-pointer"
               title={`${activity.userName} - ${activity.status} - ${activity.currentActivity}`}
-              onClick={() => onUserClick?.(activity.userId)}
+              onClick={() => {
+                handleUserInteraction(activity.userId, 'user-click');
+                onUserClick?.(activity.userId);
+              }}
             >
               <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-semibold border-2 border-slate-800">
                 {activity.userName.charAt(0)}
@@ -494,7 +497,10 @@ export const AdvancedUserPresence: React.FC<AdvancedUserPresenceProps> = ({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors cursor-pointer"
-              onClick={() => onUserClick?.(activity.userId)}
+              onClick={() => {
+                handleUserInteraction(activity.userId, 'detailed-user-click');
+                onUserClick?.(activity.userId);
+              }}
             >
               <div className="flex items-center space-x-3 flex-1">
                 <div className="relative">

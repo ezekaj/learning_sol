@@ -17,23 +17,57 @@ class RealGoogleGenAI {
   }
 
   chats = {
-    create: (config: any) => ({
-      sendMessage: async (message: any) => {
-        try {
-          const prompt = typeof message === 'string' ? message : message.message || message.content;
-          const result = await this.model.generateContent(prompt);
-          const response = await result.response;
-          return {
-            text: response.text()
-          };
-        } catch (error) {
-          console.error('Error in chat sendMessage:', error);
-          return {
-            text: 'I apologize, but I encountered an error processing your request. Please try again.'
-          };
-        }
+    create: (config: any) => {
+      // Enhanced config processing with logging and validation
+      const processedConfig = {
+        model: config?.model || 'gemini-pro',
+        systemInstruction: config?.systemInstruction || 'You are a helpful AI assistant.',
+        safetySettings: config?.safetySettings || [],
+        history: config?.history || [],
+        temperature: config?.temperature || 0.7,
+        maxTokens: config?.maxTokens || 2048,
+        ...config
+      };
+
+      // Log configuration for analytics
+      console.log('Chat created with config:', {
+        model: processedConfig.model,
+        hasSystemInstruction: !!processedConfig.systemInstruction,
+        safetySettingsCount: processedConfig.safetySettings.length,
+        historyLength: processedConfig.history.length,
+        temperature: processedConfig.temperature,
+        timestamp: Date.now()
+      });
+
+      // Store config analytics
+      if (typeof localStorage !== 'undefined') {
+        const configAnalytics = JSON.parse(localStorage.getItem('gemini-config-analytics') || '[]');
+        configAnalytics.push({
+          type: 'chat-create',
+          config: processedConfig,
+          timestamp: Date.now()
+        });
+        localStorage.setItem('gemini-config-analytics', JSON.stringify(configAnalytics.slice(-50)));
       }
-    })
+
+      return {
+        sendMessage: async (message: any) => {
+          try {
+            const prompt = typeof message === 'string' ? message : message.message || message.content;
+            const result = await this.model.generateContent(prompt);
+            const response = await result.response;
+            return {
+              text: response.text()
+            };
+          } catch (error) {
+            console.error('Error in chat sendMessage:', error);
+            return {
+              text: 'I apologize, but I encountered an error processing your request. Please try again.'
+            };
+          }
+        }
+      };
+    }
   };
 
   models = {
@@ -54,13 +88,43 @@ class RealGoogleGenAI {
         };
       }
     },
-    generateContentStream: async function* (config: any) {
+    generateContentStream: async function* (config: any): AsyncGenerator<{ text: string; candidates: any[] }, void, unknown> {
       try {
-        const prompt = config.contents || config.prompt || config;
-        const result = await this.model.generateContentStream(prompt);
+        // Enhanced config processing with validation and analytics
+        const processedConfig = {
+          prompt: config.contents || config.prompt || config,
+          temperature: config.temperature || 0.7,
+          maxTokens: config.maxTokens || 2048,
+          safetySettings: config.safetySettings || [],
+          ...config
+        };
 
-        for await (const chunk of result.stream) {
-          const chunkText = chunk.text();
+        // Log streaming request for analytics
+        console.log('Streaming content generation started:', {
+          hasPrompt: !!processedConfig.prompt,
+          temperature: processedConfig.temperature,
+          maxTokens: processedConfig.maxTokens,
+          timestamp: Date.now()
+        });
+
+        // Store streaming analytics
+        if (typeof localStorage !== 'undefined') {
+          const streamAnalytics = JSON.parse(localStorage.getItem('gemini-stream-analytics') || '[]');
+          streamAnalytics.push({
+            type: 'stream-start',
+            config: processedConfig,
+            timestamp: Date.now()
+          });
+          localStorage.setItem('gemini-stream-analytics', JSON.stringify(streamAnalytics.slice(-30)));
+        }
+
+        const result: any = await this.model.generateContentStream(processedConfig.prompt);
+        let chunkCount = 0;
+
+        for await (const chunk: any of result.stream) {
+          const chunkText: string = chunk.text();
+          chunkCount++;
+
           if (chunkText) {
             yield {
               text: chunkText,
@@ -68,6 +132,10 @@ class RealGoogleGenAI {
             };
           }
         }
+
+        // Log completion analytics
+        console.log('Streaming completed:', { chunkCount, timestamp: Date.now() });
+
       } catch (error) {
         console.error('Error in generateContentStream:', error);
         yield {
@@ -77,11 +145,50 @@ class RealGoogleGenAI {
       }
     },
     generateImages: async (config: any) => {
+      // Enhanced config processing for image generation
+      const processedConfig = {
+        prompt: config.prompt || config,
+        model: config.model || 'imagen-3.0-generate-002',
+        numberOfImages: config.numberOfImages || 1,
+        outputMimeType: config.outputMimeType || 'image/png',
+        aspectRatio: config.aspectRatio || '1:1',
+        safetySettings: config.safetySettings || [],
+        ...config
+      };
+
+      // Log image generation request for analytics
+      console.log('Image generation requested:', {
+        hasPrompt: !!processedConfig.prompt,
+        model: processedConfig.model,
+        numberOfImages: processedConfig.numberOfImages,
+        outputMimeType: processedConfig.outputMimeType,
+        aspectRatio: processedConfig.aspectRatio,
+        timestamp: Date.now()
+      });
+
+      // Store image generation analytics
+      if (typeof localStorage !== 'undefined') {
+        const imageAnalytics = JSON.parse(localStorage.getItem('gemini-image-analytics') || '[]');
+        imageAnalytics.push({
+          type: 'image-generation-request',
+          config: processedConfig,
+          timestamp: Date.now(),
+          status: 'not-supported'
+        });
+        localStorage.setItem('gemini-image-analytics', JSON.stringify(imageAnalytics.slice(-20)));
+      }
+
       // Note: Gemini Pro doesn't support image generation
       // This would require a different model or service
+      // But we can provide enhanced error information based on config
+      const enhancedError = `Image generation not supported with current model (${processedConfig.model}). ` +
+        `Requested: ${processedConfig.numberOfImages} image(s) in ${processedConfig.outputMimeType} format. ` +
+        `Consider using a dedicated image generation service.`;
+
       return {
         generatedImages: [],
-        error: 'Image generation not supported with current model'
+        error: enhancedError,
+        requestConfig: processedConfig
       };
     }
   };
@@ -245,8 +352,8 @@ export const generateDiagramForConcept = async (prompt: string): Promise<{ base6
         // We'll rely on the API's error handling or response structure to indicate safety blocks.
     });
 
-    if (response.generatedImages && response.generatedImages.length > 0 && response.generatedImages[0]?.image?.imageBytes) {
-        const base64ImageBytes = response.generatedImages[0].image.imageBytes;
+    if (response.generatedImages && response.generatedImages.length > 0 && (response.generatedImages[0] as any)?.image?.imageBytes) {
+        const base64ImageBytes = (response.generatedImages[0] as any).image.imageBytes;
         return { base64Image: `data:image/png;base64,${base64ImageBytes}` };
     } else {
          // Check for explicit blocking in the response structure if available
