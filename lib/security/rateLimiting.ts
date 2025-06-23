@@ -36,18 +36,22 @@ class RateLimiter {
 
   constructor() {
     if (env.REDIS_URL) {
-      this.redis = new Redis(env.REDIS_URL, {
-        retryDelayOnClusterDown: 100,
-        maxRetriesPerRequest: 3,
-        lazyConnect: true,
-      });
+      try {
+        this.redis = new Redis(env.REDIS_URL, {
+          maxRetriesPerRequest: 3,
+          lazyConnect: true,
+        });
+      } catch (error) {
+        console.warn('Failed to initialize Redis for rate limiting:', error);
+        console.log('Falling back to memory-based rate limiting');
+      }
     }
   }
 
   /**
    * Extract client IP address from request headers
    */
-  private getClientIP(req: NextRequest): string {
+  public getClientIP(req: NextRequest): string {
     const forwarded = req.headers.get('x-forwarded-for');
     const realIP = req.headers.get('x-real-ip');
     const cfConnectingIP = req.headers.get('cf-connecting-ip');
@@ -302,7 +306,7 @@ export const rateLimitConfigs = {
     message: 'Too many authentication attempts',
     algorithm: 'fixed-window' as const,
     keyGenerator: (req: NextRequest) => {
-      const ip = this.getClientIP(req);
+      const ip = rateLimiter.getClientIP(req);
       return `auth_limit:${ip}`;
     },
   },
@@ -319,7 +323,7 @@ export const rateLimitConfigs = {
       if (userId) {
         return `ai_limit:user:${userId}`;
       }
-      const ip = this.getClientIP(req);
+      const ip = rateLimiter.getClientIP(req);
       return `ai_limit:ip:${ip}`;
     },
   },
@@ -335,7 +339,7 @@ export const rateLimitConfigs = {
       if (userId) {
         return `collab_limit:user:${userId}`;
       }
-      const ip = this.getClientIP(req);
+      const ip = rateLimiter.getClientIP(req);
       return `collab_limit:ip:${ip}`;
     },
   },

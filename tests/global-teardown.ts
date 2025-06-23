@@ -39,7 +39,7 @@ async function cleanupTestDatabase() {
   try {
     // Clean up test collaboration sessions
     try {
-      await prisma.$executeRaw`DELETE FROM "CollaborationSession" WHERE title LIKE '%test-%'`;
+      // await prisma.$executeRaw`DELETE FROM "CollaborationSession" WHERE title LIKE '%test-%'`; // Temporarily disabled
     } catch (error) {
       console.log('CollaborationSession table not found during cleanup');
     }

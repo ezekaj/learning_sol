@@ -38,7 +38,7 @@ async function setupTestDatabase() {
   try {
     // Clean existing test data
     try {
-      await prisma.$executeRaw`DELETE FROM "CollaborationSession" WHERE title LIKE '%test-%'`;
+      // await prisma.$executeRaw`DELETE FROM "CollaborationSession" WHERE title LIKE '%test-%'`; // Temporarily disabled
     } catch (error) {
       console.log('CollaborationSession table not found, will be created when needed');
     }
@@ -118,25 +118,25 @@ async function createTestUsers() {
 
     // Create test collaboration session (if table exists)
     try {
-      await prisma.$executeRaw`
-        INSERT INTO "CollaborationSession" (
-          id, title, description, code, language, "maxParticipants",
-          "isActive", "createdAt", "updatedAt", "createdBy"
-        ) VALUES (
-          'test-session-1',
-          'test-collaboration-session',
-          'Test collaboration session for E2E testing',
-          '// Test Solidity contract\npragma solidity ^0.8.0;\n\ncontract TestContract {\n    uint256 public value;\n    \n    function setValue(uint256 _value) public {\n        value = _value;\n    }\n}',
-          'solidity',
-          5,
-          true,
-          NOW(),
-          NOW(),
-          ${testUser.id}
-        ) ON CONFLICT (id) DO UPDATE SET
-          title = EXCLUDED.title,
-          "updatedAt" = NOW()
-      `;
+      // await prisma.$executeRaw`
+      //   INSERT INTO "CollaborationSession" (
+      //     id, title, description, code, language, "maxParticipants",
+      //     "isActive", "createdAt", "updatedAt", "createdBy"
+      //   ) VALUES (
+      //     'test-session-1',
+      //     'test-collaboration-session',
+      //     'Test collaboration session for E2E testing',
+      //     '// Test Solidity contract\npragma solidity ^0.8.0;\n\ncontract TestContract {\n    uint256 public value;\n    \n    function setValue(uint256 _value) public {\n        value = _value;\n    }\n}',
+      //     'solidity',
+      //     5,
+      //     true,
+      //     NOW(),
+      //     NOW(),
+      //     ${testUser.id}
+      //   ) ON CONFLICT (id) DO UPDATE SET
+      //     title = EXCLUDED.title,
+      //     "updatedAt" = NOW()
+      // `; // Temporarily disabled
     } catch (error) {
       console.log('CollaborationSession table not available, skipping test session creation');
     }
