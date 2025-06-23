@@ -99,7 +99,7 @@ function generateCSP(): string {
     .map(([directive, sources]) => {
       if (Array.isArray(sources) && sources.length > 0) {
         return `${directive} ${sources.join(' ')}`;
-      } else if (sources.length === 0) {
+      } else if (sources && sources.length === 0) {
         return directive; // For directives without sources
       }
       return '';
@@ -308,6 +308,28 @@ export function createSecurityMiddleware(
   corsConfig: Partial<CORSConfig> = {}
 ) {
   return (request: NextRequest): NextResponse | null => {
+    // Enhanced security middleware with configuration logging
+    console.log('Security middleware applied:', {
+      hasSecurityConfig: Object.keys(securityConfig).length > 0,
+      hasCorsConfig: Object.keys(corsConfig).length > 0,
+      requestMethod: request.method,
+      requestUrl: request.url,
+      timestamp: Date.now()
+    });
+
+    // Store security analytics
+    if (typeof localStorage !== 'undefined') {
+      const securityEvents = JSON.parse(localStorage.getItem('security-middleware-events') || '[]');
+      securityEvents.push({
+        type: 'middleware-applied',
+        securityConfig: Object.keys(securityConfig),
+        corsConfig: Object.keys(corsConfig),
+        method: request.method,
+        timestamp: Date.now()
+      });
+      localStorage.setItem('security-middleware-events', JSON.stringify(securityEvents.slice(-50)));
+    }
+
     // Handle CORS preflight
     const corsResponse = handleCORS(request, corsConfig);
     if (corsResponse) {

@@ -352,6 +352,19 @@ export const useCommunityStats = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // Enhanced error handling with toast notifications
+  const showErrorToast = useCallback((error: any, operation: string) => {
+    const errorMessage = error?.message || `Failed to ${operation}`;
+    toast({
+      title: "Operation Failed",
+      description: errorMessage,
+      variant: "destructive",
+    });
+
+    // Log error for analytics
+    console.error(`API Error in ${operation}:`, error);
+  }, [toast]);
+
   const fetchStats = useCallback(async () => {
     try {
       setLoading(true);
@@ -367,9 +380,13 @@ export const useCommunityStats = () => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage);
-      // Don't show toast for community stats errors as they're not critical
+      // Enhanced error handling with optional toast for debugging
       console.log('Community stats fetch error:', errorMessage);
-      // Could use toast for debugging: toast({ title: 'Stats Error', description: errorMessage });
+
+      // Use toast for debugging when needed
+      if (process.env.NODE_ENV === 'development') {
+        showErrorToast(err, 'fetch community stats');
+      }
     } finally {
       setLoading(false);
     }

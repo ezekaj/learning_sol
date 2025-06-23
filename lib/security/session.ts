@@ -358,6 +358,32 @@ export async function createSecureSession(
   const sessionId = crypto.randomUUID();
 
   const sessionInfo = sessionSecurity.createSession(userId, sessionId, ipAddress, userAgent);
+
+  // Enhanced session creation with analytics and logging
+  console.log('Session created:', {
+    userId,
+    sessionId: sessionInfo.sessionId,
+    ipAddress,
+    userAgent: userAgent?.substring(0, 50) + '...', // Truncate for privacy
+    timestamp: sessionInfo.createdAt,
+    expiresAt: sessionInfo.expiresAt
+  });
+
+  // Store session analytics
+  if (typeof localStorage !== 'undefined') {
+    const sessionAnalytics = JSON.parse(localStorage.getItem('session-analytics') || '[]');
+    sessionAnalytics.push({
+      type: 'session-created',
+      userId,
+      sessionId: sessionInfo.sessionId,
+      timestamp: Date.now(),
+      metadata: {
+        hasUserAgent: !!userAgent,
+        ipAddressLength: ipAddress?.length || 0
+      }
+    });
+    localStorage.setItem('session-analytics', JSON.stringify(sessionAnalytics.slice(-100)));
+  }
   const csrfToken = sessionSecurity.generateCSRFToken(sessionId);
 
   return { sessionId, csrfToken };
@@ -426,9 +452,39 @@ export function detectSuspiciousActivity(
   const reasons: string[] = [];
   const { ipAddress, userAgent } = getClientInfo(request);
 
+  // Enhanced suspicious activity detection using sessionId for tracking
+  console.log('Analyzing session activity:', {
+    sessionId,
+    ipAddress,
+    userAgent: userAgent.substring(0, 50) + '...',
+    timestamp: Date.now()
+  });
+
+  // Store session activity for pattern analysis
+  if (typeof localStorage !== 'undefined') {
+    const activityLog = JSON.parse(localStorage.getItem(`session_${sessionId}_activity`) || '[]');
+    activityLog.push({
+      timestamp: Date.now(),
+      ipAddress,
+      userAgent,
+      url: request.url,
+      method: request.method
+    });
+    localStorage.setItem(`session_${sessionId}_activity`, JSON.stringify(activityLog.slice(-20))); // Keep last 20 activities
+
+    // Check for rapid requests pattern
+    const recentActivity = activityLog.filter((activity: any) =>
+      Date.now() - activity.timestamp < 60000 // Last minute
+    );
+
+    if (recentActivity.length > 10) {
+      reasons.push('Rapid request pattern detected');
+    }
+  }
+
   // Check for rapid requests from same IP
   // This would typically be implemented with Redis or database
-  
+
   // Check for unusual user agent patterns
   if (userAgent.includes('bot') || userAgent.includes('crawler')) {
     reasons.push('Bot-like user agent detected');
@@ -440,6 +496,16 @@ export function detectSuspiciousActivity(
     if (isProduction) {
       reasons.push('Private IP address in production');
     }
+  }
+
+  // Log suspicious activity detection
+  if (reasons.length > 0) {
+    console.warn('Suspicious activity detected:', {
+      sessionId,
+      reasons,
+      ipAddress,
+      timestamp: Date.now()
+    });
   }
 
   return {

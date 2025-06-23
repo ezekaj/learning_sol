@@ -415,7 +415,9 @@ function RealTimeCollaborationHub() {
                           {[...Array(Math.min(session.participants.length, 3))].map((_, i) => (
                             <div
                               key={i}
-                              className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 border-2 border-slate-800 flex items-center justify-center text-white text-xs"
+                              className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 border-2 border-slate-800 flex items-center justify-center text-white text-xs cursor-pointer hover:scale-110 transition-transform"
+                              onClick={() => handleUserInteraction(`participant-${i}`)}
+                              title={`Participant ${i + 1}`}
                             >
                               {i + 1}
                             </div>

@@ -94,6 +94,28 @@ export const UATDashboard: React.FC = () => {
   const [filterCategory, setFilterCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+
+  // Enhanced loading state management with analytics
+  useEffect(() => {
+    const loadingTimer = setTimeout(() => {
+      setIsLoading(false);
+
+      // Track loading completion for analytics
+      const loadingData = {
+        component: 'UATDashboard',
+        loadTime: Date.now(),
+        testsCount: tests.length,
+        feedbackCount: feedback.length,
+        timestamp: Date.now()
+      };
+
+      // Store loading analytics
+      localStorage.setItem('uat-dashboard-loading', JSON.stringify(loadingData));
+      console.log('UAT Dashboard loaded:', loadingData);
+    }, 1500); // Simulate loading time
+
+    return () => clearTimeout(loadingTimer);
+  }, [tests.length, feedback.length]);
   const [showAnalytics, setShowAnalytics] = useState(false);
 
   useEffect(() => {

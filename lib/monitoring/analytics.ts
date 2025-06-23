@@ -461,7 +461,11 @@ class AnalyticsManager {
 
     logger.info('Analytics events flushed', {
       count: events.length,
-      types: [...new Set(events.map(e => e.name))],
+      metadata: {
+        eventTypes: [...new Set(events.map(e => e.name))],
+        flushTimestamp: Date.now(),
+        batchSize: events.length
+      },
     });
   }
 
