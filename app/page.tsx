@@ -1,3 +1,4 @@
+// Enhanced Solidity Learning Platform - Updated 2025-06-23 14:00 UTC
 import { Suspense } from 'react';
 import { HeroSection } from '@/components/sections/HeroSection';
 import { FeaturesSection } from '@/components/sections/FeaturesSection';
@@ -17,7 +18,7 @@ export default function HomePage() {
         <HeroSection />
       </Suspense>
 
-      {/* Enhanced Features Showcase */}
+      {/* Enhanced Features Showcase - New Interactive UI */}
       <Suspense fallback={<LoadingSpinner />}>
         <EnhancedFeaturesShowcase />
       </Suspense>
