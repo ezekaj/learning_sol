@@ -50,7 +50,7 @@ jobs:
         NEXT_PUBLIC_APP_NAME: "Solidity Learning Platform"
         DATABASE_URL: "postgresql://localhost:5432/dummy"
         NEXTAUTH_URL: https://ezekaj.github.io/learning_sol
-        NEXTAUTH_SECRET: "dummy-secret-for-build-only"
+        NEXTAUTH_SECRET: "build-only-nextauth-secret-32-chars-minimum-required-for-validation"
       run: npm run build
 
     - name: Check for large files in build
