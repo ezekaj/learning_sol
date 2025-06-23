@@ -436,7 +436,7 @@ function RealTimeCollaborationHub() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Code className="w-5 h-5 text-blue-400" />
-                <span>Collaborative Editor - {session.title}</span>
+                <span>Collaborative Editor - {session?.title || 'Untitled Session'}</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
