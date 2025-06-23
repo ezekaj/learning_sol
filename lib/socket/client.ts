@@ -43,6 +43,8 @@ interface CollaborationSession {
   participants: User[];
   code: string;
   language: string;
+  maxParticipants?: number;
+  createdAt?: string;
 }
 
 interface UseSocketReturn {

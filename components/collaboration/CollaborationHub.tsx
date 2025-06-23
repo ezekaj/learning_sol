@@ -66,6 +66,13 @@ function RealTimeCollaborationHub() {
     }
   }, [isAuthenticated, fetchSessions]);
 
+  // Handle presence updates
+  useEffect(() => {
+    if (presence && presence.length > 0) {
+      handlePresenceUpdate(presence);
+    }
+  }, [presence, handlePresenceUpdate]);
+
   // Show loading state
   if (loading) {
     return (
@@ -201,7 +208,10 @@ function RealTimeCollaborationHub() {
             </motion.p>
           </div>
 
-          <UserPresenceIndicator compact={true} />
+          <UserPresenceIndicator
+            compact={true}
+            onUserClick={handleUserInteraction}
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -214,7 +224,10 @@ function RealTimeCollaborationHub() {
           </div>
 
           <div className="lg:col-span-1">
-            <UserPresenceIndicator showDetails={true} />
+            <UserPresenceIndicator
+              showDetails={true}
+              onUserClick={handleUserInteraction}
+            />
           </div>
         </div>
       </div>
@@ -369,7 +382,7 @@ function RealTimeCollaborationHub() {
                       </Badge>
                       <div className="flex items-center space-x-1 text-xs text-gray-400">
                         <Users className="w-3 h-3" />
-                        <span>{session.participants.length}/{(session as any).maxParticipants || 4}</span>
+                        <span>{session.participants.length}/{session.maxParticipants || 4}</span>
                       </div>
                     </div>
                     <CardTitle className="text-lg text-white line-clamp-2">
@@ -377,7 +390,7 @@ function RealTimeCollaborationHub() {
                     </CardTitle>
                     <CardDescription className="flex items-center space-x-2 text-xs">
                       <Clock className="w-3 h-3" />
-                      <span>Created {(session as any).createdAt ? new Date((session as any).createdAt).toLocaleTimeString() : 'Recently'}</span>
+                      <span>Created {session.createdAt ? new Date(session.createdAt).toLocaleTimeString() : 'Recently'}</span>
                     </CardDescription>
                   </CardHeader>
                   <CardContent>

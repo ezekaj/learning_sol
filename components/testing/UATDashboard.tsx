@@ -24,7 +24,8 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { uatScenarios, uatSuccessCriteria, type UATSession, type UATTask } from '@/lib/testing/uatScenarios';
+import { uatScenarios, uatSuccessCriteria, type UATSession } from '@/lib/testing/uatScenarios';
+import { useToast } from '@/hooks/use-toast';
 
 /**
  * Comprehensive UAT Management Dashboard
@@ -72,6 +73,7 @@ interface UATAnalytics {
 
 export const UATDashboard: React.FC = () => {
   const { toast } = useToast();
+  const { toast } = useToast();
   const [metrics, setMetrics] = useState<UATMetrics>({
     totalTesters: 0,
     activeSessions: 0,
@@ -95,7 +97,6 @@ export const UATDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showAnalytics, setShowAnalytics] = useState(false);
-  // Removed duplicate selectedTimeRange declaration
 
   useEffect(() => {
     loadUATData();
