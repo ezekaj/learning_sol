@@ -1,26 +1,7 @@
-// import * as Sentry from '@sentry/nextjs';
+import * as Sentry from '@sentry/nextjs';
 import React from 'react';
 import { env, monitoringConfig, isProduction } from '@/lib/config/environment';
 import { logger } from './logger';
-
-// Mock Sentry for now until it's properly installed
-const Sentry = {
-  init: () => {},
-  withScope: (callback: any) => callback({ setUser: () => {}, setTag: () => {}, setContext: () => {}, setLevel: () => {} }),
-  captureException: () => {},
-  captureMessage: () => {},
-  addBreadcrumb: () => {},
-  setMeasurement: () => {},
-  startTransaction: () => ({ finish: () => {} }),
-  setUser: () => {},
-  close: () => Promise.resolve(),
-  withErrorBoundary: (Component: any) => Component,
-  Integrations: {
-    Http: class { constructor() {} },
-    Express: class { constructor() {} },
-    Prisma: class { constructor() {} },
-  },
-};
 
 /**
  * Comprehensive Error Tracking and Monitoring
@@ -80,15 +61,15 @@ class ErrorTracker {
         tracesSampleRate: isProduction ? 0.1 : 1.0,
         profilesSampleRate: isProduction ? 0.1 : 1.0,
         
-        beforeSend(event, hint) {
+        beforeSend: (event: any, hint: any) => {
           // Filter out known non-critical errors
-          if (this.shouldIgnoreError(hint.originalException)) {
+          if (this.shouldIgnoreError(hint?.originalException)) {
             return null;
           }
 
           // Add custom context
           if (event.exception?.values?.[0]) {
-            event.exception.values[0].stacktrace?.frames?.forEach(frame => {
+            event.exception.values[0].stacktrace?.frames?.forEach((frame: any) => {
               // Remove sensitive information from stack traces
               if (frame.filename?.includes('node_modules')) {
                 frame.in_app = false;
@@ -99,7 +80,7 @@ class ErrorTracker {
           return event;
         },
 
-        beforeSendTransaction(event) {
+        beforeSendTransaction: (event: any) => {
           // Sample transactions based on environment
           if (!isProduction && Math.random() > 0.1) {
             return null;
@@ -108,9 +89,9 @@ class ErrorTracker {
         },
 
         integrations: [
-          new Sentry.Integrations.Http({ tracing: true }),
-          new Sentry.Integrations.Express({ app: undefined }),
-          new Sentry.Integrations.Prisma({ client: undefined }),
+          new Sentry.Integrations.Http(),
+          new Sentry.Integrations.Express(),
+          new Sentry.Integrations.Prisma(),
         ],
 
         // Performance monitoring
@@ -125,6 +106,9 @@ class ErrorTracker {
 
       this.initialized = true;
       console.log('✅ Sentry error tracking initialized');
+
+      // Flush any queued errors
+      this.flushErrorQueue();
     } catch (error) {
       console.error('❌ Failed to initialize Sentry:', error);
     }
@@ -273,7 +257,7 @@ class ErrorTracker {
     }
 
     // Set Sentry context
-    Sentry.withScope((scope) => {
+    Sentry.withScope((scope: any) => {
       if (context.userId) {
         scope.setUser({ id: context.userId });
       }
@@ -318,7 +302,7 @@ class ErrorTracker {
 
     if (!this.initialized) return;
 
-    Sentry.withScope((scope) => {
+    Sentry.withScope((scope: any) => {
       if (context.userId) {
         scope.setUser({ id: context.userId });
       }
@@ -487,7 +471,7 @@ export function withErrorBoundary<P extends object>(
 
   return Sentry.withErrorBoundary(Component, {
     fallback: fallback,
-    beforeCapture: (scope, error, errorInfo) => {
+    beforeCapture: (scope: any, _error: any, errorInfo: any) => {
       scope.setTag('errorBoundary', true);
       scope.setContext('errorInfo', errorInfo);
     },

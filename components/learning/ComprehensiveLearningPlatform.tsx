@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BookOpen, 
@@ -55,7 +55,7 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
   const { achievements, loading: achievementsLoading } = useAchievements();
   const { learningPaths, loading: pathsLoading } = useLearningPaths();
   const { projects, loading: projectsLoading } = useProjects();
-  const { stats: communityStats, loading: statsLoading } = useCommunityStats();
+  const { stats: communityStats, loading: _statsLoading } = useCommunityStats();
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'curriculum' | 'projects' | 'gamification' | 'code' | 'community' | 'ai-tutor'>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -181,11 +181,11 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
           {/* User Progress Summary */}
           <div className="p-4 border-t border-white/10 mt-auto">
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">Level {mockUserProgress.level}</div>
+              <div className="text-2xl font-bold text-white">Level {userProgress?.level || 1}</div>
               <div className="text-sm text-gray-400 mb-2">Blockchain Developer</div>
-              <Progress value={(mockUserProgress.xp / mockUserProgress.xpToNextLevel) * 100} className="h-2" />
+              <Progress value={userProgress?.xp && userProgress?.xpToNextLevel ? (userProgress.xp / userProgress.xpToNextLevel) * 100 : 0} className="h-2" />
               <div className="text-xs text-gray-400 mt-1">
-                {mockUserProgress.xp} / {mockUserProgress.xpToNextLevel} XP
+                {userProgress?.xp || 0} / {userProgress?.xpToNextLevel || 100} XP
               </div>
             </div>
           </div>
@@ -216,7 +216,7 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
               <div className="flex items-center space-x-4">
                 <div className="text-right">
                   <div className="text-sm text-gray-400">Current Streak</div>
-                  <div className="text-lg font-bold text-orange-400">{mockUserProgress.streak} days</div>
+                  <div className="text-lg font-bold text-orange-400">{userProgress?.streak || 0} days</div>
                 </div>
 
                 <Button
@@ -295,7 +295,7 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                       <Card className="p-6 bg-white/10 backdrop-blur-md border border-white/20">
                         <h3 className="text-xl font-semibold text-white mb-4">Recent Achievements</h3>
                         <div className="space-y-3">
-                          {achievements.filter(a => a.unlocked).slice(0, 2).map((achievement) => (
+                          {(achievements || []).filter(a => a?.unlocked).slice(0, 2).map((achievement) => (
                             <div key={achievement.id} className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                               <div className="text-yellow-400">
                                 <Trophy className="w-6 h-6" />
@@ -306,7 +306,7 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                               </div>
                             </div>
                           ))}
-                          {achievements.filter(a => a.unlocked).length === 0 && (
+                          {(achievements || []).filter(a => a?.unlocked).length === 0 && (
                             <div className="text-center py-4 text-gray-400">
                               No achievements unlocked yet. Keep learning to earn your first achievement!
                             </div>
@@ -326,8 +326,8 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                   exit={{ opacity: 0, y: -20 }}
                 >
                   <StructuredCurriculum
-                    learningPaths={learningPaths}
-                    currentPath={learningPaths[0]?.id || ""}
+                    learningPaths={learningPaths || []}
+                    currentPath={learningPaths?.[0]?.id || ""}
                   />
                 </motion.div>
               )}
@@ -340,8 +340,8 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                   exit={{ opacity: 0, y: -20 }}
                 >
                   <ProjectBasedLearning
-                    projects={projects}
-                    currentProject={projects[0]?.id || ""}
+                    projects={projects || []}
+                    currentProject={projects?.[0]?.id || ""}
                   />
                 </motion.div>
               )}
@@ -386,10 +386,10 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                         Community Hub
                       </h2>
                       <div className="flex items-center space-x-4 text-sm text-gray-400">
-                        <span>{communityStats.onlineUsers || 0} online</span>
-                        <span>{communityStats.studyGroups || 0} study groups</span>
-                        <span>{communityStats.mentorsAvailable || 0} mentors available</span>
-                        <span>{communityStats.activeCollaborations || 0} active sessions</span>
+                        <span>{communityStats?.onlineUsers || 0} online</span>
+                        <span>{communityStats?.studyGroups || 0} study groups</span>
+                        <span>{communityStats?.mentorsAvailable || 0} mentors available</span>
+                        <span>{communityStats?.activeCollaborations || 0} active sessions</span>
                       </div>
                     </div>
 

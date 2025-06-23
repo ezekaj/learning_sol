@@ -13,6 +13,11 @@ export * from './PageTransition';
 export * from './progress';
 export * from './toast';
 export * from './Tooltip';
+export * from './slider';
+export * from './checkbox';
+export * from './textarea';
+export * from './input';
+export * from './label';
 
 // Glassmorphism & Neumorphism components
 export * from './Glassmorphism';
@@ -33,6 +38,11 @@ export { default as OnboardingProvider } from './Onboarding';
 export { default as PageTransition } from './PageTransition';
 export { Progress } from './progress';
 export { default as Tooltip } from './Tooltip';
+export { Slider } from './slider';
+export { Checkbox } from './checkbox';
+export { Textarea } from './textarea';
+export { Input } from './input';
+export { Label } from './label';
 
 // Advanced Animation Components
 export * from './GSAPAnimations';
