@@ -30,9 +30,11 @@ export async function POST(request: NextRequest) {
     
     if (!validationResult.success) {
       logger.warn('Contact form validation failed', {
-        message: 'Validation failed',
-        details: validationResult.error.errors,
-        body: sanitize.text(body),
+        metadata: {
+          message: 'Validation failed',
+          details: validationResult.error.errors,
+          body: sanitize.text(body)
+        },
       });
       
       return NextResponse.json(
@@ -70,11 +72,13 @@ export async function POST(request: NextRequest) {
 
     // Log successful submission
     logger.info('Contact form submitted successfully', {
-      metadata: { submissionId },
-      email: sanitizedData.email,
-      subject: sanitizedData.subject,
-      source: sanitizedData.source,
-      processingTime: Date.now() - startTime,
+      metadata: {
+        submissionId,
+        email: sanitizedData.email,
+        subject: sanitizedData.subject,
+        source: sanitizedData.source,
+        processingTime: Date.now() - startTime
+      },
     });
 
     // Track analytics
