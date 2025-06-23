@@ -248,7 +248,7 @@ export const RealTimeCodeEditor: React.FC<RealTimeCodeEditorProps> = ({
             <Users className="w-4 h-4 text-gray-400" />
             <span className="text-sm text-gray-400">{participants.length}</span>
             <div className="flex -space-x-2">
-              {participants.slice(0, 3).map((participant, index) => (
+              {participants.slice(0, 3).map((participant) => (
                 <div
                   key={participant.id}
                   className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-semibold border-2 border-slate-800"
@@ -342,6 +342,64 @@ export const RealTimeCodeEditor: React.FC<RealTimeCodeEditorProps> = ({
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Status Panel */}
+        <div className="w-80 bg-slate-800 border-l border-slate-700 flex flex-col">
+          <Card className="m-2 bg-slate-700 border-slate-600">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-white flex items-center space-x-2">
+                <Eye className="w-4 h-4" />
+                <span>Session Status</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400">Participants:</span>
+                <Badge variant="secondary">{participants.length}</Badge>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400">Code Lines:</span>
+                <span className="text-white">{code.split('\n').length}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400">Language:</span>
+                <Badge variant="outline">{language}</Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="m-2 bg-slate-700 border-slate-600">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-white flex items-center space-x-2">
+                <Code className="w-4 h-4" />
+                <span>Quick Actions</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => onSave?.(code)}
+              >
+                <Save className="w-3 h-3 mr-2" />
+                Save Code
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => {
+                  // Settings functionality
+                  console.log('Open settings');
+                }}
+              >
+                <Settings className="w-3 h-3 mr-2" />
+                Settings
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Chat Panel */}

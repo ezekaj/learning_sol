@@ -487,7 +487,7 @@ export const AdvancedUserPresence: React.FC<AdvancedUserPresenceProps> = ({
                         onClick={(e) => {
                           e.stopPropagation();
                           // Toggle edit status functionality
-                          updateUserStatus(activity.status === 'busy' ? 'online' : 'busy');
+                          updateUserStatus(activity.status === 'away' ? 'online' : 'away');
                         }}
                         className="p-1 hover:bg-slate-600 rounded"
                         title="Edit status"

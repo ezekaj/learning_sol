@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useSocket, useCollaborationSessions } from '@/lib/socket/client';
 import { useAuth } from '@/components/auth/EnhancedAuthProvider';
@@ -20,7 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CollaborativeEditor } from './CollaborativeEditor';
+// import { CollaborativeEditor } from './CollaborativeEditor'; // TODO: Implement when component is ready
 import { useToast } from '@/components/ui/use-toast';
 import RealTimeCodeEditor from './RealTimeCodeEditor';
 import UserPresenceIndicator from './UserPresenceIndicator';
@@ -427,12 +427,14 @@ function RealTimeCollaborationHub() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <CollaborativeEditor
-                sessionId={session.id}
-                participants={participants}
-                onUserInteraction={handleUserInteraction}
-                onPresenceUpdate={handlePresenceUpdate}
-              />
+              <div className="p-4 bg-slate-800 rounded-lg">
+                <p className="text-gray-400 text-center">
+                  Collaborative Editor will be implemented here
+                </p>
+                <p className="text-sm text-gray-500 text-center mt-2">
+                  Session: {session?.id || 'No session'} | Participants: {participants.length}
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>

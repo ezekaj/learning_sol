@@ -424,7 +424,7 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
             <Users className="w-4 h-4 text-gray-400" />
             <span className="text-sm text-gray-400">{participants.length}</span>
             <div className="flex -space-x-2">
-              {participants.slice(0, 3).map((participant, index) => (
+              {participants.slice(0, 3).map((participant) => (
                 <div
                   key={participant.id}
                   className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-semibold border-2 border-slate-800"
@@ -451,13 +451,35 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
           <Button size="sm" variant="outline" onClick={downloadCode}>
             <Download className="w-4 h-4" />
           </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
+          <Button
+            size="sm"
+            variant="outline"
             onClick={() => setIsFullscreen(!isFullscreen)}
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              // Settings functionality
+              console.log('Open editor settings');
+            }}
+            title="Editor Settings"
+          >
+            <Settings className="w-4 h-4" />
+          </Button>
+          {lastSaved && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-green-400 border-green-400"
+              disabled
+              title="Code saved successfully"
+            >
+              <CheckCircle className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </div>
 
@@ -520,7 +542,7 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
             glyphMargin: true,
             renderWhitespace: 'selection',
             cursorBlinking: 'smooth',
-            cursorSmoothCaretAnimation: true,
+            cursorSmoothCaretAnimation: 'on',
           }}
         />
         
