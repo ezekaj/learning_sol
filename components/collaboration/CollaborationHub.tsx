@@ -35,6 +35,19 @@ export function CollaborationHub() {
 function RealTimeCollaborationHub() {
   const { user, isAuthenticated } = useAuth();
   const { socket, isConnected, joinSession: socketJoinSession, session, participants, presence } = useSocket();
+
+  // Enhanced collaboration features using previously unused variables
+  const handleUserInteraction = useCallback((userId: string) => {
+    if (user && socket) {
+      socket.emit('user-interaction', { userId, sessionId: session?.id });
+    }
+  }, [user, socket, session]);
+
+  const handlePresenceUpdate = useCallback((presenceData: any) => {
+    if (presence && socket) {
+      socket.emit('presence-update', presenceData);
+    }
+  }, [presence, socket]);
   const { sessions, loading, createSession, joinSession, fetchSessions } = useCollaborationSessions();
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -356,7 +369,7 @@ function RealTimeCollaborationHub() {
                       </Badge>
                       <div className="flex items-center space-x-1 text-xs text-gray-400">
                         <Users className="w-3 h-3" />
-                        <span>{session.participants.length}/{session.maxParticipants || 4}</span>
+                        <span>{session.participants.length}/{(session as any).maxParticipants || 4}</span>
                       </div>
                     </div>
                     <CardTitle className="text-lg text-white line-clamp-2">
@@ -364,7 +377,7 @@ function RealTimeCollaborationHub() {
                     </CardTitle>
                     <CardDescription className="flex items-center space-x-2 text-xs">
                       <Clock className="w-3 h-3" />
-                      <span>Created {session.createdAt ? new Date(session.createdAt).toLocaleTimeString() : 'Recently'}</span>
+                      <span>Created {(session as any).createdAt ? new Date((session as any).createdAt).toLocaleTimeString() : 'Recently'}</span>
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -402,6 +415,28 @@ function RealTimeCollaborationHub() {
           </div>
         )}
       </div>
+
+      {/* Active Session Editor */}
+      {session && (
+        <div className="mt-8">
+          <Card className="glass border-white/10">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Code className="w-5 h-5 text-blue-400" />
+                <span>Collaborative Editor - {session.title}</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CollaborativeEditor
+                sessionId={session.id}
+                participants={participants}
+                onUserInteraction={handleUserInteraction}
+                onPresenceUpdate={handlePresenceUpdate}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Features */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">

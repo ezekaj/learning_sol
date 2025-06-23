@@ -89,9 +89,8 @@ class ErrorTracker {
         },
 
         integrations: [
-          new Sentry.Integrations.Http(),
-          new Sentry.Integrations.Express(),
-          new Sentry.Integrations.Prisma(),
+          // Note: Sentry v8 integrations are auto-enabled
+          // Custom integrations can be added here if needed
         ],
 
         // Performance monitoring
@@ -377,9 +376,12 @@ class ErrorTracker {
   startTransaction(name: string, operation: string): any {
     if (!this.initialized) return null;
 
-    return Sentry.startTransaction({
+    // Sentry v8 uses startSpan instead of startTransaction
+    return Sentry.startSpan({
       name,
       op: operation,
+    }, (span) => {
+      return span;
     });
   }
 
@@ -470,7 +472,8 @@ export function withErrorBoundary<P extends object>(
   }
 
   return Sentry.withErrorBoundary(Component, {
-    fallback: fallback,
+    fallback: fallback ? ({ error, resetError }: any) =>
+      React.createElement(fallback, { error: error as Error, resetError }) : undefined,
     beforeCapture: (scope: any, _error: any, errorInfo: any) => {
       scope.setTag('errorBoundary', true);
       scope.setContext('errorInfo', errorInfo);

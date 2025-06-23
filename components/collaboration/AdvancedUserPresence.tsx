@@ -153,20 +153,28 @@ export const AdvancedUserPresence: React.FC<AdvancedUserPresenceProps> = ({
       const userPresence = presence.find(p => p.userId === participant.id);
       const typingUser = typingUsers.find(t => t.userId === participant.id);
       
-      // Simulate activity data
+      // Enhanced activity data with real-time tracking
       const activities = ['coding', 'chatting', 'viewing', 'idle', 'debugging'] as const;
       const devices = ['desktop', 'mobile', 'tablet'] as const;
       const statuses = ['online', 'away', 'busy'] as const;
+
+      // Use activities array for intelligent activity detection
+      const getSmartActivity = () => {
+        if (typingUser?.isTyping) {
+          return typingUser.typingLocation === 'code' ? activities[0] : activities[1]; // coding or chatting
+        } else if (userPresence?.cursor) {
+          return activities[0]; // coding
+        } else if (userPresence?.lastSeen &&
+                   new Date().getTime() - userPresence.lastSeen.getTime() < 30000) {
+          return activities[2]; // viewing
+        } else if (userPresence?.lastSeen &&
+                   new Date().getTime() - userPresence.lastSeen.getTime() < 300000) {
+          return activities[4]; // debugging (recently active)
+        }
+        return activities[3]; // idle
+      };
       
-      let currentActivity: UserActivity['currentActivity'] = 'idle';
-      if (typingUser?.isTyping) {
-        currentActivity = typingUser.typingLocation === 'code' ? 'coding' : 'chatting';
-      } else if (userPresence?.cursor) {
-        currentActivity = 'coding';
-      } else if (userPresence?.lastSeen && 
-                 new Date().getTime() - userPresence.lastSeen.getTime() < 30000) {
-        currentActivity = 'viewing';
-      }
+      const currentActivity = getSmartActivity();
 
       return {
         userId: participant.id,
@@ -400,20 +408,30 @@ export const AdvancedUserPresence: React.FC<AdvancedUserPresenceProps> = ({
                     </span>
                     {getDeviceIcon(activity.device)}
                     {activity.location && (
-                      <span className="text-xs text-gray-500">
-                        {activity.location.city}
-                      </span>
+                      <div className="flex items-center space-x-1">
+                        <MapPin className="w-3 h-3 text-gray-500" />
+                        <span className="text-xs text-gray-500">
+                          {activity.location.city}
+                        </span>
+                      </div>
                     )}
                   </div>
                   
                   <div className="flex items-center space-x-2 text-xs text-gray-400">
                     {getActivityIcon(activity.currentActivity)}
                     <span>
-                      {activity.isTyping 
+                      {activity.isTyping
                         ? `Typing in ${activity.typingLocation}...`
                         : activity.currentActivity
                       }
                     </span>
+                    {activity.cursorPosition && (
+                      <>
+                        <span>•</span>
+                        <MousePointer className="w-3 h-3" />
+                        <span>Line {activity.cursorPosition.line}</span>
+                      </>
+                    )}
                     <span>•</span>
                     <Clock className="w-3 h-3" />
                     <span>{formatDuration(activity.sessionDuration)}</span>
@@ -456,13 +474,26 @@ export const AdvancedUserPresence: React.FC<AdvancedUserPresenceProps> = ({
                 {showDetails && (
                   <div className="flex items-center space-x-1">
                     {activity.isScreenSharing && (
-                      <Monitor className="w-3 h-3 text-blue-400" title="Screen sharing" />
+                      <Monitor className="w-3 h-3 text-blue-400" />
                     )}
                     {activity.isAudioEnabled && (
                       <div className="w-3 h-3 bg-green-400 rounded-full" title="Audio enabled" />
                     )}
                     {activity.isVideoEnabled && (
                       <div className="w-3 h-3 bg-blue-400 rounded-full" title="Video enabled" />
+                    )}
+                    {activity.userId === user?.id && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Toggle edit status functionality
+                          updateUserStatus(activity.status === 'busy' ? 'online' : 'busy');
+                        }}
+                        className="p-1 hover:bg-slate-600 rounded"
+                        title="Edit status"
+                      >
+                        <Edit className="w-3 h-3 text-gray-400 hover:text-white" />
+                      </button>
                     )}
                   </div>
                 )}
