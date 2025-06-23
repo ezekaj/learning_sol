@@ -90,7 +90,7 @@ export const LiveChatSystem: React.FC<LiveChatSystemProps> = ({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Transform socket messages to chat messages
   useEffect(() => {
@@ -158,9 +158,40 @@ export const LiveChatSystem: React.FC<LiveChatSystemProps> = ({
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      if (editingMessage) {
+        handleEditMessage();
+      } else {
+        handleSendMessage();
+      }
+    }
+    if (e.key === 'Escape' && editingMessage) {
+      setEditingMessage(null);
+      setNewMessage('');
     }
   };
+
+  const handleEditMessage = useCallback(() => {
+    if (!editingMessage || !newMessage.trim()) return;
+
+    // In a real app, this would make an API call to update the message
+    setMessages(prev => prev.map(msg =>
+      msg.id === editingMessage
+        ? { ...msg, content: newMessage, isEdited: true }
+        : msg
+    ));
+
+    setEditingMessage(null);
+    setNewMessage('');
+
+    // Emit socket event for real-time updates
+    if (socket) {
+      socket.emit('message-edited', {
+        messageId: editingMessage,
+        content: newMessage,
+        sessionId
+      });
+    }
+  }, [editingMessage, newMessage, socket, sessionId]);
 
   const handleReaction = async (messageId: string, emoji: string) => {
     if (!user) return;
@@ -293,6 +324,17 @@ export const LiveChatSystem: React.FC<LiveChatSystemProps> = ({
               >
                 <Filter className="w-4 h-4" />
               </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                title="Show participants"
+                onClick={() => {
+                  // Toggle participants panel functionality
+                  console.log('Show participants panel');
+                }}
+              >
+                <Users className="w-4 h-4" />
+              </Button>
               <Button size="sm" variant="outline">
                 <Settings className="w-4 h-4" />
               </Button>
@@ -405,7 +447,12 @@ export const LiveChatSystem: React.FC<LiveChatSystemProps> = ({
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => setEditingMessage(message.id)}
+                            onClick={() => {
+                              setEditingMessage(message.id);
+                              setNewMessage(message.content);
+                              inputRef.current?.focus();
+                            }}
+                            title="Edit message"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -424,6 +471,17 @@ export const LiveChatSystem: React.FC<LiveChatSystemProps> = ({
                         onClick={() => handlePinMessage(message.id)}
                       >
                         <Pin className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          // More options menu functionality
+                          console.log('More options for message:', message.id);
+                        }}
+                        title="More options"
+                      >
+                        <MoreVertical className="w-4 h-4" />
                       </Button>
                     </div>
 
@@ -448,6 +506,29 @@ export const LiveChatSystem: React.FC<LiveChatSystemProps> = ({
                               {emoji}
                             </button>
                           ))}
+                          {/* Quick reaction buttons using unused icons */}
+                          <div className="border-l border-slate-600 pl-2 ml-2 flex space-x-1">
+                            <button
+                              onClick={() => {
+                                handleReaction(message.id, '❤️');
+                                setShowEmojiPicker(null);
+                              }}
+                              className="hover:bg-slate-600 p-1 rounded"
+                              title="Love it"
+                            >
+                              <Heart className="w-4 h-4 text-red-400" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                handleReaction(message.id, '👍');
+                                setShowEmojiPicker(null);
+                              }}
+                              className="hover:bg-slate-600 p-1 rounded"
+                              title="Thumbs up"
+                            >
+                              <ThumbsUp className="w-4 h-4 text-green-400" />
+                            </button>
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -513,7 +594,7 @@ export const LiveChatSystem: React.FC<LiveChatSystemProps> = ({
               value={newMessage}
               onChange={(e) => handleInputChange(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Type a message..."
+              placeholder={editingMessage ? "Edit message..." : "Type a message..."}
               className="bg-slate-700 border-slate-600 text-white pr-20"
               disabled={!isConnected}
             />

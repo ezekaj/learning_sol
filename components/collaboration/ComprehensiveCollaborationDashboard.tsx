@@ -384,6 +384,38 @@ export const ComprehensiveCollaborationDashboard: React.FC<ComprehensiveCollabor
           </div>
 
           {/* Session controls */}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setSelectedUser(selectedUser ? null : participants[0]?.id || null)}
+            title="Manage participants"
+          >
+            <Users className="w-4 h-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              // File upload functionality
+              const input = document.createElement('input');
+              input.type = 'file';
+              input.accept = '.sol,.js,.ts,.json';
+              input.onchange = (e) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (file) {
+                  toast({
+                    title: 'File Upload',
+                    description: `Uploading ${file.name}...`,
+                  });
+                  // In real app, would upload file and share with participants
+                }
+              };
+              input.click();
+            }}
+            title="Upload file"
+          >
+            <Upload className="w-4 h-4" />
+          </Button>
           <Button size="sm" variant="outline" onClick={exportSession}>
             <Download className="w-4 h-4" />
           </Button>
@@ -422,45 +454,69 @@ export const ComprehensiveCollaborationDashboard: React.FC<ComprehensiveCollabor
               </Button>
             </div>
             
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm text-gray-400">Session ID</label>
-                <div className="text-white font-mono text-sm bg-slate-700 p-2 rounded">
-                  {sessionId}
-                </div>
-              </div>
-              
-              <div>
-                <label className="text-sm text-gray-400">Participants ({participants.length})</label>
-                <div className="space-y-2 mt-2">
-                  {participants.map(participant => (
-                    <div key={participant.id} className="flex items-center space-x-2 text-sm text-white">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-xs">
-                        {participant.name?.charAt(0) || 'A'}
-                      </div>
-                      <span>{participant.name}</span>
-                      {participant.id === user?.id && <span className="text-gray-400">(You)</span>}
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="session">Session</TabsTrigger>
+                <TabsTrigger value="participants">Participants</TabsTrigger>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
+              </TabsList>
 
-              <div className="pt-4 border-t border-slate-700">
-                <Button 
-                  variant="destructive" 
-                  className="w-full"
-                  onClick={() => {
-                    leaveSession();
-                    toast({
-                      title: 'Left Session',
-                      description: 'You have left the collaboration session.',
-                    });
-                  }}
-                >
-                  Leave Session
-                </Button>
-              </div>
-            </div>
+              <TabsContent value="session" className="space-y-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div>
+                      <label className="text-sm text-gray-400">Session ID</label>
+                      <div className="text-white font-mono text-sm bg-slate-700 p-2 rounded">
+                        {sessionId}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="participants" className="space-y-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div>
+                      <label className="text-sm text-gray-400">Participants ({participants.length})</label>
+                      <div className="space-y-2 mt-2">
+                        {participants.map(participant => (
+                          <div key={participant.id} className="flex items-center space-x-2 text-sm text-white">
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-xs">
+                              {participant.name?.charAt(0) || 'A'}
+                            </div>
+                            <span>{participant.name}</span>
+                            {participant.id === user?.id && <span className="text-gray-400">(You)</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="settings" className="space-y-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="pt-4 border-t border-slate-700">
+                      <Button
+                        variant="destructive"
+                        className="w-full"
+                        onClick={() => {
+                          leaveSession();
+                          toast({
+                            title: 'Left Session',
+                            description: 'You have left the collaboration session.',
+                          });
+                        }}
+                      >
+                        Leave Session
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </motion.div>
         )}
       </AnimatePresence>

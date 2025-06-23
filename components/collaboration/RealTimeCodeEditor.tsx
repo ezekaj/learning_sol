@@ -72,7 +72,7 @@ export const RealTimeCodeEditor: React.FC<RealTimeCodeEditorProps> = ({
   
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Handle code changes with real-time sync
   const handleCodeChange = useCallback((newCode: string) => {
