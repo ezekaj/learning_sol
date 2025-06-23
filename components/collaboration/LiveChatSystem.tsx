@@ -83,6 +83,23 @@ export const LiveChatSystem: React.FC<LiveChatSystemProps> = ({
   const [newMessage, setNewMessage] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [editingMessage, setEditingMessage] = useState<string | null>(null);
+
+  // Enhanced message interaction features using unused icons
+  const handleMessageReaction = useCallback((messageId: string, reaction: 'heart' | 'thumbsUp') => {
+    console.log(`Adding ${reaction} reaction to message ${messageId}`);
+    // Could integrate with real-time reaction system
+  }, []);
+
+  const handleMessageOptions = useCallback((messageId: string) => {
+    console.log(`Opening options for message ${messageId}`);
+    setEditingMessage(messageId);
+  }, []);
+
+  // User management features
+  const handleUserMention = useCallback((userId: string) => {
+    console.log(`Mentioning user ${userId}`);
+    // Could integrate with user mention system
+  }, []);
   const [searchQuery, setSearchQuery] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
