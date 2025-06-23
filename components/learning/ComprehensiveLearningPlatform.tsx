@@ -330,6 +330,7 @@ export const ComprehensiveLearningPlatform: React.FC<LearningPlatformProps> = ({
                               <div className="font-medium text-white">Smart Contract Security</div>
                               <div className="text-sm text-gray-400">Lesson 3 of 8</div>
                             </div>
+                            
                             <Button size="sm">
                               <Play className="w-4 h-4 mr-2" />
                               Continue

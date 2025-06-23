@@ -10,7 +10,7 @@ export function Footer() {
     { icon: Github, href: 'https://github.com/ezekaj/learning_sol', label: 'GitHub' },
     { icon: Twitter, href: '#', label: 'Twitter' },
     { icon: Linkedin, href: '#', label: 'LinkedIn' },
-    { icon: Mail, href: 'mailto:contact@example.com', label: 'Email' },
+    { icon: Mail, href: 'https://zedigital.tech/contact', label: 'Contact' },
   ];
 
   const footerLinks = [

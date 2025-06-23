@@ -7,6 +7,7 @@ import {
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { useAuth } from './EnhancedAuthProvider';
+import { signIn } from 'next-auth/react';
 
 interface EnhancedLoginModalProps {
   isOpen: boolean;
@@ -137,7 +138,12 @@ export const EnhancedLoginModal: React.FC<EnhancedLoginModalProps> = ({
   const handleProviderLogin = async (providerId: string) => {
     setIsLoading(providerId);
     try {
-      await login(providerId);
+      // Use NextAuth signIn directly for OAuth providers
+      if (providerId === 'github' || providerId === 'google') {
+        await signIn(providerId, { callbackUrl: redirectTo });
+      } else {
+        await login(providerId);
+      }
 
       // Save preferences and handle navigation
       saveUserPreferences(providerId);
