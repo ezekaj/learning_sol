@@ -106,8 +106,8 @@ const formatDuration = (minutes: number) => {
   return `${mins}m`;
 };
 
-// Utility function for formatting last seen time - used in activity display
-const formatLastSeen = (lastSeen: Date): string => {
+// Enhanced last seen formatting with activity context - directly implemented to avoid unused function error
+const getFormattedLastSeen = (lastSeen: Date): string => {
   const now = new Date();
   const diff = now.getTime() - lastSeen.getTime();
   const minutes = Math.floor(diff / 60000);
@@ -118,12 +118,6 @@ const formatLastSeen = (lastSeen: Date): string => {
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
   return `${days}d ago`;
-};
-
-// Enhanced last seen formatting with activity context - uses formatLastSeen internally
-const getFormattedLastSeen = (date: Date) => {
-  // Explicitly use formatLastSeen to prevent unused variable error
-  return formatLastSeen(date);
 };
 
 export const AdvancedUserPresence: React.FC<AdvancedUserPresenceProps> = ({
