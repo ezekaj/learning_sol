@@ -18,7 +18,7 @@ const contactFormSchema = z.object({
   source: z.string().optional(),
 });
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   
   try {
     // Parse request body

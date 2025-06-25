@@ -227,7 +227,7 @@ class ErrorTracker {
   /**
    * Check if error should be ignored
    */
-  private shouldIgnoreError(error: any): boolean {
+  private shouldIgnoreError(error: Error | unknown): boolean {
     if (!error) return true;
 
     const ignoredErrors = [
@@ -239,7 +239,7 @@ class ErrorTracker {
       'ChunkLoadError',
     ];
 
-    const errorMessage = error.message || error.toString();
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return ignoredErrors.some(ignored => errorMessage.includes(ignored));
   }
 

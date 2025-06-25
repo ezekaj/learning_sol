@@ -507,7 +507,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
     setTimeout(() => setShowToast(false), 3000);
   }, []);
 
-  const handleEditorDidMount = (editor: any, monaco: any) => {
+  const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor, monaco: typeof import('monaco-editor')) => {
     editorRef.current = editor;
 
     // Initialize error highlighting and syntax checking

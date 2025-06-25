@@ -52,29 +52,29 @@ export function useSolidityDebugger(options: UseDebuggerOptions = {}) {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
       try {
-        const debugger = new SolidityDebugger();
+        const solidityDebugger = new SolidityDebugger();
         
         // Set up event listeners
-        debugger.on('initialized', () => {
-          setState(prev => ({ 
-            ...prev, 
-            isInitialized: true, 
-            isLoading: false 
+        solidityDebugger.on('initialized', () => {
+          setState(prev => ({
+            ...prev,
+            isInitialized: true,
+            isLoading: false
           }));
           showSuccess('Debugger Ready', 'Solidity debugger initialized successfully');
         });
 
-        debugger.on('session-started', ({ sessionId }) => {
-          setState(prev => ({ 
-            ...prev, 
-            activeSessionId: sessionId 
+        solidityDebugger.on('session-started', ({ sessionId }) => {
+          setState(prev => ({
+            ...prev,
+            activeSessionId: sessionId
           }));
           showInfo('Debug Session Started', `Session ${sessionId} is now active`);
         });
 
-        debugger.on('session-stopped', ({ sessionId }) => {
-          setState(prev => ({ 
-            ...prev, 
+        solidityDebugger.on('session-stopped', ({ sessionId }) => {
+          setState(prev => ({
+            ...prev,
             activeSessionId: prev.activeSessionId === sessionId ? null : prev.activeSessionId,
             executionState: null,
             breakpoints: []
@@ -82,21 +82,21 @@ export function useSolidityDebugger(options: UseDebuggerOptions = {}) {
           showInfo('Debug Session Stopped', `Session ${sessionId} has been terminated`);
         });
 
-        debugger.on('breakpoint-set', ({ breakpoint }) => {
+        solidityDebugger.on('breakpoint-set', ({ breakpoint }) => {
           setState(prev => ({
             ...prev,
             breakpoints: [...prev.breakpoints.filter(bp => bp.line !== breakpoint.line), breakpoint]
           }));
         });
 
-        debugger.on('breakpoint-removed', ({ breakpoint }) => {
+        solidityDebugger.on('breakpoint-removed', ({ breakpoint }) => {
           setState(prev => ({
             ...prev,
             breakpoints: prev.breakpoints.filter(bp => bp.id !== breakpoint.id)
           }));
         });
 
-        debugger.on('step-completed', ({ result }) => {
+        solidityDebugger.on('step-completed', ({ result }) => {
           setState(prev => ({
             ...prev,
             executionState: result.newState
@@ -104,27 +104,27 @@ export function useSolidityDebugger(options: UseDebuggerOptions = {}) {
           onExecutionComplete?.(result);
         });
 
-        debugger.on('execution-paused', () => {
+        solidityDebugger.on('execution-paused', () => {
           showWarning('Execution Paused', 'Debug execution has been paused');
         });
 
-        debugger.on('execution-continued', () => {
+        solidityDebugger.on('execution-continued', () => {
           showInfo('Execution Continued', 'Debug execution is continuing');
         });
 
-        debugger.on('error', ({ message, error }) => {
+        solidityDebugger.on('error', ({ message, error }) => {
           const errorMessage = `${message}: ${error?.message || 'Unknown error'}`;
-          setState(prev => ({ 
-            ...prev, 
-            error: errorMessage, 
-            isLoading: false 
+          setState(prev => ({
+            ...prev,
+            error: errorMessage,
+            isLoading: false
           }));
           showError('Debugger Error', errorMessage);
           onError?.(errorMessage);
         });
 
-        debuggerRef.current = debugger;
-        await debugger.initialize();
+        debuggerRef.current = solidityDebugger;
+        await solidityDebugger.initialize();
         
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Failed to initialize debugger';

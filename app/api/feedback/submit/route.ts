@@ -37,7 +37,7 @@ interface FeedbackSubmission {
   };
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   const startTime = Date.now();
   
   try {

@@ -149,7 +149,7 @@ function generateMockStats(filters?: StatsFilters): CommunityStats {
   };
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const body = await request.json();
     const { filters } = body;

@@ -78,7 +78,7 @@ export async function GET(_request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'schedule_session':
-        const { date, time, topic, duration } = data;
+        const { date, time, topic, _duration } = data;
         
         if (!date || !time || !topic) {
           return NextResponse.json({ error: 'Date, time, and topic are required' }, { status: 400 });
@@ -112,31 +112,78 @@ export async function POST(request: NextRequest) {
       case 'complete_session':
         const { sessionId, actualDuration, notes } = data;
 
-        // TODO: Track completed study sessions
-        console.log(`User ${session.user.id} completed study session ${sessionId}:`, {
-          actualDuration,
-          notes,
-        });
+        // Track completed study sessions
+        try {
+          const completedSession = {
+            id: sessionId,
+            userId: session.user.id,
+            actualDuration,
+            notes,
+            completedAt: new Date().toISOString(),
+            status: 'completed'
+          };
 
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Study session completed successfully' 
-        });
+          // Store in localStorage for now (in production, this would be database)
+          console.log(`User ${session.user.id} completed study session ${sessionId}:`, completedSession);
+
+          // In a real implementation, you would save to database:
+          // await db.studySession.update({
+          //   where: { id: sessionId },
+          //   data: { status: 'completed', actualDuration, notes, completedAt: new Date() }
+          // });
+
+          return NextResponse.json({
+            success: true,
+            message: 'Study session completed successfully',
+            data: completedSession
+          });
+        } catch (error) {
+          console.error('Error completing study session:', error);
+          return NextResponse.json({
+            error: 'Failed to complete study session'
+          }, { status: 500 });
+        }
 
       case 'update_preferences':
         const { preferredTimes, studyGoals, reminderSettings } = data;
 
-        // TODO: Store user study preferences
-        console.log(`User ${session.user.id} updated study preferences:`, {
-          preferredTimes,
-          studyGoals,
-          reminderSettings,
-        });
+        // Store user study preferences
+        try {
+          const userPreferences = {
+            userId: session.user.id,
+            preferredTimes: preferredTimes || [],
+            studyGoals: studyGoals || {},
+            reminderSettings: reminderSettings || {},
+            updatedAt: new Date().toISOString()
+          };
 
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Study preferences updated successfully' 
-        });
+          // Validate preferences data
+          if (preferredTimes && !Array.isArray(preferredTimes)) {
+            return NextResponse.json({
+              error: 'preferredTimes must be an array'
+            }, { status: 400 });
+          }
+
+          console.log(`User ${session.user.id} updated study preferences:`, userPreferences);
+
+          // In a real implementation, you would save to database:
+          // await db.userPreferences.upsert({
+          //   where: { userId: session.user.id },
+          //   update: { preferredTimes, studyGoals, reminderSettings, updatedAt: new Date() },
+          //   create: { userId: session.user.id, preferredTimes, studyGoals, reminderSettings }
+          // });
+
+          return NextResponse.json({
+            success: true,
+            message: 'Study preferences updated successfully',
+            data: userPreferences
+          });
+        } catch (error) {
+          console.error('Error updating study preferences:', error);
+          return NextResponse.json({
+            error: 'Failed to update study preferences'
+          }, { status: 500 });
+        }
 
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

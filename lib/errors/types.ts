@@ -127,7 +127,7 @@ export class ErrorFactory {
     message: string;
     field?: string;
     validationRule?: string;
-    currentValue?: any;
+    currentValue?: unknown;
     expectedFormat?: string;
     userMessage?: string;
   }): FormError {

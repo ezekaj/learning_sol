@@ -95,7 +95,7 @@ const mockMilestones: CommunityMilestone[] = [
   }
 ];
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '5');

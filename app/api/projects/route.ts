@@ -208,7 +208,7 @@ contract MyNFTCollection is ERC721, ERC721Enumerable, Ownable {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     

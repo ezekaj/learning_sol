@@ -327,20 +327,22 @@ export function useError() {
 export function useAsyncError() {
   const { reportError, showApiError } = useError();
 
-  const handleAsyncError = useCallback(async <T>(
+  const handleAsyncError = useCallback(<T>(
     asyncFn: () => Promise<T>,
     errorContext?: Partial<AppError>
   ): Promise<T | null> => {
-    try {
-      return await asyncFn();
-    } catch (error) {
-      if (error instanceof Error) {
-        reportError(error, errorContext);
-      } else {
-        showApiError('An unexpected error occurred', errorContext);
+    return (async () => {
+      try {
+        return await asyncFn();
+      } catch (error) {
+        if (error instanceof Error) {
+          reportError(error, errorContext);
+        } else {
+          showApiError('An unexpected error occurred', errorContext);
+        }
+        return null;
       }
-      return null;
-    }
+    })();
   }, [reportError, showApiError]);
 
   return { handleAsyncError };

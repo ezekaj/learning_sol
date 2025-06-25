@@ -194,7 +194,7 @@ function sortUsers(users: LeaderboardUser[], category: string, timeframe: string
   return sorted;
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const body = await request.json();
     const { category, filters, page = 1, limit = 50 } = body;
