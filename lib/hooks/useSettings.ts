@@ -14,7 +14,7 @@ import {
 } from '@/types/settings';
 import { SettingsService } from '@/lib/services/SettingsService';
 import { useNotifications } from '@/components/ui/NotificationSystem';
-import { useError } from '@/contexts/ErrorContext';
+import { useError } from '@/lib/errors/ErrorContext';
 
 export interface UseSettingsOptions {
   autoSave?: boolean;
