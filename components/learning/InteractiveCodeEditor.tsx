@@ -4,11 +4,35 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Play, Save, Download, Upload, Settings, CheckCircle, XCircle, AlertTriangle,
   Users, Share2, Bug, Code2, Zap, FileText, Copy, Eye, EyeOff, Maximize2,
-  Minimize2, RotateCcw, GitBranch, TestTube, Layers
+  Minimize2, RotateCcw, GitBranch, TestTube, Layers, Send, RotateCw,
+  ChevronUp, ChevronDown, Info, ZoomIn, ZoomOut, Contrast, Volume2,
+  Keyboard, HelpCircle
 } from 'lucide-react';
 import { Button } from '../ui/button';
+import { AsyncSaveButton, EnhancedButton, AsyncSubmitButton } from '../ui/EnhancedButton';
 import { Card } from '../ui/card';
 import CustomToast from '../ui/CustomToast';
+import { SaveStatusIndicator, FloatingSaveStatus } from '../ui/SaveStatusIndicator';
+import { useAutoSave } from '@/hooks/useAutoSave';
+import { useError } from '@/lib/errors/ErrorContext';
+import { useLearning } from '@/lib/context/LearningContext';
+import { cn } from '@/lib/utils';
+import { ErrorHighlightingManager, EditorError } from '@/lib/editor/ErrorHighlighting';
+import { RealTimeSyntaxChecker } from '@/lib/editor/RealTimeSyntaxChecker';
+import { useAutoGit } from '@/hooks/useGitIntegration';
+import { useLessonProgress } from '@/hooks/useLessonProgress';
+import { LessonProgressTracker } from './LessonProgressTracker';
+import { AdvancedEditorConfig } from '@/lib/editor/AdvancedEditorConfig';
+import { EditorAccessibilityManager } from '@/lib/accessibility/EditorAccessibility';
+import { commitManager } from '@/lib/git/CommitManager';
+import { performanceMonitor } from '@/lib/performance/PerformanceMonitor';
+import { CollaborativeEditor } from '@/lib/collaboration/CollaborativeEditor';
+import { useCollaboration } from '@/lib/context/CollaborationContext';
+import { UserPresencePanel } from '@/components/collaboration/UserPresencePanel';
+import { CollaborationChat } from '@/components/collaboration/CollaborationChat';
+import { ConnectionStatusIndicator } from '@/components/collaboration/ConnectionStatusIndicator';
+import { SessionRecovery } from '@/components/collaboration/SessionRecovery';
+import { FileSharing } from '@/components/collaboration/FileSharing';
 
 interface CompilationResult {
   success: boolean;
@@ -54,6 +78,8 @@ interface InteractiveCodeEditorProps {
   initialCode?: string;
   onCodeChange?: (code: string) => void;
   onCompile?: (result: CompilationResult) => void;
+  onSubmitSolution?: (code: string, result: CompilationResult) => Promise<void>;
+  onLessonComplete?: (lessonId: string, xpReward: number) => Promise<void>;
   readOnly?: boolean;
   theme?: 'light' | 'dark';
   showMinimap?: boolean;
@@ -62,7 +88,26 @@ interface InteractiveCodeEditorProps {
   enableDebugging?: boolean;
   enableTemplates?: boolean;
   enableTesting?: boolean;
+  enableSubmission?: boolean;
+  enableProgressTracking?: boolean;
+  enableAdvancedFeatures?: boolean;
+  enableAccessibility?: boolean;
+  enableCollaboration?: boolean;
+  collaborationSessionId?: string;
   collaborationUsers?: CollaborationUser[];
+  lessonId?: string;
+  sessionId?: string;
+  xpReward?: number;
+  lessonSteps?: Array<{
+    id: string;
+    title: string;
+    description: string;
+    xpReward: number;
+    estimatedTime: number;
+    difficulty: 'beginner' | 'intermediate' | 'advanced';
+  }>;
+  currentStepId?: string;
+  onStepComplete?: (stepId: string, xpEarned: number) => void;
   className?: string;
 }
 
@@ -244,6 +289,8 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
   initialCode = defaultSolidityCode,
   onCodeChange,
   onCompile,
+  onSubmitSolution,
+  onLessonComplete,
   readOnly = false,
   theme = 'dark',
   showMinimap = true,
@@ -252,7 +299,19 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
   enableDebugging = false,
   enableTemplates = true,
   enableTesting = false,
+  enableSubmission = true,
+  enableProgressTracking = true,
+  enableAdvancedFeatures = true,
+  enableAccessibility = true,
+  enableCollaboration = false,
+  collaborationSessionId,
   collaborationUsers = [],
+  lessonId,
+  sessionId = 'default-session',
+  xpReward = 50,
+  lessonSteps = [],
+  currentStepId,
+  onStepComplete,
   className = ''
 }) => {
   const [code, setCode] = useState(initialCode);
@@ -276,37 +335,170 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
   const [codeVersions, setCodeVersions] = useState<Array<{id: string, timestamp: Date, code: string, message: string}>>([]);
   const [showCodePreview, setShowCodePreview] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [syntaxErrors, setSyntaxErrors] = useState<EditorError[]>([]);
+  const [syntaxWarnings, setSyntaxWarnings] = useState<EditorError[]>([]);
+  const [realTimeErrors, setRealTimeErrors] = useState<{ errors: number; warnings: number; info: number }>({ errors: 0, warnings: 0, info: 0 });
+  const [showCollaborationPanel, setShowCollaborationPanel] = useState(false);
+  const [collaborativeEditor, setCollaborativeEditor] = useState<CollaborativeEditor | null>(null);
+  const [showSessionRecovery, setShowSessionRecovery] = useState(false);
 
   const editorRef = useRef<any>(null);
-  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const errorHighlightingRef = useRef<ErrorHighlightingManager | null>(null);
+  const syntaxCheckerRef = useRef<RealTimeSyntaxChecker | null>(null);
+  const advancedConfigRef = useRef<AdvancedEditorConfig | null>(null);
+  const accessibilityManagerRef = useRef<EditorAccessibilityManager | null>(null);
 
-  // Auto-save functionality
-  useEffect(() => {
-    if (enableAutoSave && autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
-    }
-    
-    if (enableAutoSave) {
-      autoSaveTimeoutRef.current = setTimeout(() => {
-        localStorage.setItem('solidity-editor-code', code);
+  // Collaboration context
+  const collaboration = enableCollaboration ? useCollaboration() : null;
+
+  // Enhanced auto-save with IndexedDB
+  const autoSave = useAutoSave({
+    sessionId: `${sessionId}_${lessonId || 'general'}`,
+    lessonId,
+    language: 'solidity',
+    enabled: enableAutoSave,
+    debounceMs: 2500,
+    onSaveStatusChange: (status) => {
+      if (status.status === 'saved') {
         showToastMessage('Code auto-saved', 'success');
-      }, 2000);
+      } else if (status.status === 'error') {
+        showToastMessage(`Auto-save failed: ${status.error}`, 'error');
+      }
     }
+  });
+
+  // Error handling and learning context
+  const { showApiError, showFormError } = useError();
+  const { completeLesson, addXP } = useLearning();
+
+  // Git integration for automatic commits
+  const git = useAutoGit({
+    autoCommitOnSave: true,
+    autoCommitOnLessonComplete: true,
+    autoPushOnCommit: false, // Manual push for safety
+    commitPrefix: 'Edit'
+  });
+
+  // Lesson progress tracking
+  const lessonProgress = useLessonProgress(lessonId || 'default-lesson');
+
+  // Track time spent in editor and monitor performance
+  useEffect(() => {
+    // Start performance monitoring
+    performanceMonitor.startMonitoring();
+
+    const interval = setInterval(() => {
+      lessonProgress.updateTimeSpent(1); // Update every second
+
+      // Monitor editor performance
+      const summary = performanceMonitor.getPerformanceSummary();
+      if (summary.currentFPS < 30) {
+        console.warn('Editor performance degraded:', summary);
+      }
+    }, 1000);
 
     return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
+      clearInterval(interval);
+      performanceMonitor.cleanup();
     };
-  }, [code, enableAutoSave]);
+  }, [lessonProgress]);
+
+  // Enhanced auto-save functionality with IndexedDB
+  useEffect(() => {
+    if (code !== initialCode) {
+      autoSave.saveCode(code);
+    }
+  }, [code, autoSave, initialCode]);
 
   // Load saved code on mount
   useEffect(() => {
-    const savedCode = localStorage.getItem('solidity-editor-code');
-    if (savedCode && savedCode !== initialCode) {
-      setCode(savedCode);
+    const loadSavedCode = async () => {
+      const savedCode = await autoSave.loadCode();
+      if (savedCode && savedCode !== initialCode) {
+        setCode(savedCode);
+      }
+    };
+    loadSavedCode();
+  }, [autoSave, initialCode]);
+
+  // Initialize collaboration if enabled
+  useEffect(() => {
+    if (enableCollaboration && collaborationSessionId && editorRef.current && collaboration) {
+      const initializeCollaboration = async () => {
+        try {
+          // Start collaboration session
+          await collaboration.actions.startCollaboration(collaborationSessionId, lessonId);
+
+          // Initialize collaborative editor
+          const collaborativeEditorInstance = new CollaborativeEditor(
+            editorRef.current,
+            window.monaco,
+            {
+              wsUrl: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080',
+              userId: collaboration.state.currentUser?.id || 'anonymous',
+              sessionId: collaborationSessionId,
+              userName: collaboration.state.currentUser?.name || 'Anonymous',
+              userColor: collaboration.state.currentUser?.color || '#007bff',
+              enableCursorSync: true,
+              enableSelectionSync: true,
+              debounceMs: 300
+            }
+          );
+
+          await collaborativeEditorInstance.initialize();
+          setCollaborativeEditor(collaborativeEditorInstance);
+
+          // Setup event handlers
+          collaborativeEditorInstance.onUserJoin((user) => {
+            showToastMessage(`${user.name} joined the session`, 'success');
+          });
+
+          collaborativeEditorInstance.onUserLeave((userId) => {
+            showToastMessage('User left the session', 'warning');
+          });
+
+          collaborativeEditorInstance.onConnectionStatus((status) => {
+            if (status === 'disconnected' || status === 'error') {
+              setShowSessionRecovery(true);
+            }
+          });
+
+          collaborativeEditorInstance.onCompilation((result) => {
+            setCompilationResult(result);
+          });
+
+        } catch (error) {
+          console.error('Failed to initialize collaboration:', error);
+          showToastMessage('Failed to start collaboration session', 'error');
+        }
+      };
+
+      initializeCollaboration();
     }
-  }, [initialCode]);
+
+    return () => {
+      if (collaborativeEditor) {
+        collaborativeEditor.dispose();
+      }
+    };
+  }, [enableCollaboration, collaborationSessionId, collaboration, lessonId, collaborativeEditor]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (syntaxCheckerRef.current) {
+        syntaxCheckerRef.current.dispose();
+      }
+      if (errorHighlightingRef.current) {
+        errorHighlightingRef.current.clearErrors();
+      }
+      if (accessibilityManagerRef.current) {
+        accessibilityManagerRef.current.dispose();
+      }
+    };
+  }, []);
 
   const showToastMessage = useCallback((message: string, type: 'success' | 'error' | 'warning') => {
     setToastMessage(message);
@@ -317,9 +509,48 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
-    
-    // Configure Solidity language support
-    monaco.languages.register({ id: 'solidity' });
+
+    // Initialize error highlighting and syntax checking
+    errorHighlightingRef.current = new ErrorHighlightingManager(editor, monaco);
+    syntaxCheckerRef.current = new RealTimeSyntaxChecker((result) => {
+      const allErrors = [...result.errors, ...result.warnings, ...result.suggestions];
+      setSyntaxErrors(result.errors);
+      setSyntaxWarnings(result.warnings);
+
+      // Update error highlighting
+      if (errorHighlightingRef.current) {
+        errorHighlightingRef.current.updateErrorMarkers(allErrors);
+        setRealTimeErrors(errorHighlightingRef.current.getErrorCounts());
+      }
+    });
+
+    // Install error highlighting styles
+    ErrorHighlightingManager.installErrorStyles();
+
+    // Initialize advanced editor configuration
+    if (enableAdvancedFeatures) {
+      advancedConfigRef.current = new AdvancedEditorConfig(monaco, editor);
+      advancedConfigRef.current.configureSolidityLanguage();
+      advancedConfigRef.current.configureThemes();
+      advancedConfigRef.current.configureKeyboardShortcuts();
+      advancedConfigRef.current.configureResponsiveDesign();
+    }
+
+    // Initialize accessibility manager
+    if (enableAccessibility) {
+      accessibilityManagerRef.current = new EditorAccessibilityManager(editor, monaco, {
+        announceChanges: true,
+        keyboardNavigation: true,
+        screenReaderSupport: true,
+        fontSize: fontSize,
+        lineHeight: Math.round(fontSize * 1.4)
+      });
+    }
+
+    // Configure Solidity language support (fallback if advanced features disabled)
+    if (!enableAdvancedFeatures) {
+      monaco.languages.register({ id: 'solidity' });
+    }
     
     // Set up Solidity syntax highlighting
     monaco.languages.setMonarchTokensProvider('solidity', {
@@ -373,13 +604,26 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
 
   const handleCodeChange = (value: string | undefined) => {
     if (value !== undefined) {
+      // Measure code change performance
+      const endTiming = performanceMonitor.startTiming('code_change');
+
       setCode(value);
       onCodeChange?.(value);
+
+      // Trigger real-time syntax checking
+      if (syntaxCheckerRef.current) {
+        syntaxCheckerRef.current.checkSyntax(value, 800); // 800ms debounce
+      }
+
+      endTiming();
     }
   };
 
   const compileCode = async () => {
     setIsCompiling(true);
+
+    // Measure compilation performance
+    const endTiming = performanceMonitor.startTiming('code_compilation');
 
     try {
       // Use the actual Solidity compiler
@@ -392,8 +636,8 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
           success: true,
           errors: [],
           warnings: (result.warnings || []).map((warn: any) => ({
-            line: 1,
-            column: 1,
+            line: warn.line || 1,
+            column: warn.column || 1,
             message: typeof warn === 'string' ? warn : warn.message || 'Warning',
             severity: 'warning' as const
           })),
@@ -405,19 +649,43 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
 
         setCompilationResult(compilationResult);
         onCompile?.(compilationResult);
+
+        // Clear compilation errors from highlighting but keep syntax errors
+        if (errorHighlightingRef.current) {
+          const syntaxResult = syntaxCheckerRef.current?.checkSyntaxImmediate(code);
+          if (syntaxResult) {
+            const allErrors = [...syntaxResult.errors, ...syntaxResult.warnings, ...syntaxResult.suggestions];
+            errorHighlightingRef.current.updateErrorMarkers(allErrors);
+          }
+        }
+
+        // Check if current step should be completed on successful compilation
+        if (enableProgressTracking && lessonSteps.length > 0) {
+          const currentStep = lessonProgress.getCurrentStep(lessonSteps);
+          if (currentStep && !lessonProgress.isStepCompleted(currentStep.id)) {
+            // Auto-complete step if it's a compilation step
+            if (currentStep.title.toLowerCase().includes('compile') ||
+                currentStep.description.toLowerCase().includes('compile')) {
+              await lessonProgress.completeStep(currentStep.id, lessonSteps);
+              onStepComplete?.(currentStep.id, currentStep.xpReward);
+              showToastMessage(`Step completed: ${currentStep.title} (+${currentStep.xpReward} XP)`, 'success');
+            }
+          }
+        }
+
         showToastMessage('Compilation successful!', 'success');
       } else {
         const errorResult: CompilationResult = {
           success: false,
           errors: result.errors?.map((err: any) => ({
-            line: 1,
-            column: 1,
+            line: err.line || 1,
+            column: err.column || 1,
             message: typeof err === 'string' ? err : err.message || 'Error',
             severity: 'error' as const
           })) || [],
           warnings: result.warnings?.map((warn: any) => ({
-            line: 1,
-            column: 1,
+            line: warn.line || 1,
+            column: warn.column || 1,
             message: typeof warn === 'string' ? warn : warn.message || 'Warning',
             severity: 'warning' as const
           })) || []
@@ -425,6 +693,36 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
 
         setCompilationResult(errorResult);
         onCompile?.(errorResult);
+
+        // Update error highlighting with compilation errors
+        if (errorHighlightingRef.current) {
+          const compilationErrors: EditorError[] = [
+            ...errorResult.errors.map(err => ({
+              line: err.line,
+              column: err.column,
+              message: err.message,
+              severity: 'error' as const,
+              source: 'compiler'
+            })),
+            ...errorResult.warnings.map(warn => ({
+              line: warn.line,
+              column: warn.column,
+              message: warn.message,
+              severity: 'warning' as const,
+              source: 'compiler'
+            }))
+          ];
+
+          // Combine with syntax errors
+          const syntaxResult = syntaxCheckerRef.current?.checkSyntaxImmediate(code);
+          const allErrors = syntaxResult ?
+            [...compilationErrors, ...syntaxResult.errors, ...syntaxResult.warnings, ...syntaxResult.suggestions] :
+            compilationErrors;
+
+          errorHighlightingRef.current.updateErrorMarkers(allErrors);
+          setRealTimeErrors(errorHighlightingRef.current.getErrorCounts());
+        }
+
         showToastMessage('Compilation failed with errors', 'error');
       }
     } catch (error) {
@@ -445,6 +743,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
       showToastMessage('Compilation failed', 'error');
     } finally {
       setIsCompiling(false);
+      endTiming();
     }
   };
 
@@ -502,14 +801,91 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
     }
   };
 
-  const resetCode = () => {
-    setCode(defaultSolidityCode);
-    setCompilationResult(null);
-    setBreakpoints([]);
-    showToastMessage('Code reset to default', 'success');
+  const resetCode = async () => {
+    if (showResetConfirm) {
+      try {
+        await autoSave.resetCode();
+        setCode(defaultSolidityCode);
+        setCompilationResult(null);
+        setBreakpoints([]);
+        setShowResetConfirm(false);
+        showToastMessage('Code reset to default', 'success');
+      } catch (error) {
+        showApiError('Failed to reset code', { error });
+      }
+    } else {
+      setShowResetConfirm(true);
+      setTimeout(() => setShowResetConfirm(false), 5000); // Auto-hide after 5 seconds
+    }
   };
 
-  const saveVersion = () => {
+  const submitSolution = async () => {
+    if (!compilationResult) {
+      showFormError('compilation', 'Please compile your code first');
+      return;
+    }
+
+    if (!compilationResult.success) {
+      showFormError('compilation', 'Code must compile successfully before submission');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Check TypeScript build before submission
+      if (git.isGitAvailable) {
+        const tsCheck = await git.checkTypeScript();
+        if (!tsCheck) {
+          showFormError('typescript', 'TypeScript errors detected. Please fix them before submission.');
+          return;
+        }
+      }
+
+      // Call the submission handler if provided
+      if (onSubmitSolution) {
+        await onSubmitSolution(code, compilationResult);
+      }
+
+      // Complete current step if using progress tracking
+      if (enableProgressTracking && lessonSteps.length > 0) {
+        const currentStep = lessonProgress.getCurrentStep(lessonSteps);
+        if (currentStep && !lessonProgress.isStepCompleted(currentStep.id)) {
+          await lessonProgress.completeStep(currentStep.id, lessonSteps);
+          onStepComplete?.(currentStep.id, currentStep.xpReward);
+        }
+      }
+
+      // Complete lesson and award XP if lesson context is available
+      if (lessonId && onLessonComplete) {
+        await onLessonComplete(lessonId, xpReward);
+      } else if (lessonId) {
+        // Fallback to learning context
+        await completeLesson(lessonId, xpReward);
+      }
+
+      // Force save the final solution
+      await autoSave.saveCode(code, true);
+
+      // Auto-commit lesson completion with enhanced commit manager
+      if (lessonId && git.isGitAvailable) {
+        try {
+          await commitManager.commitLessonCompletion(lessonId, code);
+          showToastMessage('Solution committed to git repository', 'success');
+        } catch (gitError) {
+          console.warn('Git commit failed:', gitError);
+          // Don't fail the submission if git fails
+        }
+      }
+
+      showToastMessage(`Solution submitted successfully! +${xpReward} XP`, 'success');
+    } catch (error) {
+      showApiError('Failed to submit solution', { error });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const saveVersion = async () => {
     const newVersion = {
       id: Date.now().toString(),
       timestamp: new Date(),
@@ -517,7 +893,19 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
       message: `Version saved at ${new Date().toLocaleTimeString()}`
     };
     setCodeVersions(prev => [newVersion, ...prev.slice(0, 9)]); // Keep last 10 versions
-    showToastMessage('Code version saved', 'success');
+
+    // Auto-commit code save with enhanced commit manager
+    if (git.isGitAvailable) {
+      try {
+        await commitManager.commitCodeSave(sessionId, `Save code version: ${newVersion.message}`);
+        showToastMessage('Code version saved and committed', 'success');
+      } catch (gitError) {
+        console.warn('Git commit failed:', gitError);
+        showToastMessage('Code version saved (git commit failed)', 'warning');
+      }
+    } else {
+      showToastMessage('Code version saved', 'success');
+    }
   };
 
   const toggleMaximize = () => {
@@ -577,18 +965,64 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
 
   return (
     <div className={`relative w-full h-full ${className} ${isFullscreen ? 'fixed inset-0 z-50 bg-gray-900' : ''}`}>
+      {/* Lesson Progress Tracker */}
+      {enableProgressTracking && lessonSteps.length > 0 && lessonId && (
+        <LessonProgressTracker
+          lessonId={lessonId}
+          steps={lessonSteps}
+          currentStepId={currentStepId || lessonProgress.getCurrentStep(lessonSteps)?.id}
+          onStepComplete={async (stepId, xpEarned) => {
+            await lessonProgress.completeStep(stepId, lessonSteps);
+            onStepComplete?.(stepId, xpEarned);
+          }}
+          onLessonComplete={async (lessonId, totalXp) => {
+            if (onLessonComplete) {
+              await onLessonComplete(lessonId, totalXp);
+            }
+          }}
+          className="mb-4"
+          compact
+        />
+      )}
+
+      {/* Save Status Indicator */}
+      <SaveStatusIndicator
+        status={autoSave.saveStatus}
+        lastSaved={autoSave.lastSaved}
+        hasUnsavedChanges={autoSave.hasUnsavedChanges}
+        isAutoSaveEnabled={autoSave.isAutoSaveEnabled}
+        onToggleAutoSave={autoSave.toggleAutoSave}
+        className="mb-4"
+        compact
+      />
+
       {/* Enhanced Toolbar */}
       <Card className="mb-4 p-4 bg-white/10 backdrop-blur-md border border-white/20">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between" data-testid="editor-toolbar">
           <div className="flex items-center space-x-2">
-            <Button
-              onClick={compileCode}
-              disabled={isCompiling || readOnly}
+            <EnhancedButton
+              asyncAction={compileCode}
+              disabled={readOnly}
               className="bg-green-600 hover:bg-green-700 text-white"
+              loadingText="Compiling..."
+              successText="Compiled!"
+              touchTarget
+              tooltip="Compile Solidity code and check for errors"
+              asyncOptions={{
+                debounceMs: 500,
+                successDuration: 1500,
+                errorDuration: 3000,
+                onSuccess: () => {
+                  showToastMessage('Compilation successful!', 'success');
+                },
+                onError: (error) => {
+                  showToastMessage('Compilation failed', 'error');
+                }
+              }}
             >
               <Play className="w-4 h-4 mr-2" />
-              {isCompiling ? 'Compiling...' : 'Compile'}
-            </Button>
+              Compile
+            </EnhancedButton>
 
             {enableTesting && (
               <Button
@@ -601,14 +1035,23 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
               </Button>
             )}
 
-            <Button
-              onClick={saveVersion}
+            <AsyncSaveButton
+              onSave={async () => {
+                saveVersion();
+              }}
               variant="outline"
               className="border-green-500/30 text-green-600 hover:bg-green-500/10"
+              tooltip="Save current code as a new version"
+              asyncOptions={{
+                debounceMs: 300,
+                successDuration: 1500,
+                onSuccess: () => {
+                  showToastMessage('Version saved successfully', 'success');
+                }
+              }}
             >
-              <Save className="w-4 h-4 mr-2" />
               Save Version
-            </Button>
+            </AsyncSaveButton>
 
             <Button
               onClick={saveCode}
@@ -652,6 +1095,41 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
               Copy
             </Button>
 
+            {/* Error Navigation */}
+            {(realTimeErrors.errors > 0 || realTimeErrors.warnings > 0) && (
+              <div className="flex items-center space-x-1 border border-white/20 rounded-lg p-1">
+                <Button
+                  onClick={() => errorHighlightingRef.current?.goToPreviousError()}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  tooltip="Go to previous error"
+                >
+                  <ChevronUp className="w-4 h-4" />
+                </Button>
+                <Button
+                  onClick={() => errorHighlightingRef.current?.goToNextError()}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  tooltip="Go to next error"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+                <div className="flex items-center space-x-1 px-2 text-xs">
+                  {realTimeErrors.errors > 0 && (
+                    <span className="text-red-400">{realTimeErrors.errors}E</span>
+                  )}
+                  {realTimeErrors.warnings > 0 && (
+                    <span className="text-yellow-400">{realTimeErrors.warnings}W</span>
+                  )}
+                  {realTimeErrors.info > 0 && (
+                    <span className="text-blue-400">{realTimeErrors.info}I</span>
+                  )}
+                </div>
+              </div>
+            )}
+
             <Button
               onClick={shareCode}
               variant="outline"
@@ -679,14 +1157,46 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
               Preview
             </Button>
 
-            <Button
+            {enableSubmission && (
+              <AsyncSubmitButton
+                onSubmit={submitSolution}
+                disabled={!compilationResult?.success || readOnly}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                submitText="Submit Solution"
+                loadingText="Submitting..."
+                successText="Submitted!"
+                touchTarget
+                tooltip="Submit your solution and complete the lesson"
+                asyncOptions={{
+                  debounceMs: 500,
+                  successDuration: 2000,
+                  errorDuration: 4000,
+                  onSuccess: () => {
+                    showToastMessage('Solution submitted successfully!', 'success');
+                  },
+                  onError: (error) => {
+                    showToastMessage('Submission failed', 'error');
+                  }
+                }}
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Submit Solution
+              </AsyncSubmitButton>
+            )}
+
+            <EnhancedButton
               onClick={resetCode}
+              className={cn(
+                "border-orange-500/30 text-orange-600 hover:bg-orange-500/10",
+                showResetConfirm && "bg-red-600 hover:bg-red-700 text-white border-red-500"
+              )}
               variant="outline"
-              className="border-orange-500/30 text-orange-600 hover:bg-orange-500/10"
+              touchTarget
+              tooltip={showResetConfirm ? "Click again to confirm reset" : "Reset code to default"}
             >
               <RotateCcw className="w-4 h-4 mr-2" />
-              Reset
-            </Button>
+              {showResetConfirm ? 'Confirm Reset' : 'Reset'}
+            </EnhancedButton>
           </div>
 
           <div className="flex items-center space-x-2">
@@ -720,6 +1230,22 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
               </Button>
             )}
 
+            {/* Git Status Indicator */}
+            {git.isGitAvailable && (
+              <div className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/20">
+                <GitBranch className="w-4 h-4 text-purple-400" />
+                <span className="text-sm text-purple-400">{git.currentBranch}</span>
+                {git.hasUncommittedChanges && (
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full" title="Uncommitted changes" />
+                )}
+                {git.commitQueue > 0 && (
+                  <span className="text-xs bg-blue-500 text-white px-1.5 py-0.5 rounded-full">
+                    {git.commitQueue}
+                  </span>
+                )}
+              </div>
+            )}
+
             {enableDebugging && (
               <Button
                 onClick={() => setShowDebugger(!showDebugger)}
@@ -749,11 +1275,66 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </Button>
 
+            {/* Accessibility Controls */}
+            {enableAccessibility && (
+              <div className="flex items-center space-x-1 border border-white/20 rounded-lg p-1">
+                <Button
+                  onClick={() => accessibilityManagerRef.current?.increaseFontSize()}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  title="Increase font size"
+                  aria-label="Increase font size"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </Button>
+                <Button
+                  onClick={() => accessibilityManagerRef.current?.decreaseFontSize()}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  title="Decrease font size"
+                  aria-label="Decrease font size"
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </Button>
+                <Button
+                  onClick={() => accessibilityManagerRef.current?.toggleHighContrast()}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  title="Toggle high contrast"
+                  aria-label="Toggle high contrast mode"
+                >
+                  <Contrast className="w-4 h-4" />
+                </Button>
+                <Button
+                  onClick={() => {
+                    const shortcuts = accessibilityManagerRef.current?.getShortcuts();
+                    if (shortcuts) {
+                      accessibilityManagerRef.current?.announce(
+                        'Keyboard shortcuts available. Press F1 for full list.',
+                        'assertive'
+                      );
+                    }
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  title="Show keyboard shortcuts"
+                  aria-label="Show keyboard shortcuts"
+                >
+                  <Keyboard className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+
             <Button
               onClick={() => setShowSettings(!showSettings)}
               variant="outline"
               size="sm"
               className="border-white/30 text-gray-700 dark:text-gray-300"
+              aria-label="Open editor settings"
             >
               <Settings className="w-4 h-4" />
             </Button>
@@ -1247,6 +1828,93 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
         </motion.div>
       )}
 
+      {/* Collaboration Components */}
+      {enableCollaboration && collaboration && (
+        <>
+          {/* User Presence Panel */}
+          <div className="fixed top-4 right-4 z-40">
+            <UserPresencePanel
+              users={collaboration.state.users}
+              currentUserId={collaboration.state.currentUser?.id || ''}
+              sessionDuration={collaboration.state.sessionDuration}
+              isConnected={collaboration.state.isConnected}
+              onUserAction={(userId, action) => {
+                if (action === 'kick') {
+                  collaboration.actions.kickUser(userId);
+                } else if (action === 'promote') {
+                  collaboration.actions.promoteUser(userId, 'instructor');
+                }
+              }}
+              compact={!showCollaborationPanel}
+            />
+          </div>
+
+          {/* Connection Status */}
+          <div className="fixed top-20 right-4 z-40">
+            <ConnectionStatusIndicator
+              status={collaboration.state.isConnected ? 'connected' : 'disconnected'}
+              latency={collaboration.state.latency}
+              pendingOperations={collaboration.state.offlineQueueSize}
+              onReconnect={collaboration.actions.reconnect}
+              onTroubleshoot={() => setShowSessionRecovery(true)}
+              compact={!showCollaborationPanel}
+            />
+          </div>
+
+          {/* Collaboration Chat */}
+          {showCollaborationPanel && (
+            <div className="fixed bottom-4 right-4 z-40 w-96">
+              <CollaborationChat
+                messages={collaboration.state.chatMessages}
+                currentUserId={collaboration.state.currentUser?.id || ''}
+                currentUserName={collaboration.state.currentUser?.name || ''}
+                isConnected={collaboration.state.isConnected}
+                onSendMessage={collaboration.actions.sendChatMessage}
+                onReaction={collaboration.actions.addChatReaction}
+                onMarkAsRead={collaboration.actions.markChatAsRead}
+              />
+            </div>
+          )}
+
+          {/* File Sharing */}
+          {showCollaborationPanel && (
+            <div className="fixed bottom-4 left-4 z-40 w-80">
+              <FileSharing
+                files={collaboration.state.sharedFiles}
+                currentUserId={collaboration.state.currentUser?.id || ''}
+                onFileUpload={collaboration.actions.uploadFile}
+                onFileDelete={collaboration.actions.deleteFile}
+                onFileDownload={collaboration.actions.downloadFile}
+              />
+            </div>
+          )}
+
+          {/* Session Recovery */}
+          <SessionRecovery
+            isVisible={showSessionRecovery}
+            isRecovering={collaboration.state.isRecovering}
+            progress={collaboration.state.recoveryProgress}
+            offlineQueueSize={collaboration.state.offlineQueueSize}
+            lastSyncTime={collaboration.state.lastSyncTime}
+            connectionQuality={collaboration.state.connectionQuality}
+            onReconnect={collaboration.actions.reconnect}
+            onForceSync={collaboration.actions.forceSync}
+            onClearOfflineData={collaboration.actions.clearOfflineData}
+            onDismiss={() => setShowSessionRecovery(false)}
+          />
+
+          {/* Collaboration Toggle Button */}
+          <Button
+            onClick={() => setShowCollaborationPanel(!showCollaborationPanel)}
+            className="fixed bottom-4 right-1/2 transform translate-x-1/2 z-40 bg-blue-600 hover:bg-blue-700"
+            size="sm"
+          >
+            <Users className="w-4 h-4 mr-2" />
+            {showCollaborationPanel ? 'Hide' : 'Show'} Collaboration
+          </Button>
+        </>
+      )}
+
       {/* Toast Notifications */}
       <AnimatePresence>
         {showToast && (
@@ -1257,6 +1925,13 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
           />
         )}
       </AnimatePresence>
+
+      {/* Floating Save Status */}
+      <FloatingSaveStatus
+        status={autoSave.saveStatus}
+        lastSaved={autoSave.lastSaved}
+        hasUnsavedChanges={autoSave.hasUnsavedChanges}
+      />
     </div>
   );
 };

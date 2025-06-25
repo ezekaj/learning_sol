@@ -81,13 +81,26 @@ export function HeroSection() {
   ];
 
   return (
-    <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section
+      ref={heroRef}
+      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+      aria-labelledby="hero-heading"
+      role="banner"
+    >
       {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900" />
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
-      
+      <div
+        className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"
+        aria-hidden="true"
+        role="img"
+        aria-label="Decorative grid pattern background"
+      />
+
       {/* Animated Background Elements */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0" aria-hidden="true">
         {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
@@ -105,6 +118,7 @@ export function HeroSection() {
               repeat: Infinity,
               delay: Math.random() * 2,
             }}
+            aria-hidden="true"
           />
         ))}
       </div>
@@ -113,6 +127,7 @@ export function HeroSection() {
         {/* Main Content */}
         <div className="max-w-4xl mx-auto">
           <motion.h1
+            id="hero-heading"
             ref={titleRef}
             className="text-5xl md:text-7xl font-bold mb-6"
             initial={{ opacity: 0 }}
@@ -126,9 +141,10 @@ export function HeroSection() {
             ref={subtitleRef}
             className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed"
             initial={{ opacity: 0 }}
+            role="text"
           >
-            The most comprehensive Solidity learning platform with AI-powered tutoring, 
-            real-time collaboration, and hands-on blockchain development. 
+            The most comprehensive Solidity learning platform with AI-powered tutoring,
+            real-time collaboration, and hands-on blockchain development.
             Join thousands of developers building the decentralized future.
           </motion.p>
 
@@ -136,17 +152,34 @@ export function HeroSection() {
             ref={ctaRef}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
             initial={{ opacity: 0 }}
+            role="group"
+            aria-label="Primary actions"
           >
-            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg" asChild>
-              <Link href="/learn">
+            <Button
+              size="lg"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg min-h-[44px]"
+              asChild
+            >
+              <Link
+                href="/learn"
+                aria-label="Start learning Solidity for free - Begin your blockchain development journey"
+              >
                 Start Learning Free
-                <ArrowRight className="ml-2 w-5 h-5" />
+                <ArrowRight className="ml-2 w-5 h-5" aria-hidden="true" />
               </Link>
             </Button>
-            
-            <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 px-8 py-4 text-lg" asChild>
-              <Link href="/demo">
-                <Play className="mr-2 w-5 h-5" />
+
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-white/20 text-white hover:bg-white/10 px-8 py-4 text-lg min-h-[44px]"
+              asChild
+            >
+              <Link
+                href="/demo"
+                aria-label="Watch platform demo - See SolanaLearn features in action"
+              >
+                <Play className="mr-2 w-5 h-5" aria-hidden="true" />
                 Watch Demo
               </Link>
             </Button>
@@ -154,9 +187,14 @@ export function HeroSection() {
         </div>
 
         {/* Feature Cards */}
-        <div ref={featuresRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+        <section
+          ref={featuresRef}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto"
+          aria-label="Platform features overview"
+          role="region"
+        >
           {features.map((feature, index) => (
-            <motion.div
+            <motion.article
               key={feature.title}
               className="glass p-6 rounded-xl border border-white/10 hover:border-white/20 transition-all duration-300 relative"
               whileHover={{ scale: 1.05, y: -5 }}
@@ -168,50 +206,84 @@ export function HeroSection() {
                   duration: 0.6
                 }
               }}
+              role="article"
+              aria-labelledby={`feature-${index}-title`}
+              aria-describedby={`feature-${index}-description`}
             >
               {/* Feature priority badge using index */}
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">
+              <div
+                className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg"
+                aria-label={`Feature ${index + 1} of ${features.length}`}
+                role="img"
+              >
                 {index + 1}
               </div>
 
-              <div className={`w-12 h-12 bg-gradient-to-br ${
-                index % 4 === 0 ? 'from-blue-500 to-purple-600' :
-                index % 4 === 1 ? 'from-purple-500 to-pink-600' :
-                index % 4 === 2 ? 'from-green-500 to-blue-600' :
-                'from-orange-500 to-red-600'
-              } rounded-lg flex items-center justify-center mb-4 mx-auto relative overflow-hidden`}>
-                <feature.icon className="w-6 h-6 text-white relative z-10" />
+              <div
+                className={`w-12 h-12 bg-gradient-to-br ${
+                  index % 4 === 0 ? 'from-blue-500 to-purple-600' :
+                  index % 4 === 1 ? 'from-purple-500 to-pink-600' :
+                  index % 4 === 2 ? 'from-green-500 to-blue-600' :
+                  'from-orange-500 to-red-600'
+                } rounded-lg flex items-center justify-center mb-4 mx-auto relative overflow-hidden`}
+                role="img"
+                aria-label={`${feature.title} icon`}
+              >
+                <feature.icon className="w-6 h-6 text-white relative z-10" aria-hidden="true" />
                 {/* Highlight top features */}
                 {index < 2 && (
-                  <div className="absolute top-0 right-0 w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
+                  <div
+                    className="absolute top-0 right-0 w-2 h-2 bg-yellow-400 rounded-full animate-pulse"
+                    aria-label="Priority feature indicator"
+                    role="img"
+                  />
                 )}
               </div>
 
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3
+                id={`feature-${index}-title`}
+                className="text-lg font-semibold text-white mb-2"
+              >
                 {feature.title}
                 {/* Priority indicator for first two features */}
                 {index < 2 && (
-                  <span className="ml-2 text-xs bg-yellow-400/20 text-yellow-400 px-2 py-1 rounded-full">
+                  <span
+                    className="ml-2 text-xs bg-yellow-400/20 text-yellow-400 px-2 py-1 rounded-full"
+                    aria-label="Priority feature"
+                  >
                     Priority
                   </span>
                 )}
               </h3>
-              <p className="text-gray-400 text-sm">{feature.description}</p>
+              <p
+                id={`feature-${index}-description`}
+                className="text-gray-400 text-sm"
+              >
+                {feature.description}
+              </p>
 
               {/* Progress indicator based on index */}
-              <div className="mt-3 flex items-center justify-center space-x-1">
+              <div
+                className="mt-3 flex items-center justify-center space-x-1"
+                role="progressbar"
+                aria-label={`Feature ${index + 1} of ${features.length}`}
+                aria-valuenow={index + 1}
+                aria-valuemin={1}
+                aria-valuemax={features.length}
+              >
                 {Array.from({ length: 4 }, (_, i) => (
                   <div
                     key={i}
                     className={`w-2 h-1 rounded-full transition-all duration-300 ${
                       i <= index ? 'bg-blue-400' : 'bg-gray-600'
                     }`}
+                    aria-hidden="true"
                   />
                 ))}
               </div>
-            </motion.div>
+            </motion.article>
           ))}
-        </div>
+        </section>
 
         {/* Stats */}
         <motion.div

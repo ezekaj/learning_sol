@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useId } from 'react';
 import { motion } from 'framer-motion';
 
 // Skip to Content Link
@@ -168,19 +168,28 @@ const ScreenReaderOnly: React.FC<ScreenReaderOnlyProps> = ({ children }) => (
 // Live Region for Announcements
 interface LiveRegionProps {
   message: string;
-  politeness?: 'polite' | 'assertive';
+  politeness?: 'polite' | 'assertive' | 'off';
   atomic?: boolean;
+  relevant?: 'additions' | 'removals' | 'text' | 'all';
+  id?: string;
+  className?: string;
 }
 
-const LiveRegion: React.FC<LiveRegionProps> = ({ 
-  message, 
+const LiveRegion: React.FC<LiveRegionProps> = ({
+  message,
   politeness = 'polite',
-  atomic = true 
+  atomic = true,
+  relevant = 'all',
+  id,
+  className = 'sr-only'
 }) => (
   <div
+    id={id}
     aria-live={politeness}
     aria-atomic={atomic}
-    className="sr-only"
+    aria-relevant={relevant}
+    className={className}
+    role={politeness === 'assertive' ? 'alert' : 'status'}
   >
     {message}
   </div>
@@ -395,6 +404,167 @@ const AccessibleField: React.FC<AccessibleFieldProps> = ({
   );
 };
 
+// Enhanced ARIA Components
+interface AriaExpandableProps {
+  children: React.ReactNode;
+  isExpanded: boolean;
+  onToggle: () => void;
+  label: string;
+  className?: string;
+}
+
+const AriaExpandable: React.FC<AriaExpandableProps> = ({
+  children,
+  isExpanded,
+  onToggle,
+  label,
+  className = ''
+}) => {
+  const buttonId = useId();
+  const contentId = useId();
+
+  return (
+    <div className={className}>
+      <button
+        id={buttonId}
+        aria-expanded={isExpanded}
+        aria-controls={contentId}
+        onClick={onToggle}
+        className="w-full text-left"
+      >
+        {label}
+      </button>
+      <div
+        id={contentId}
+        role="region"
+        aria-labelledby={buttonId}
+        hidden={!isExpanded}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
+
+// ARIA Tabs Component
+interface AriaTabsProps {
+  tabs: Array<{
+    id: string;
+    label: string;
+    content: React.ReactNode;
+    disabled?: boolean;
+  }>;
+  activeTab: string;
+  onTabChange: (tabId: string) => void;
+  orientation?: 'horizontal' | 'vertical';
+  className?: string;
+}
+
+const AriaTabs: React.FC<AriaTabsProps> = ({
+  tabs,
+  activeTab,
+  onTabChange,
+  orientation = 'horizontal',
+  className = ''
+}) => {
+  const tabListId = useId();
+
+  return (
+    <div className={className}>
+      <div
+        role="tablist"
+        aria-orientation={orientation}
+        id={tabListId}
+        className="flex"
+      >
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            role="tab"
+            id={`tab-${tab.id}`}
+            aria-controls={`panel-${tab.id}`}
+            aria-selected={activeTab === tab.id}
+            disabled={tab.disabled}
+            onClick={() => onTabChange(tab.id)}
+            className={`px-4 py-2 ${
+              activeTab === tab.id ? 'bg-blue-500 text-white' : 'bg-gray-200'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      {tabs.map((tab) => (
+        <div
+          key={tab.id}
+          role="tabpanel"
+          id={`panel-${tab.id}`}
+          aria-labelledby={`tab-${tab.id}`}
+          hidden={activeTab !== tab.id}
+          className="mt-4"
+        >
+          {tab.content}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ARIA Progress Component
+interface AriaProgressProps {
+  value: number;
+  max?: number;
+  label: string;
+  description?: string;
+  showPercentage?: boolean;
+  className?: string;
+}
+
+const AriaProgress: React.FC<AriaProgressProps> = ({
+  value,
+  max = 100,
+  label,
+  description,
+  showPercentage = true,
+  className = ''
+}) => {
+  const percentage = Math.round((value / max) * 100);
+  const progressId = useId();
+  const descriptionId = useId();
+
+  return (
+    <div className={className}>
+      <div className="flex justify-between items-center mb-2">
+        <label htmlFor={progressId} className="text-sm font-medium">
+          {label}
+        </label>
+        {showPercentage && (
+          <span className="text-sm text-gray-500">{percentage}%</span>
+        )}
+      </div>
+      <div
+        id={progressId}
+        role="progressbar"
+        aria-valuenow={value}
+        aria-valuemin={0}
+        aria-valuemax={max}
+        aria-describedby={description ? descriptionId : undefined}
+        className="w-full bg-gray-200 rounded-full h-2"
+      >
+        <div
+          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+      {description && (
+        <p id={descriptionId} className="text-sm text-gray-600 mt-1">
+          {description}
+        </p>
+      )}
+    </div>
+  );
+};
+
 export {
   SkipLink,
   FocusTrap,
@@ -406,6 +576,9 @@ export {
   useFocusVisible,
   AccessibleButton,
   AccessibleField,
+  AriaExpandable,
+  AriaTabs,
+  AriaProgress,
 };
 
 export default SkipLink;

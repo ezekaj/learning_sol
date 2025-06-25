@@ -20,8 +20,15 @@ import {
   Loader2
 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/Glassmorphism';
+import { AsyncSubmitButton } from '@/components/ui/EnhancedButton';
+import { ErrorMessage, InlineFormError } from '@/components/ui/ErrorMessage';
+import { AuthErrorBoundary } from '@/components/errors/SpecializedErrorBoundaries';
+import { useError } from '@/lib/errors/ErrorContext';
+import { useFormErrorHandler } from '@/lib/hooks/useErrorRecovery';
+import { ErrorFactory } from '@/lib/errors/types';
 import { loginSchema, registrationSchema, PasswordUtils } from '@/lib/auth/password';
 import type { LoginData, RegistrationData } from '@/lib/auth/password';
+import { AccessibleForm, AccessibleField, FormErrorSummary, AccessibleSubmitButton } from '@/components/ui/AccessibleForm';
 
 // Check if we're in development mode without database
 const isDevelopmentMode = process.env.NODE_ENV === 'development' && !process.env.DATABASE_URL;
@@ -32,10 +39,10 @@ interface AuthModalProps {
   defaultMode?: 'login' | 'register';
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  defaultMode = 'login' 
+export const AuthModal: React.FC<AuthModalProps> = ({
+  isOpen,
+  onClose,
+  defaultMode = 'login'
 }) => {
   const [mode, setMode] = useState<'login' | 'register'>(defaultMode);
   const [showPassword, setShowPassword] = useState(false);
@@ -43,6 +50,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [currentError, setCurrentError] = useState<any>(null);
+
+  // Enhanced error handling
+  const { showAuthError, showFormError } = useError();
+  const { handleFieldError, handleSubmissionError } = useFormErrorHandler();
 
   // Login form
   const loginForm = useForm<LoginData>({
@@ -66,11 +78,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const currentForm = mode === 'login' ? loginForm : registerForm;
 
-  // Handle form submission
+  // Enhanced form submission with comprehensive error handling
   const handleSubmit = async (data: LoginData | RegistrationData) => {
     setIsLoading(true);
     setError(null);
     setSuccess(null);
+    setCurrentError(null);
 
     try {
       if (mode === 'register') {
@@ -84,6 +97,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         const result = await response.json();
 
         if (!response.ok) {
+          // Handle specific registration errors
+          if (response.status === 409) {
+            const authError = ErrorFactory.createAuthError({
+              message: 'User already exists',
+              authType: 'register',
+              userMessage: 'An account with this email already exists. Would you like to sign in instead?'
+            });
+            setCurrentError(authError);
+            showAuthError('register', authError.userMessage);
+            return;
+          }
+
+          if (response.status === 400 && result.details) {
+            // Handle validation errors
+            result.details.forEach((detail: any) => {
+              handleFieldError(detail.path[0], detail.message);
+            });
+            return;
+          }
+
           throw new Error(result.error || 'Registration failed');
         }
 
@@ -99,7 +132,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         });
 
         if (result?.error) {
-          throw new Error('Invalid email or password');
+          // Handle specific login errors
+          const authError = ErrorFactory.createAuthError({
+            message: 'Authentication failed',
+            authType: 'login',
+            userMessage: result.error === 'CredentialsSignin'
+              ? 'Invalid email or password. Please check your credentials and try again.'
+              : 'Login failed. Please try again or contact support if the problem persists.'
+          });
+          setCurrentError(authError);
+          showAuthError('login', authError.userMessage);
+          return;
         }
 
         if (result?.ok) {
@@ -111,19 +154,52 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const error = err instanceof Error ? err : new Error('An unexpected error occurred');
+      handleSubmissionError(error, data);
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle OAuth sign in
+  // Enhanced OAuth sign in with error handling
   const handleOAuthSignIn = async (provider: string) => {
     setIsLoading(true);
+    setError(null);
+    setCurrentError(null);
+
     try {
-      await signIn(provider, { callbackUrl: '/' });
+      const result = await signIn(provider, {
+        callbackUrl: '/',
+        redirect: false
+      });
+
+      if (result?.error) {
+        const authError = ErrorFactory.createAuthError({
+          message: `${provider} OAuth failed`,
+          authType: 'login',
+          userMessage: `Failed to sign in with ${provider}. Please try again or use a different method.`
+        });
+        setCurrentError(authError);
+        showAuthError('login', authError.userMessage);
+      } else if (result?.ok) {
+        setSuccess(`Successfully signed in with ${provider}!`);
+        setTimeout(() => {
+          onClose();
+          window.location.reload();
+        }, 1000);
+      }
     } catch (err) {
-      setError('OAuth sign in failed');
+      const error = err instanceof Error ? err : new Error(`${provider} OAuth sign in failed`);
+      const authError = ErrorFactory.createAuthError({
+        message: error.message,
+        authType: 'login',
+        userMessage: `Unable to connect to ${provider}. Please check your internet connection and try again.`
+      });
+      setCurrentError(authError);
+      showAuthError('login', authError.userMessage);
+      setError(authError.userMessage);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -135,14 +211,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      >
+    <AuthErrorBoundary>
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={onClose}
+        >
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -182,8 +259,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               )}
             </div>
 
-            {/* Error/Success Messages */}
-            {error && (
+            {/* Enhanced Error/Success Messages */}
+            {currentError && (
+              <div className="mb-4">
+                <ErrorMessage
+                  error={currentError}
+                  onDismiss={() => {
+                    setCurrentError(null);
+                    setError(null);
+                  }}
+                  onRetry={() => {
+                    setCurrentError(null);
+                    setError(null);
+                    // Retry logic handled by AsyncSubmitButton
+                  }}
+                  compact
+                  showActions={currentError.retryable}
+                />
+              </div>
+            )}
+
+            {error && !currentError && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -244,18 +340,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     Full Name
                   </label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
                     <input
                       {...registerForm.register('name')}
                       type="text"
+                      id="register-name"
+                      autoComplete="name"
                       className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Enter your full name"
+                      aria-describedby={registerForm.formState.errors.name ? 'name-error' : undefined}
+                      aria-invalid={!!registerForm.formState.errors.name}
                     />
                   </div>
                   {registerForm.formState.errors.name && (
-                    <p className="mt-1 text-sm text-red-400">
-                      {registerForm.formState.errors.name.message}
-                    </p>
+                    <InlineFormError
+                      error={ErrorFactory.createFormError({
+                        message: registerForm.formState.errors.name.message || 'Name is required',
+                        field: 'name',
+                        validationRule: 'required',
+                        userMessage: registerForm.formState.errors.name.message || 'Please enter your full name'
+                      })}
+                      className="mt-1"
+                      id="name-error"
+                      role="alert"
+                      aria-live="polite"
+                    />
                   )}
                 </div>
               )}
@@ -265,18 +374,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
                   <input
                     {...(mode === 'login' ? loginForm.register('email') : registerForm.register('email'))}
                     type="email"
+                    id={`${mode}-email`}
+                    autoComplete="email"
                     className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter your email"
+                    aria-describedby={currentForm.formState.errors.email ? 'email-error' : undefined}
+                    aria-invalid={!!currentForm.formState.errors.email}
                   />
                 </div>
                 {currentForm.formState.errors.email && (
-                  <p className="mt-1 text-sm text-red-400">
-                    {currentForm.formState.errors.email.message}
-                  </p>
+                  <InlineFormError
+                    error={ErrorFactory.createFormError({
+                      message: currentForm.formState.errors.email.message || 'Invalid email',
+                      field: 'email',
+                      validationRule: 'email',
+                      expectedFormat: 'user@example.com',
+                      userMessage: currentForm.formState.errors.email.message || 'Please enter a valid email address'
+                    })}
+                    className="mt-1"
+                  />
                 )}
               </div>
 
@@ -301,9 +421,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   </button>
                 </div>
                 {currentForm.formState.errors.password && (
-                  <p className="mt-1 text-sm text-red-400">
-                    {currentForm.formState.errors.password.message}
-                  </p>
+                  <InlineFormError
+                    error={ErrorFactory.createFormError({
+                      message: currentForm.formState.errors.password.message || 'Invalid password',
+                      field: 'password',
+                      validationRule: 'minLength',
+                      expectedFormat: 'At least 8 characters with uppercase, lowercase, number, and special character',
+                      userMessage: currentForm.formState.errors.password.message || 'Password must meet security requirements'
+                    })}
+                    className="mt-1"
+                  />
                 )}
               </div>
 
@@ -362,26 +489,47 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       </button>
                     </div>
                     {registerForm.formState.errors.confirmPassword && (
-                      <p className="mt-1 text-sm text-red-400">
-                        {registerForm.formState.errors.confirmPassword.message}
-                      </p>
+                      <InlineFormError
+                        error={ErrorFactory.createFormError({
+                          message: registerForm.formState.errors.confirmPassword.message || 'Passwords do not match',
+                          field: 'confirmPassword',
+                          validationRule: 'match',
+                          userMessage: registerForm.formState.errors.confirmPassword.message || 'Please ensure both passwords match'
+                        })}
+                        className="mt-1"
+                      />
                     )}
                   </div>
                 </>
               )}
 
               {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex items-center justify-center space-x-2 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white font-medium rounded-lg transition-colors"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <span>{mode === 'login' ? 'Sign In' : 'Create Account'}</span>
-                )}
-              </button>
+              <AsyncSubmitButton
+                onSubmit={async () => {
+                  const data = currentForm.getValues();
+                  await handleSubmit(data);
+                }}
+                submitText={mode === 'login' ? 'Sign In' : 'Create Account'}
+                className="w-full"
+                touchTarget
+                tooltip={mode === 'login' ? 'Sign in to your account' : 'Create a new account'}
+                asyncOptions={{
+                  debounceMs: 500,
+                  successDuration: 2000,
+                  errorDuration: 4000,
+                  onSuccess: () => {
+                    if (mode === 'login') {
+                      setTimeout(() => {
+                        onClose();
+                        window.location.reload();
+                      }, 1000);
+                    }
+                  },
+                  onError: (error) => {
+                    setError(error.message);
+                  }
+                }}
+              />
             </form>
 
             {/* Mode Toggle */}
@@ -418,5 +566,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </motion.div>
       </motion.div>
     </AnimatePresence>
+    </AuthErrorBoundary>
   );
 };

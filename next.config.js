@@ -1,10 +1,26 @@
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Removed static export configuration
   serverExternalPackages: ['@prisma/client'],
-  // Enable image optimization for live mode
+  // Enhanced image optimization configuration
   images: {
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 31536000, // 1 year cache
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     domains: ['avatars.githubusercontent.com', 'lh3.googleusercontent.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
   },
   experimental: {
     // Removed deprecated appDir option (App Router is now stable)
@@ -28,6 +44,46 @@ const nextConfig = {
       asyncWebAssembly: true,
     };
 
+    // Suppress OpenTelemetry warnings from Sentry
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      {
+        module: /node_modules\/@opentelemetry\/instrumentation/,
+        message: /Critical dependency: the request of a dependency is an expression/,
+      },
+      {
+        module: /node_modules\/@sentry\/node/,
+        message: /Critical dependency: the request of a dependency is an expression/,
+      },
+    ];
+
+    // Performance optimizations
+    if (!isServer) {
+      // Optimize bundle splitting
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          ...config.optimization.splitChunks,
+          cacheGroups: {
+            ...config.optimization.splitChunks?.cacheGroups,
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+              priority: 10,
+            },
+            common: {
+              name: 'common',
+              minChunks: 2,
+              chunks: 'all',
+              priority: 5,
+              reuseExistingChunk: true,
+            },
+          },
+        },
+      };
+    }
+
     return config;
   },
   // Set environment variables for live mode
@@ -44,4 +100,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = withBundleAnalyzer(nextConfig);

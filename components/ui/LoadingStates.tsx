@@ -1,5 +1,19 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useSettings } from '@/lib/hooks/useSettings';
+import { GlassContainer } from '@/components/ui/Glassmorphism';
+import {
+  Upload,
+  Download,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Pause,
+  Play,
+  X,
+  Loader2
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // Skeleton Components
 interface SkeletonProps {
@@ -8,6 +22,8 @@ interface SkeletonProps {
   width?: string | number;
   height?: string | number;
   lines?: number;
+  'aria-label'?: string;
+  delay?: number;
 }
 
 const Skeleton: React.FC<SkeletonProps> = ({
@@ -16,8 +32,26 @@ const Skeleton: React.FC<SkeletonProps> = ({
   width,
   height,
   lines = 1,
+  'aria-label': ariaLabel,
+  delay = 0,
 }) => {
-  const baseClasses = 'animate-pulse bg-brand-bg-light rounded';
+  const { settings } = useSettings();
+  const [isVisible, setIsVisible] = React.useState(delay === 0);
+
+  // Respect user's reduced motion preference
+  const shouldAnimate = !settings?.accessibility?.reduceMotion;
+
+  React.useEffect(() => {
+    if (delay > 0) {
+      const timer = setTimeout(() => setIsVisible(true), delay);
+      return () => clearTimeout(timer);
+    }
+  }, [delay]);
+
+  const baseClasses = cn(
+    'bg-gradient-to-r from-gray-700/50 via-gray-600/50 to-gray-700/50 backdrop-blur-sm rounded',
+    shouldAnimate && 'animate-pulse'
+  );
   
   const variantClasses = {
     text: 'h-4',
@@ -37,12 +71,17 @@ const Skeleton: React.FC<SkeletonProps> = ({
     image: 'w-full',
   };
 
+  if (!isVisible) return null;
+
   if (variant === 'text' && lines > 1) {
     return (
-      <div className={`space-y-2 ${className}`}>
+      <div className={`space-y-2 ${className}`} role="status" aria-label={ariaLabel || "Loading content"}>
         {Array.from({ length: lines }).map((_, index) => (
-          <div
+          <motion.div
             key={index}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: shouldAnimate ? 0.3 : 0, delay: index * 0.1 }}
             className={`${baseClasses} ${variantClasses[variant]} ${
               index === lines - 1 ? 'w-2/3' : variantWidths[variant]
             }`}
@@ -54,9 +93,15 @@ const Skeleton: React.FC<SkeletonProps> = ({
   }
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: shouldAnimate ? 0.3 : 0 }}
       className={`${baseClasses} ${variantClasses[variant]} ${variantWidths[variant]} ${className}`}
       style={{ width: width, height: height }}
+      role="status"
+      aria-label={ariaLabel || "Loading content"}
+      aria-live="polite"
     />
   );
 };
@@ -112,13 +157,25 @@ interface SpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'default' | 'dots' | 'pulse' | 'bars';
   className?: string;
+  text?: string;
+  subText?: string;
+  progress?: number;
+  showProgress?: boolean;
+  'aria-label'?: string;
 }
 
 const LoadingSpinner: React.FC<SpinnerProps> = ({
   size = 'md',
   variant = 'default',
   className = '',
+  text,
+  subText,
+  progress,
+  showProgress = false,
+  'aria-label': ariaLabel,
 }) => {
+  const { settings } = useSettings();
+  const shouldAnimate = !settings?.accessibility?.reduceMotion;
   const sizeClasses = {
     sm: 'w-4 h-4',
     md: 'w-6 h-6',

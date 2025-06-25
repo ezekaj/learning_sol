@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Mail, Send, User, MessageSquare, AlertCircle } from 'lucide-react';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { AsyncSubmitButton } from '@/components/ui/EnhancedButton';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -172,23 +173,31 @@ export function ContactForm({ onSuccess, className = '' }: ContactFormProps) {
             )}
 
             {/* Submit Button */}
-            <Button
-              type="submit"
-              disabled={form.isSubmitting || !form.isValid}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            >
-              {form.isSubmitting ? (
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Sending...</span>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <Send className="w-4 h-4" />
-                  <span>Send Message</span>
-                </div>
-              )}
-            </Button>
+            <AsyncSubmitButton
+              onSubmit={async () => {
+                if (!form.isValid) {
+                  throw new Error('Please fill in all required fields correctly');
+                }
+                await form.handleSubmit();
+              }}
+              submitText="Send Message"
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 px-6 rounded-lg"
+              disabled={!form.isValid}
+              touchTarget
+              glowEffect
+              tooltip="Send your message to our team"
+              asyncOptions={{
+                debounceMs: 500,
+                successDuration: 3000,
+                errorDuration: 4000,
+                onSuccess: () => {
+                  form.resetForm();
+                },
+                onError: (error) => {
+                  console.error('Contact form submission failed:', error);
+                }
+              }}
+            />
 
             {/* Form Info */}
             <div className="text-sm text-gray-400 text-center">

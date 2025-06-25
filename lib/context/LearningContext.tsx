@@ -1,7 +1,9 @@
 'use client';
 
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
+import { AchievementManager } from '@/lib/achievements/manager';
+import { AchievementEvent } from '@/lib/achievements/types';
 
 interface LearningState {
   currentCourse: string | null;
@@ -10,11 +12,16 @@ interface LearningState {
   progress: Record<string, number>;
   achievements: string[];
   xp: number;
+  previousXP: number; // For animation tracking
   level: number;
+  previousLevel: number; // For level up detection
   streak: number;
   completedChallenges: number;
   goalsCompleted: number;
   totalGoals: number;
+  sessionXP: number; // XP gained in current session
+  sessionStartTime: Date;
+  lastXPUpdate: Date;
   isLoading: boolean;
   error: string | null;
 }
@@ -33,6 +40,7 @@ type LearningAction =
   | { type: 'SET_TOTAL_GOALS'; payload: number }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'RESET_SESSION_XP' }
   | { type: 'RESET_STATE' };
 
 const initialState: LearningState = {
@@ -42,11 +50,16 @@ const initialState: LearningState = {
   progress: {},
   achievements: [],
   xp: 0,
+  previousXP: 0,
   level: 1,
+  previousLevel: 1,
   streak: 0,
   completedChallenges: 0,
   goalsCompleted: 0,
   totalGoals: 5,
+  sessionXP: 0,
+  sessionStartTime: new Date(),
+  lastXPUpdate: new Date(),
   isLoading: false,
   error: null,
 };
@@ -72,7 +85,15 @@ function learningReducer(state: LearningState, action: LearningAction): Learning
     case 'ADD_XP':
       const newXP = state.xp + action.payload;
       const newLevel = Math.floor(newXP / 1000) + 1;
-      return { ...state, xp: newXP, level: newLevel };
+      return {
+        ...state,
+        previousXP: state.xp,
+        xp: newXP,
+        previousLevel: state.level,
+        level: newLevel,
+        sessionXP: state.sessionXP + action.payload,
+        lastXPUpdate: new Date()
+      };
     case 'SET_LEVEL':
       return { ...state, level: action.payload };
     case 'UPDATE_STREAK':
@@ -93,8 +114,15 @@ function learningReducer(state: LearningState, action: LearningAction): Learning
       return { ...state, isLoading: action.payload };
     case 'SET_ERROR':
       return { ...state, error: action.payload };
+    case 'RESET_SESSION_XP':
+      return {
+        ...state,
+        sessionXP: 0,
+        sessionStartTime: new Date(),
+        lastXPUpdate: new Date()
+      };
     case 'RESET_STATE':
-      return initialState;
+      return { ...initialState, sessionStartTime: new Date() };
     default:
       return state;
   }
@@ -113,6 +141,12 @@ interface LearningContextType {
   completeGoal: (count?: number) => void;
   setTotalGoals: (total: number) => void;
   completeLesson: (lessonId: string, xpReward: number) => void;
+  completeQuiz: (quizId: string, score: number, xpReward: number) => void;
+  submitProject: (projectId: string, category: string, xpReward: number) => void;
+  triggerAchievementEvent: (eventData: Omit<AchievementEvent, 'userId' | 'timestamp'>) => Promise<void>;
+  addXPListener: (listener: (xp: number, previousXP: number) => void) => () => void;
+  addLevelListener: (listener: (level: number, previousLevel: number) => void) => () => void;
+  resetSessionXP: () => void;
   resetLearningState: () => void;
 }
 
@@ -129,11 +163,15 @@ export const useLearning = () => {
 export function LearningProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(learningReducer, initialState);
   const { data: session } = useSession();
+  const achievementManager = AchievementManager.getInstance();
+  const xpListenersRef = useRef<Set<(xp: number, previousXP: number) => void>>(new Set());
+  const levelListenersRef = useRef<Set<(level: number, previousLevel: number) => void>>(new Set());
 
-  // Load user progress on mount
+  // Load user progress on mount and track login
   useEffect(() => {
     if (session?.user) {
       loadUserProgress();
+      updateLoginStreak();
     }
   }, [session]);
 
@@ -202,16 +240,65 @@ export function LearningProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Trigger achievement event
+  const triggerAchievementEvent = useCallback(async (eventData: Omit<AchievementEvent, 'userId' | 'timestamp'>) => {
+    if (!session?.user?.id) return;
+
+    try {
+      const event: AchievementEvent = {
+        ...eventData,
+        userId: session.user.id,
+        timestamp: new Date()
+      };
+
+      await achievementManager.processEvent(event);
+    } catch (error) {
+      console.error('Failed to trigger achievement event:', error);
+    }
+  }, [session?.user?.id, achievementManager]);
+
   const addXP = async (amount: number) => {
+    const previousXP = state.xp;
+    const previousLevel = state.level;
+
     dispatch({ type: 'ADD_XP', payload: amount });
+
+    // Notify XP listeners for real-time updates
+    const newXP = previousXP + amount;
+    xpListenersRef.current.forEach(listener => {
+      try {
+        listener(newXP, previousXP);
+      } catch (error) {
+        console.error('Error in XP listener:', error);
+      }
+    });
+
+    // Check for level up and notify level listeners
+    const newLevel = Math.floor(newXP / 1000) + 1;
+    if (newLevel > previousLevel) {
+      levelListenersRef.current.forEach(listener => {
+        try {
+          listener(newLevel, previousLevel);
+        } catch (error) {
+          console.error('Error in level listener:', error);
+        }
+      });
+    }
+
+    // Trigger XP gain achievement event
+    await triggerAchievementEvent({
+      type: 'xp_gain',
+      data: { amount, totalXP: newXP }
+    });
 
     // For static export, save to local storage instead of API
     if (typeof window !== 'undefined') {
       try {
         const savedProgress = localStorage.getItem('learning-progress') || '{}';
         const data = JSON.parse(savedProgress);
-        data.totalXP = (data.totalXP || 0) + amount;
-        data.currentLevel = Math.floor(data.totalXP / 1000) + 1;
+        data.totalXP = newXP;
+        data.currentLevel = newLevel;
+        data.sessionXP = state.sessionXP + amount;
         localStorage.setItem('learning-progress', JSON.stringify(data));
       } catch (error) {
         console.log('XP saved locally for static export');
@@ -238,20 +325,86 @@ export function LearningProvider({ children }: { children: React.ReactNode }) {
   const completeLesson = async (lessonId: string, xpReward: number) => {
     updateProgress(lessonId, 100);
     addXP(xpReward);
-    
-    // Check for achievements
-    const completedLessons = Object.keys(state.progress).filter(
-      id => state.progress[id] === 100
-    ).length + 1;
-    
-    if (completedLessons === 1) {
-      addAchievement('first-lesson');
-    } else if (completedLessons === 10) {
-      addAchievement('ten-lessons');
-    } else if (completedLessons === 50) {
-      addAchievement('fifty-lessons');
+
+    // Trigger lesson completion achievement event
+    await triggerAchievementEvent({
+      type: 'lesson_complete',
+      data: {
+        lessonId,
+        xpReward,
+        completedLessons: Object.keys(state.progress).filter(id => state.progress[id] === 100).length + 1
+      }
+    });
+  };
+
+  // Enhanced quiz completion with achievement tracking
+  const completeQuiz = async (quizId: string, score: number, xpReward: number) => {
+    addXP(xpReward);
+
+    // Trigger quiz completion achievement event
+    await triggerAchievementEvent({
+      type: 'quiz_complete',
+      data: {
+        quizId,
+        score,
+        xpReward,
+        isPerfect: score === 100
+      }
+    });
+  };
+
+  // Enhanced project submission with achievement tracking
+  const submitProject = async (projectId: string, category: string, xpReward: number) => {
+    addXP(xpReward);
+
+    // Trigger project submission achievement event
+    await triggerAchievementEvent({
+      type: 'project_submit',
+      data: {
+        projectId,
+        category,
+        xpReward
+      }
+    });
+  };
+
+  // Daily login streak tracking
+  const updateLoginStreak = async () => {
+    const today = new Date().toDateString();
+    const lastLogin = localStorage.getItem('last-login-date');
+
+    if (lastLogin !== today) {
+      localStorage.setItem('last-login-date', today);
+
+      // Trigger login achievement event
+      await triggerAchievementEvent({
+        type: 'login',
+        data: { date: today }
+      });
     }
   };
+
+  // Real-time XP and level listener management
+  const addXPListener = useCallback((listener: (xp: number, previousXP: number) => void) => {
+    xpListenersRef.current.add(listener);
+
+    return () => {
+      xpListenersRef.current.delete(listener);
+    };
+  }, []);
+
+  const addLevelListener = useCallback((listener: (level: number, previousLevel: number) => void) => {
+    levelListenersRef.current.add(listener);
+
+    return () => {
+      levelListenersRef.current.delete(listener);
+    };
+  }, []);
+
+  // Reset session XP
+  const resetSessionXP = useCallback(() => {
+    dispatch({ type: 'RESET_SESSION_XP' });
+  }, []);
 
   const completeChallenge = (count: number = 1) => {
     dispatch({ type: 'COMPLETE_CHALLENGE', payload: count });
@@ -284,6 +437,12 @@ export function LearningProvider({ children }: { children: React.ReactNode }) {
         completeGoal,
         setTotalGoals,
         completeLesson,
+        completeQuiz,
+        submitProject,
+        triggerAchievementEvent,
+        addXPListener,
+        addLevelListener,
+        resetSessionXP,
         resetLearningState,
       }}
     >

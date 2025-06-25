@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { useSocket } from '@/lib/socket/client';
 import { useAuth } from '@/components/auth/EnhancedAuthProvider';
 import { useToast } from '@/components/ui/use-toast';
+import { announceToScreenReader } from '@/lib/utils/accessibility';
 
 interface MonacoCollaborativeEditorProps {
   sessionId: string;
@@ -255,6 +256,37 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
     editorRef.current = editor;
     monacoRef.current = monaco;
 
+    // Enhanced accessibility configuration
+    editor.updateOptions({
+      accessibilitySupport: 'on',
+      ariaLabel: 'Solidity code editor. Press F1 for keyboard shortcuts and accessibility help.',
+      screenReaderAnnounceInlineSuggestions: true,
+      cursorBlinking: 'smooth',
+      cursorSmoothCaretAnimation: 'on',
+      smoothScrolling: true,
+      mouseWheelScrollSensitivity: 1,
+      fastScrollSensitivity: 5,
+      scrollBeyondLastLine: false,
+      wordWrap: 'on',
+      wordWrapColumn: 80,
+      wrappingIndent: 'indent',
+      lineNumbers: 'on',
+      lineNumbersMinChars: 3,
+      glyphMargin: true,
+      folding: true,
+      foldingStrategy: 'indentation',
+      showFoldingControls: 'always',
+      unfoldOnClickAfterEndOfLine: true,
+      links: true,
+      colorDecorators: true,
+      lightbulb: {
+        enabled: true
+      },
+      codeActionsOnSave: {
+        'source.organizeImports': true
+      }
+    });
+
     // Configure Solidity language support
     monaco.languages.register({ id: 'solidity' });
     monaco.languages.setMonarchTokensProvider('solidity', {
@@ -279,10 +311,23 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
       }
     });
 
-    // Set up cursor and selection tracking
+    // Set up cursor and selection tracking with accessibility announcements
     editor.onDidChangeCursorPosition((e: any) => {
       if (!readOnly && user) {
         updateCursor(e.position.lineNumber, e.position.column);
+
+        // Announce cursor position for screen readers (throttled)
+        if (e.reason === monaco.editor.CursorChangeReason.Explicit) {
+          const position = e.position;
+          const lineContent = editor.getModel()?.getLineContent(position.lineNumber) || '';
+          const currentChar = lineContent.charAt(position.column - 1) || 'end of line';
+
+          // Create announcement for screen readers
+          setTimeout(() => {
+            const announcement = `Line ${position.lineNumber}, Column ${position.column}. ${currentChar !== 'end of line' ? `Character: ${currentChar}` : 'End of line'}`;
+            announceToScreenReader(announcement, 'polite');
+          }, 100);
+        }
       }
     });
 
@@ -295,6 +340,20 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
           selection.endLineNumber,
           selection.endColumn
         );
+
+        // Announce selection for screen readers
+        if (!selection.isEmpty()) {
+          const selectedText = editor.getModel()?.getValueInRange(selection) || '';
+          if (selectedText.length > 0 && selectedText.length < 100) {
+            setTimeout(() => {
+              announceToScreenReader(`Selected: ${selectedText}`, 'polite');
+            }, 100);
+          } else if (selectedText.length >= 100) {
+            setTimeout(() => {
+              announceToScreenReader(`Selected ${selectedText.length} characters`, 'polite');
+            }, 100);
+          }
+        }
       }
     });
 
@@ -508,22 +567,46 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
             <Save className="w-4 h-4 mr-1" />
             Save
           </Button>
-          <Button size="sm" onClick={handleCompile} className="bg-green-600 hover:bg-green-700">
-            <Play className="w-4 h-4 mr-1" />
+          <Button
+            size="sm"
+            onClick={handleCompile}
+            className="bg-green-600 hover:bg-green-700 min-h-[44px]"
+            aria-label="Compile Solidity code"
+            aria-describedby="compile-help"
+          >
+            <Play className="w-4 h-4 mr-1" aria-hidden="true" />
             Compile
           </Button>
-          <Button size="sm" variant="outline" onClick={copyToClipboard}>
-            <Copy className="w-4 h-4" />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={copyToClipboard}
+            aria-label="Copy code to clipboard"
+            className="min-h-[44px]"
+          >
+            <Copy className="w-4 h-4" aria-hidden="true" />
           </Button>
-          <Button size="sm" variant="outline" onClick={downloadCode}>
-            <Download className="w-4 h-4" />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={downloadCode}
+            aria-label="Download code as file"
+            className="min-h-[44px]"
+          >
+            <Download className="w-4 h-4" aria-hidden="true" />
           </Button>
           <Button
             size="sm"
             variant="outline"
             onClick={() => setIsFullscreen(!isFullscreen)}
+            aria-label={isFullscreen ? "Exit fullscreen mode" : "Enter fullscreen mode"}
+            className="min-h-[44px]"
           >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            {isFullscreen ? (
+              <Minimize2 className="w-4 h-4" aria-hidden="true" />
+            ) : (
+              <Maximize2 className="w-4 h-4" aria-hidden="true" />
+            )}
           </Button>
           <Button
             size="sm"
@@ -532,19 +615,20 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
               // Settings functionality
               console.log('Open editor settings');
             }}
-            title="Editor Settings"
+            aria-label="Open editor settings"
+            className="min-h-[44px]"
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-4 h-4" aria-hidden="true" />
           </Button>
           {lastSaved && (
             <Button
               size="sm"
               variant="outline"
-              className="text-green-400 border-green-400"
+              className="text-green-400 border-green-400 min-h-[44px]"
               disabled
-              title="Code saved successfully"
+              aria-label="Code saved successfully"
             >
-              <CheckCircle className="w-4 h-4" />
+              <CheckCircle className="w-4 h-4" aria-hidden="true" />
             </Button>
           )}
         </div>
@@ -588,7 +672,11 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
       </AnimatePresence>
 
       {/* Editor */}
-      <div className="flex-1 relative">
+      <div
+        className="flex-1 relative"
+        role="region"
+        aria-label="Code editor"
+      >
         <Editor
           height="100%"
           language={language}
@@ -610,6 +698,57 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
             renderWhitespace: 'selection',
             cursorBlinking: 'smooth',
             cursorSmoothCaretAnimation: 'on',
+            // Enhanced accessibility options
+            accessibilitySupport: 'on',
+            ariaLabel: readOnly
+              ? 'Read-only Solidity code editor. Use arrow keys to navigate.'
+              : 'Solidity code editor. Type to edit code. Press F1 for help.',
+            screenReaderAnnounceInlineSuggestions: true,
+            tabFocusMode: false,
+            unfoldOnClickAfterEndOfLine: true,
+            links: true,
+            colorDecorators: true,
+            lightbulb: {
+              enabled: !readOnly
+            },
+            hover: {
+              enabled: true,
+              delay: 300,
+              sticky: true
+            },
+            parameterHints: {
+              enabled: true,
+              cycle: true
+            },
+            suggest: {
+              showKeywords: true,
+              showSnippets: true,
+              showFunctions: true,
+              showConstructors: true,
+              showFields: true,
+              showVariables: true,
+              showClasses: true,
+              showStructs: true,
+              showInterfaces: true,
+              showModules: true,
+              showProperties: true,
+              showEvents: true,
+              showOperators: true,
+              showUnits: true,
+              showValues: true,
+              showConstants: true,
+              showEnums: true,
+              showEnumMembers: true,
+              showColors: true,
+              showFiles: true,
+              showReferences: true,
+              showFolders: true,
+              showTypeParameters: true,
+              showIssues: true,
+              showUsers: true,
+              filterGraceful: true,
+              snippetsPreventQuickSuggestions: false
+            }
           }}
         />
         

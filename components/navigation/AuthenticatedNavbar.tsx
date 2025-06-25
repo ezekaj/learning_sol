@@ -169,9 +169,11 @@ export const AuthenticatedNavbar: React.FC = () => {
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setShowMobileMenu(!showMobileMenu)}
-                className="md:hidden p-2 text-gray-400 hover:text-white transition-colors"
+                className="md:hidden p-2 text-gray-400 hover:text-white transition-colors min-h-[44px] min-w-[44px] touch-manipulation"
+                aria-label={showMobileMenu ? 'Close menu' : 'Open menu'}
+                aria-expanded={showMobileMenu}
               >
-                {showMobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {showMobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
           </div>
@@ -184,18 +186,19 @@ export const AuthenticatedNavbar: React.FC = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
               className="md:hidden bg-black/90 backdrop-blur-md border-t border-white/10"
             >
-              <div className="px-4 py-4 space-y-2">
+              <div className="px-4 py-4 space-y-2 max-h-[calc(100vh-4rem)] overflow-y-auto">
                 {navigationItems.map((item) => (
                   <Link
                     key={item.name}
                     href={item.href}
                     onClick={() => setShowMobileMenu(false)}
-                    className="flex items-center space-x-2 px-3 py-2 text-gray-300 hover:bg-white/10 rounded-lg transition-colors"
+                    className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:bg-white/10 rounded-lg transition-colors min-h-[44px] touch-manipulation active:bg-white/20"
                   >
-                    <item.icon className="w-4 h-4" />
-                    <span>{item.name}</span>
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    <span className="font-medium">{item.name}</span>
                   </Link>
                 ))}
               </div>

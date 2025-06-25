@@ -3,8 +3,19 @@ import { prisma } from '@/lib/prisma';
 import { PasswordUtils, registrationSchema } from '@/lib/auth/password';
 import { logger } from '@/lib/monitoring/logger';
 import { rateLimiter, rateLimitConfigs } from '@/lib/security/rateLimiting';
+import {
+  successResponse,
+  errorResponse,
+  validationErrorResponse,
+  withErrorHandling,
+  generateRequestId,
+  getClientIP
+} from '@/lib/api/utils';
+import { ApiErrorCode, HttpStatus } from '@/lib/api/types';
 
-export async function POST(request: NextRequest) {
+async function registerHandler(request: NextRequest) {
+  const requestId = generateRequestId();
+
   try {
     // Apply rate limiting
     const rateLimitMiddleware = rateLimiter.createMiddleware(rateLimitConfigs.registration);
@@ -14,24 +25,25 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    
+
     // Validate input data
     const validationResult = registrationSchema.safeParse(body);
     if (!validationResult.success) {
+      const errors = validationResult.error.errors.map(err => ({
+        field: err.path.join('.'),
+        message: err.message,
+        code: 'INVALID_FORMAT'
+      }));
+
       logger.warn('Registration validation failed', {
         metadata: {
           errors: validationResult.error.errors,
-          email: body.email
+          email: body.email,
+          requestId
         }
       });
-      
-      return NextResponse.json(
-        { 
-          error: 'Validation failed',
-          details: validationResult.error.errors
-        },
-        { status: 400 }
-      );
+
+      return validationErrorResponse(errors, requestId);
     }
 
     const { name, email, password } = validationResult.data;
@@ -43,12 +55,15 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       logger.warn('Registration attempt with existing email', {
-        metadata: { email }
+        metadata: { email, requestId }
       });
-      
-      return NextResponse.json(
-        { error: 'User with this email already exists' },
-        { status: 409 }
+
+      return errorResponse(
+        ApiErrorCode.RESOURCE_ALREADY_EXISTS,
+        'User with this email already exists',
+        HttpStatus.CONFLICT,
+        { field: 'email' },
+        requestId
       );
     }
 
@@ -94,29 +109,37 @@ export async function POST(request: NextRequest) {
       metadata: {
         userId: result.id,
         email: result.email,
-        name: result.name
+        name: result.name,
+        requestId,
+        ip: getClientIP(request)
       }
     });
 
     // Return user data (without password)
-    return NextResponse.json({
-      success: true,
-      message: 'User registered successfully',
-      user: {
-        id: result.id,
-        name: result.name,
-        email: result.email,
-        role: result.role,
-        createdAt: result.createdAt,
-      }
-    }, { status: 201 });
+    const responseData = {
+      id: result.id,
+      name: result.name,
+      email: result.email,
+      role: result.role,
+      createdAt: result.createdAt,
+    };
+
+    return successResponse(responseData, undefined, HttpStatus.CREATED, requestId);
 
   } catch (error) {
-    logger.error('Registration error', error instanceof Error ? error : new Error('Unknown error'));
+    logger.error('Registration error', error instanceof Error ? error : new Error('Unknown error'), {
+      metadata: { requestId }
+    });
 
-    return NextResponse.json(
-      { error: 'Internal server error during registration' },
-      { status: 500 }
+    return errorResponse(
+      ApiErrorCode.INTERNAL_SERVER_ERROR,
+      'Internal server error during registration',
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      undefined,
+      requestId
     );
   }
 }
+
+// Export handlers
+export const POST = withErrorHandling(registerHandler);

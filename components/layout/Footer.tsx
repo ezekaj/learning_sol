@@ -8,8 +8,8 @@ export function Footer() {
 
   const socialLinks = [
     { icon: Github, href: 'https://github.com/ezekaj/learning_sol', label: 'GitHub' },
-    { icon: Twitter, href: '#', label: 'Twitter' },
-    { icon: Linkedin, href: '#', label: 'LinkedIn' },
+    { icon: Twitter, href: 'https://twitter.com/zedigitaltech', label: 'Twitter' },
+    { icon: Linkedin, href: 'https://linkedin.com/company/zedigital', label: 'LinkedIn' },
     { icon: Mail, href: 'https://zedigital.tech/contact', label: 'Contact' },
   ];
 
@@ -20,25 +20,25 @@ export function Footer() {
         { name: 'Learn Solidity', href: '/learn' },
         { name: 'Code Lab', href: '/code' },
         { name: 'Collaborate', href: '/collaborate' },
-        { name: 'Documentation', href: '#' },
+        { name: 'Documentation', href: '/documentation' },
       ],
     },
     {
       title: 'Resources',
       links: [
-        { name: 'Tutorials', href: '#' },
-        { name: 'Examples', href: '#' },
-        { name: 'Best Practices', href: '#' },
-        { name: 'Security Guide', href: '#' },
+        { name: 'Tutorials', href: '/tutorials' },
+        { name: 'Examples', href: '/examples' },
+        { name: 'Best Practices', href: '/documentation#best-practices' },
+        { name: 'Security Guide', href: '/documentation#security' },
       ],
     },
     {
       title: 'Community',
       links: [
-        { name: 'Discord', href: '#' },
-        { name: 'Forum', href: '#' },
-        { name: 'Blog', href: '#' },
-        { name: 'Newsletter', href: '#' },
+        { name: 'Discord', href: 'https://discord.gg/solidity' },
+        { name: 'Forum', href: '/collaborate' },
+        { name: 'Blog', href: 'https://zedigital.tech/blog' },
+        { name: 'Newsletter', href: 'https://zedigital.tech/newsletter' },
       ],
     },
   ];
@@ -137,13 +137,13 @@ export function Footer() {
           </div>
           
           <div className="flex space-x-6 text-sm">
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">
+            <a href="/privacy" className="text-gray-400 hover:text-white transition-colors">
               Privacy Policy
             </a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">
+            <a href="/terms" className="text-gray-400 hover:text-white transition-colors">
               Terms of Service
             </a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">
+            <a href="/cookies" className="text-gray-400 hover:text-white transition-colors">
               Cookie Policy
             </a>
           </div>

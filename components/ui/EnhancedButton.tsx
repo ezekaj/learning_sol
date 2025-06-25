@@ -1,13 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Check, AlertCircle } from 'lucide-react';
+import { Loader2, Check, AlertCircle, Info } from 'lucide-react';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { buttonVariants } from '@/lib/animations/micro-interactions';
 import { cn } from '@/lib/utils';
+import { useAsyncButton, AsyncButtonOptions } from '@/lib/hooks/useAsyncButton';
+import Tooltip from '@/components/ui/Tooltip';
 
 interface EnhancedButtonProps extends ButtonProps {
+  // Async handling
+  asyncAction?: () => Promise<void>;
+  asyncOptions?: AsyncButtonOptions;
+
+  // Visual feedback states
   loading?: boolean;
   success?: boolean;
   error?: boolean;
@@ -15,14 +22,32 @@ interface EnhancedButtonProps extends ButtonProps {
   successText?: string;
   errorText?: string;
   showFeedback?: boolean;
+
+  // Accessibility & UX
+  tooltip?: string;
+  tooltipPosition?: 'top' | 'bottom' | 'left' | 'right';
+  ariaLabel?: string;
+  description?: string;
+
+  // Visual enhancements
   pulseOnHover?: boolean;
   glowEffect?: boolean;
   soundEffect?: boolean;
   hapticFeedback?: boolean;
+  rippleEffect?: boolean;
+
+  // Touch-friendly sizing
+  touchTarget?: boolean; // Ensures 44px minimum height
+
   children: React.ReactNode;
 }
 
 export function EnhancedButton({
+  // Async handling
+  asyncAction,
+  asyncOptions = {},
+
+  // Visual feedback states
   loading = false,
   success = false,
   error = false,
@@ -30,21 +55,61 @@ export function EnhancedButton({
   successText = 'Success!',
   errorText = 'Error',
   showFeedback = true,
+
+  // Accessibility & UX
+  tooltip,
+  tooltipPosition = 'top',
+  ariaLabel,
+  description,
+
+  // Visual enhancements
   pulseOnHover = false,
   glowEffect = false,
   soundEffect = false,
   hapticFeedback = true,
+  rippleEffect = true,
+
+  // Touch-friendly sizing
+  touchTarget = false,
+
   children,
   className,
   onClick,
   disabled,
   ...props
 }: EnhancedButtonProps) {
+  // Async button state management
+  const asyncButton = useAsyncButton(asyncOptions);
+
+  // Local state for visual feedback
   const [isPressed, setIsPressed] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Determine current state (prioritize async state over props)
+  const currentLoading = asyncButton.state.isLoading || loading;
+  const currentSuccess = asyncButton.state.isSuccess || success;
+  const currentError = asyncButton.state.isError || error;
+  const currentDisabled = asyncButton.state.isDisabled || disabled || currentLoading;
+
+  // Get current text based on state
+  const getCurrentText = () => {
+    if (currentLoading) return loadingText;
+    if (currentSuccess && showFeedback) return successText;
+    if (currentError && showFeedback) return errorText || asyncButton.state.error || 'Error';
+    return children;
+  };
+
+  // Get current icon based on state
+  const getCurrentIcon = () => {
+    if (currentLoading) return <Loader2 className="w-4 h-4 animate-spin" />;
+    if (currentSuccess && showFeedback) return <Check className="w-4 h-4" />;
+    if (currentError && showFeedback) return <AlertCircle className="w-4 h-4" />;
+    return null;
+  };
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (disabled || loading) return;
+    if (currentDisabled) return;
 
     // Haptic feedback for mobile devices
     if (hapticFeedback && 'vibrate' in navigator) {
@@ -57,19 +122,39 @@ export function EnhancedButton({
     }
 
     // Visual feedback
-    setIsPressed(true);
-    setTimeout(() => setIsPressed(false), 150);
-
-    // Success animation
-    if (success && showFeedback) {
-      setShowSuccessAnimation(true);
-      setTimeout(() => setShowSuccessAnimation(false), 2000);
+    if (rippleEffect) {
+      setIsPressed(true);
+      setTimeout(() => setIsPressed(false), 150);
     }
 
+    // Handle async action
+    if (asyncAction) {
+      await asyncButton.execute(asyncAction);
+    }
+
+    // Handle regular onClick
     if (onClick) {
       await onClick(e);
     }
   };
+
+  // Keyboard event handling
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick(e as any);
+    }
+    if (props.onKeyDown) {
+      props.onKeyDown(e);
+    }
+  };
+
+  // Cleanup async button on unmount
+  useEffect(() => {
+    return () => {
+      asyncButton.cleanup();
+    };
+  }, [asyncButton]);
 
   const playClickSound = () => {
     // Create a subtle click sound using Web Audio API
@@ -95,80 +180,83 @@ export function EnhancedButton({
   };
 
   const getButtonContent = () => {
-    if (loading) {
-      return (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex items-center space-x-2"
-        >
-          <Loader2 className="w-4 h-4 animate-spin" />
-          <span>{loadingText}</span>
-        </motion.div>
-      );
-    }
+    const icon = getCurrentIcon();
+    const text = getCurrentText();
 
-    if (success && showFeedback) {
-      return (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="flex items-center space-x-2"
-        >
-          <Check className="w-4 h-4" />
-          <span>{successText}</span>
-        </motion.div>
-      );
-    }
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex items-center justify-center space-x-2"
+        key={`${currentLoading}-${currentSuccess}-${currentError}`} // Force re-render on state change
+      >
+        {icon && (
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.2 }}
+            className="flex-shrink-0"
+          >
+            {icon}
+          </motion.span>
+        )}
 
-    if (error && showFeedback) {
-      return (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="flex items-center space-x-2"
+        <motion.span
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: icon ? 0.1 : 0 }}
+          className="font-medium"
         >
-          <AlertCircle className="w-4 h-4" />
-          <span>{errorText}</span>
-        </motion.div>
-      );
-    }
-
-    return children;
+          {text}
+        </motion.span>
+      </motion.div>
+    );
   };
 
-  const buttonVariant = loading ? 'loading' : isPressed ? 'tap' : 'idle';
+  const buttonVariant = currentLoading ? 'loading' : isPressed ? 'tap' : 'idle';
 
-  return (
+  const buttonContent = (
     <motion.div className="relative inline-block">
       <motion.div
         variants={buttonVariants}
         initial="idle"
         animate={buttonVariant}
-        whileHover={!disabled && !loading ? 'hover' : 'idle'}
-        whileTap={!disabled && !loading ? 'tap' : 'idle'}
+        whileHover={!currentDisabled ? 'hover' : 'idle'}
+        whileTap={!currentDisabled ? 'tap' : 'idle'}
         className={cn(
           'relative',
-          glowEffect && !disabled && 'filter drop-shadow-lg',
+          glowEffect && !currentDisabled && 'filter drop-shadow-lg',
           className
         )}
       >
         <Button
           {...props}
+          ref={buttonRef}
           onClick={handleClick}
-          disabled={disabled || loading}
+          onKeyDown={handleKeyDown}
+          disabled={currentDisabled}
+          aria-label={ariaLabel || (typeof children === 'string' ? children : undefined)}
+          aria-describedby={description ? `${props.id}-desc` : undefined}
           className={cn(
-            'relative overflow-hidden transition-all duration-200',
-            pulseOnHover && 'hover:animate-pulse',
-            success && showFeedback && 'bg-green-600 hover:bg-green-700',
-            error && showFeedback && 'bg-red-600 hover:bg-red-700',
-            loading && 'cursor-not-allowed',
+            'relative overflow-hidden transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2',
+            // Touch target sizing
+            touchTarget && 'min-h-[44px] min-w-[44px]',
+            // State-based styling
+            pulseOnHover && !currentDisabled && 'hover:animate-pulse',
+            currentSuccess && showFeedback && 'bg-green-600 hover:bg-green-700 text-white',
+            currentError && showFeedback && 'bg-red-600 hover:bg-red-700 text-white',
+            currentLoading && 'cursor-not-allowed opacity-75',
+            currentDisabled && !currentLoading && 'opacity-50 cursor-not-allowed',
+            // Hover effects
+            !currentDisabled && 'hover:scale-[1.02] active:scale-[0.98]',
+            // Focus styles
+            'focus:ring-blue-500/50',
             className
           )}
         >
           {/* Background ripple effect */}
           <AnimatePresence>
-            {isPressed && (
+            {isPressed && rippleEffect && (
               <motion.div
                 initial={{ scale: 0, opacity: 0.5 }}
                 animate={{ scale: 4, opacity: 0 }}
@@ -186,7 +274,7 @@ export function EnhancedButton({
           </span>
 
           {/* Glow effect */}
-          {glowEffect && !disabled && (
+          {glowEffect && !currentDisabled && (
             <motion.div
               className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-lg opacity-20 blur-sm"
               animate={{
@@ -201,6 +289,28 @@ export function EnhancedButton({
           )}
         </Button>
       </motion.div>
+
+      {/* Error message */}
+      {currentError && asyncButton.state.error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="absolute top-full left-0 right-0 mt-2 p-2 bg-red-600 text-white text-sm rounded-lg shadow-lg z-50"
+        >
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{asyncButton.state.error}</span>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Description */}
+      {description && (
+        <div id={`${props.id}-desc`} className="sr-only">
+          {description}
+        </div>
+      )}
 
       {/* Success animation overlay */}
       <AnimatePresence>
@@ -256,6 +366,17 @@ export function EnhancedButton({
       </AnimatePresence>
     </motion.div>
   );
+
+  // Wrap with tooltip if provided
+  if (tooltip) {
+    return (
+      <Tooltip content={tooltip} position={tooltipPosition}>
+        {buttonContent}
+      </Tooltip>
+    );
+  }
+
+  return buttonContent;
 }
 
 // Preset button variants for common use cases
@@ -269,6 +390,9 @@ export function PrimaryButton(props: EnhancedButtonProps) {
       )}
       glowEffect
       pulseOnHover
+      touchTarget
+      rippleEffect
+      showFeedback
     />
   );
 }
@@ -282,6 +406,9 @@ export function SecondaryButton(props: EnhancedButtonProps) {
         'border-white/20 hover:border-white/40 text-white hover:bg-white/10',
         props.className
       )}
+      touchTarget
+      rippleEffect
+      showFeedback
     />
   );
 }
@@ -324,6 +451,94 @@ export function FloatingActionButton(props: EnhancedButtonProps) {
       glowEffect
       soundEffect
       hapticFeedback
+      touchTarget
+      rippleEffect
+      showFeedback
     />
+  );
+}
+
+// Specialized async button components
+export function AsyncSubmitButton(props: Omit<EnhancedButtonProps, 'asyncAction'> & {
+  onSubmit: () => Promise<void>;
+  submitText?: string;
+}) {
+  const { onSubmit, submitText = 'Submit', ...buttonProps } = props;
+
+  return (
+    <PrimaryButton
+      {...buttonProps}
+      asyncAction={onSubmit}
+      loadingText="Submitting..."
+      successText="Submitted!"
+      asyncOptions={{
+        debounceMs: 500,
+        successDuration: 2000,
+        errorDuration: 4000,
+        preventDoubleClick: true,
+        ...props.asyncOptions
+      }}
+    >
+      {submitText}
+    </PrimaryButton>
+  );
+}
+
+export function AsyncSaveButton(props: Omit<EnhancedButtonProps, 'asyncAction'> & {
+  onSave: () => Promise<void>;
+}) {
+  const { onSave, ...buttonProps } = props;
+
+  return (
+    <EnhancedButton
+      {...buttonProps}
+      asyncAction={onSave}
+      loadingText="Saving..."
+      successText="Saved!"
+      className={cn(
+        'bg-green-600 hover:bg-green-700 text-white',
+        props.className
+      )}
+      asyncOptions={{
+        debounceMs: 300,
+        successDuration: 1500,
+        errorDuration: 3000,
+        preventDoubleClick: true,
+        ...props.asyncOptions
+      }}
+      touchTarget
+      rippleEffect
+      showFeedback
+    >
+      Save Changes
+    </EnhancedButton>
+  );
+}
+
+export function AsyncDeleteButton(props: Omit<EnhancedButtonProps, 'asyncAction'> & {
+  onDelete: () => Promise<void>;
+  confirmText?: string;
+}) {
+  const { onDelete, confirmText = 'Delete', ...buttonProps } = props;
+
+  return (
+    <DangerButton
+      {...buttonProps}
+      asyncAction={onDelete}
+      loadingText="Deleting..."
+      successText="Deleted!"
+      asyncOptions={{
+        debounceMs: 500,
+        successDuration: 1500,
+        errorDuration: 4000,
+        preventDoubleClick: true,
+        ...props.asyncOptions
+      }}
+      touchTarget
+      rippleEffect
+      showFeedback
+    >
+      {confirmText}
+    </DangerButton>
   );
 }

@@ -14,44 +14,60 @@ export default function HomePage() {
   return (
     <div className="relative">
       {/* Hero Section */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <HeroSection />
-      </Suspense>
+      <section aria-labelledby="hero-heading" role="banner">
+        <Suspense fallback={<LoadingSpinner />}>
+          <HeroSection />
+        </Suspense>
+      </section>
 
       {/* Enhanced Features Showcase - New Interactive UI */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <EnhancedFeaturesShowcase />
-      </Suspense>
+      <section aria-labelledby="features-heading" role="region">
+        <Suspense fallback={<LoadingSpinner />}>
+          <EnhancedFeaturesShowcase />
+        </Suspense>
+      </section>
 
       {/* Interactive Demo Section */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <InteractiveDemoSection />
-      </Suspense>
+      <section aria-labelledby="demo-heading" role="region">
+        <Suspense fallback={<LoadingSpinner />}>
+          <InteractiveDemoSection />
+        </Suspense>
+      </section>
 
       {/* Gamification Preview */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <GamificationPreview />
-      </Suspense>
+      <section aria-labelledby="gamification-heading" role="region">
+        <Suspense fallback={<LoadingSpinner />}>
+          <GamificationPreview />
+        </Suspense>
+      </section>
 
       {/* Features Section */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <FeaturesSection />
-      </Suspense>
+      <section aria-labelledby="platform-features-heading" role="region">
+        <Suspense fallback={<LoadingSpinner />}>
+          <FeaturesSection />
+        </Suspense>
+      </section>
 
       {/* Competitive Analysis */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <CompetitiveAnalysisSection />
-      </Suspense>
+      <section aria-labelledby="comparison-heading" role="region">
+        <Suspense fallback={<LoadingSpinner />}>
+          <CompetitiveAnalysisSection />
+        </Suspense>
+      </section>
 
       {/* Testimonials */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <TestimonialsSection />
-      </Suspense>
+      <section aria-labelledby="testimonials-heading" role="region">
+        <Suspense fallback={<LoadingSpinner />}>
+          <TestimonialsSection />
+        </Suspense>
+      </section>
 
       {/* Call to Action */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <CTASection />
-      </Suspense>
+      <section aria-labelledby="cta-heading" role="region">
+        <Suspense fallback={<LoadingSpinner />}>
+          <CTASection />
+        </Suspense>
+      </section>
     </div>
   );
 }

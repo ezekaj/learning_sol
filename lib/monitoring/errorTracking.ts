@@ -89,7 +89,14 @@ class ErrorTracker {
         },
 
         integrations: [
-          // Sentry v8 integrations are auto-enabled by default
+          // Use default integrations but filter out problematic ones
+          ...Sentry.getDefaultIntegrations({}).filter(integration => {
+            // Filter out integrations that cause OpenTelemetry warnings
+            const name = integration.name;
+            return !name.includes('OpenTelemetry') &&
+                   !name.includes('NodeFetch') &&
+                   !name.includes('Http');
+          }),
         ],
 
         // Performance monitoring
