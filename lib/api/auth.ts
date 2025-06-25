@@ -5,11 +5,20 @@ import { UserRole, ApiUser } from './types';
 import { UnauthorizedException, ForbiddenException } from './response';
 
 // JWT Configuration
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 const JWT_ISSUER = process.env.JWT_ISSUER || 'solidity-learning-platform';
 const JWT_AUDIENCE = process.env.JWT_AUDIENCE || 'solidity-learners';
+
+// Validate JWT_SECRET is provided
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required and must be at least 32 characters long');
+}
+
+if (JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET must be at least 32 characters long for security');
+}
 
 // Token Payload Interface
 export interface JwtPayload {

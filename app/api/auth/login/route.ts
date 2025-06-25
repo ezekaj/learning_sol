@@ -20,12 +20,14 @@ const loginSchema = z.object({
   rememberMe: z.boolean().optional().default(false)
 });
 
-// Mock user database - replace with actual database
+// SECURITY WARNING: Mock user database - MUST be replaced with actual database in production
+// These are development-only test accounts with known passwords
+// TODO: Remove this mock data and implement proper database integration
 const mockUsers = [
   {
     id: '1',
     email: 'student@example.com',
-    password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/VcSAg/9qm', // secret123
+    password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/VcSAg/9qm', // Development only: secret123
     name: 'John Student',
     role: 'STUDENT' as const,
     status: 'ACTIVE' as const,
@@ -188,7 +190,28 @@ async function loginHandler(request: NextRequest) {
     }
     
     // Generate JWT tokens
-    const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      return errorResponse(
+        ApiErrorCode.INTERNAL_SERVER_ERROR,
+        'Server configuration error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        undefined,
+        requestId
+      );
+    }
+
+    // Validate JWT secret length for security
+    if (jwtSecret.length < 32) {
+      console.error('JWT_SECRET is too short. Must be at least 32 characters.');
+      return errorResponse(
+        ApiErrorCode.INTERNAL_SERVER_ERROR,
+        'Server configuration error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        undefined,
+        requestId
+      );
+    }
     const tokenExpiry = rememberMe ? '30d' : '24h';
     const refreshTokenExpiry = rememberMe ? '90d' : '7d';
     

@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Trophy, 
-  X, 
-  Star, 
-  Zap, 
-  Gift, 
+import {
+  Trophy,
+  X,
+  Star,
+  Zap,
+  Gift,
   Crown,
   Sparkles,
-  CheckCircle
+  CheckCircle,
+  Award
 } from 'lucide-react';
 import { Achievement, AchievementNotification as IAchievementNotification } from '@/lib/achievements/types';
 import { ACHIEVEMENT_RARITIES } from '@/lib/achievements/data';
@@ -298,6 +299,16 @@ export function AchievementNotification({
                         </span>
                       </div>
                     )}
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        </GlassCard>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
 
 // Notification Manager Component
 export function AchievementNotificationManager() {
@@ -353,239 +364,7 @@ export function AchievementNotificationManager() {
   );
 }
 
-// Achievement Notification Component
-export function AchievementNotification({
-  notification,
-  achievement,
-  onDismiss,
-  onCelebrate,
-  position = 'top-right',
-  autoHide = true,
-  hideDelay = 8000
-}: AchievementNotificationProps) {
-  const [isVisible, setIsVisible] = useState(true);
-  const rarity = ACHIEVEMENT_RARITIES[achievement.rarity];
 
-  useEffect(() => {
-    if (autoHide) {
-      const timer = setTimeout(() => {
-        setIsVisible(false);
-        setTimeout(onDismiss, 500);
-      }, hideDelay);
-
-      return () => clearTimeout(timer);
-    }
-  }, [autoHide, hideDelay, onDismiss]);
-
-  const handleDismiss = () => {
-    setIsVisible(false);
-    setTimeout(onDismiss, 500);
-  };
-
-  const handleCelebrate = () => {
-    onCelebrate?.();
-  };
-
-  return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, y: position.includes('top') ? -100 : 100 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.8, y: position.includes('top') ? -100 : 100 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className={cn(
-            'fixed z-50 max-w-md',
-            position === 'top-right' && 'top-4 right-4',
-            position === 'top-left' && 'top-4 left-4',
-            position === 'bottom-right' && 'bottom-4 right-4',
-            position === 'bottom-left' && 'bottom-4 left-4',
-            position === 'center' && 'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'
-          )}
-        >
-          <GlassCard
-            className={cn(
-              'relative overflow-hidden border-2',
-              rarity.borderColor,
-              rarity.glowEffect
-            )}
-          >
-            <div className="p-6">
-              {/* Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <motion.div
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ delay: 0.2, type: 'spring', stiffness: 300 }}
-                    className={cn(
-                      'w-12 h-12 rounded-xl flex items-center justify-center text-2xl',
-                      rarity.bgColor
-                    )}
-                  >
-                    {achievement.icon}
-                  </motion.div>
-
-                  <div>
-                    <motion.h3
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3 }}
-                      className="text-lg font-bold text-white"
-                    >
-                      Achievement Unlocked!
-                    </motion.h3>
-                    <motion.p
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.4 }}
-                      className={cn('text-sm font-medium', rarity.textColor)}
-                    >
-                      {rarity.name} Achievement
-                    </motion.p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleDismiss}
-                  className="text-gray-400 hover:text-white transition-colors p-1 rounded-full hover:bg-white/10"
-                  aria-label="Dismiss notification"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Achievement Details */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="mb-4"
-              >
-                <h4 className="text-xl font-bold text-white mb-2">
-                  {achievement.title}
-                </h4>
-                <p className="text-gray-300 text-sm mb-3">
-                  {achievement.description}
-                </p>
-                <p className="text-blue-300 text-sm">
-                  {notification.message}
-                </p>
-              </motion.div>
-
-              {/* Rewards */}
-              {notification.rewards && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className="mb-4 p-3 bg-white/5 rounded-lg border border-white/10"
-                >
-                  <h5 className="text-sm font-semibold text-white mb-2 flex items-center">
-                    <Gift className="w-4 h-4 mr-2 text-yellow-400" />
-                    Rewards
-                  </h5>
-
-                  <div className="space-y-2">
-                    {notification.rewards.xp && (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Zap className="w-4 h-4 text-yellow-400" />
-                          <span className="text-sm text-gray-300">Experience Points</span>
-                        </div>
-                        <span className="text-sm font-medium text-yellow-400">
-                          +{notification.rewards.xp} XP
-                        </span>
-                      </div>
-                    )}
-
-                    {notification.rewards.badges && notification.rewards.badges.length > 0 && (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Award className="w-4 h-4 text-purple-400" />
-                          <span className="text-sm text-gray-300">Badges</span>
-                        </div>
-                        <span className="text-sm font-medium text-purple-400">
-                          {notification.rewards.badges.length} badge(s)
-                        </span>
-                      </div>
-                    )}
-
-                    {notification.rewards.unlocks && notification.rewards.unlocks.length > 0 && (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Sparkles className="w-4 h-4 text-green-400" />
-                          <span className="text-sm text-gray-300">Unlocks</span>
-                        </div>
-                        <span className="text-sm font-medium text-green-400">
-                          {notification.rewards.unlocks.length} item(s)
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Action Buttons */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-                className="flex space-x-3"
-              >
-                <EnhancedButton
-                  onClick={handleDismiss}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Awesome!
-                </EnhancedButton>
-                
-                {notification.type === 'unlock' && (
-                  <EnhancedButton
-                    onClick={() => {
-                      // Navigate to achievements page or show details
-                      handleDismiss();
-                    }}
-                    variant="ghost"
-                    className="text-white hover:bg-white/10"
-                    touchTarget
-                  >
-                    View All
-                  </EnhancedButton>
-                )}
-              </motion.div>
-
-              {/* Progress indicator for auto-hide */}
-              {autoHide && (
-                <motion.div
-                  initial={{ width: '100%' }}
-                  animate={{ width: '0%' }}
-                  transition={{ duration: hideDelay / 1000, ease: 'linear' }}
-                  className="absolute bottom-0 left-0 h-1 bg-blue-500 rounded-full"
-                />
-              )}
-            </div>
-
-            {/* Shine effect for legendary achievements */}
-            {achievement.rarity === 'legendary' && (
-              <motion.div
-                initial={{ x: '-100%', opacity: 0 }}
-                animate={{ x: '100%', opacity: [0, 1, 0] }}
-                transition={{ 
-                  duration: 2, 
-                  repeat: Infinity, 
-                  repeatDelay: 3,
-                  ease: 'easeInOut'
-                }}
-                className="absolute inset-y-0 w-8 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
-              />
-            )}
-          </GlassCard>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
 
 // Toast notification for quick achievements
 export function AchievementToast({
