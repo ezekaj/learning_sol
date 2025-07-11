@@ -31,6 +31,35 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting database seeding...');
 
+  // Create test users
+  console.log('👥 Creating test users...');
+
+  // Create admin user
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'admin@test.com' },
+    update: {},
+    create: {
+      email: 'admin@test.com',
+      name: 'Admin User',
+      role: 'ADMIN',
+      password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password: "password"
+    },
+  });
+  console.log(`  ✅ Created admin user: ${adminUser.email}`);
+
+  // Create regular user
+  const regularUser = await prisma.user.upsert({
+    where: { email: 'user@test.com' },
+    update: {},
+    create: {
+      email: 'user@test.com',
+      name: 'Regular User',
+      role: 'STUDENT',
+      password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password: "password"
+    },
+  });
+  console.log(`  ✅ Created regular user: ${regularUser.email}`);
+
   // Create default achievements
   const achievements = [
     {
@@ -77,11 +106,18 @@ async function main() {
 
   console.log('📊 Creating achievements...');
   for (const achievement of achievements) {
-    await prisma.achievement.upsert({
-      where: { title: achievement.title },
-      update: achievement,
-      create: achievement,
+    const existing = await prisma.achievement.findFirst({
+      where: { title: achievement.title }
     });
+
+    if (!existing) {
+      await prisma.achievement.create({
+        data: achievement,
+      });
+      console.log(`  ✅ Created achievement: ${achievement.title}`);
+    } else {
+      console.log(`  ⏭️  Achievement already exists: ${achievement.title}`);
+    }
   }
 
   // Create courses and modules from static data

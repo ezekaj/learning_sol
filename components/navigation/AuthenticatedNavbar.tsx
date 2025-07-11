@@ -2,19 +2,21 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  User, 
-  Settings, 
-  LogOut, 
-  Menu, 
-  X, 
-  Home, 
-  BookOpen, 
-  Code, 
-  Users, 
+import {
+  User,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+  Home,
+  BookOpen,
+  Code,
+  Users,
   Trophy,
   Bell,
-  Search
+  Search,
+  Briefcase,
+  Award
 } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { AuthModal } from '@/components/auth/AuthModal';
@@ -32,6 +34,8 @@ export const AuthenticatedNavbar: React.FC = () => {
     { name: 'Code Lab', href: '/code', icon: Code },
     { name: 'Collaborate', href: '/collaborate', icon: Users },
     { name: 'Achievements', href: '/achievements', icon: Trophy },
+    { name: 'Jobs', href: '/jobs', icon: Briefcase },
+    { name: 'Certificates', href: '/certificates', icon: Award },
   ];
 
   const handleLogout = async () => {

@@ -327,7 +327,7 @@ export function useError() {
 export function useAsyncError() {
   const { reportError, showApiError } = useError();
 
-  const handleAsyncError = useCallback(<T>(
+  const handleAsyncError = useCallback(<T extends any>(
     asyncFn: () => Promise<T>,
     errorContext?: Partial<AppError>
   ): Promise<T | null> => {

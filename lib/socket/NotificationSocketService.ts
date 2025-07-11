@@ -65,7 +65,7 @@ export type SocketEvent =
  */
 export class NotificationSocketService {
   private socket: Socket | null = null;
-  private eventHandlers: Map<string, Function[]> = new Map();
+  private eventHandlers: Map<string, ((...args: any[]) => void)[]> = new Map();
   private isConnected = false;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
@@ -205,7 +205,7 @@ export class NotificationSocketService {
   /**
    * Subscribe to a specific event
    */
-  on(event: string, handler: Function): () => void {
+  on(event: string, handler: (...args: any[]) => void): () => void {
     if (!this.eventHandlers.has(event)) {
       this.eventHandlers.set(event, []);
     }

@@ -250,7 +250,7 @@ export const SecurityUtils = {
       crypto.getRandomValues(randomArray);
     } else {
       // Fallback for Node.js
-      const nodeCrypto = require('crypto');
+      const nodeCrypto = await import('crypto');
       const buffer = nodeCrypto.randomBytes(length);
       for (let i = 0; i < length; i++) {
         randomArray[i] = buffer[i];

@@ -1,5 +1,13 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+// Import the local LLM service
+interface LocalLLMService {
+  generateResponse(prompt: string, context?: string): Promise<string>;
+  analyzeCode(code: string): Promise<any>;
+  generateSmartContract(description: string, requirements: string[]): Promise<any>;
+  isHealthy(): Promise<boolean>;
+}
+
 export interface AIResponse {
   message: string;
   suggestions?: string[];
@@ -40,10 +48,12 @@ export class LearningAssistant {
   private genAI: GoogleGenerativeAI;
   private model: any;
   private streamingModel: any;
+  private localLLM: LocalLLMService | null = null;
 
   constructor() {
     const apiKey = process.env.GEMINI_API_KEY;
 
+    // Initialize Gemini
     if (apiKey && apiKey !== 'undefined' && apiKey.trim() !== '') {
       try {
         this.genAI = new GoogleGenerativeAI(apiKey);
@@ -61,6 +71,29 @@ export class LearningAssistant {
       this.genAI = null as any;
       this.model = null as any;
       this.streamingModel = null as any;
+    }
+
+    // Initialize Local LLM if available
+    this.initializeLocalLLM();
+  }
+
+  private async initializeLocalLLM() {
+    try {
+      // Dynamic import to avoid build errors if the service doesn't exist
+      const { LocalLLMService } = await import('./LocalLLMService');
+      this.localLLM = new LocalLLMService();
+      
+      // Test if local LLM is healthy
+      const isHealthy = await this.localLLM.isHealthy();
+      if (isHealthy) {
+        console.log('✅ Local LLM initialized and healthy');
+      } else {
+        console.warn('⚠️ Local LLM initialized but not responding');
+        this.localLLM = null;
+      }
+    } catch (error) {
+      console.warn('⚠️ Local LLM not available, using Gemini fallback only:', error.message);
+      this.localLLM = null;
     }
   }
 
@@ -583,5 +616,24 @@ Be supportive, clear, and practical in your response.
       optimizedCode: `struct User {\n    uint128 balance;  // Instead of uint256\n    uint128 timestamp;\n    bool active;\n}`,
       explanation: 'Packing variables into single storage slots saves gas'
     }];
+  }
+
+  // Enhanced method to choose the best AI service
+  private async selectAIService(): Promise<'local' | 'gemini' | 'mock'> {
+    // Prefer local LLM for code-related tasks
+    if (this.localLLM) {
+      try {
+        const isHealthy = await this.localLLM.isHealthy();
+        if (isHealthy) return 'local';
+      } catch (error) {
+        console.warn('Local LLM health check failed:', error);
+      }
+    }
+
+    // Fallback to Gemini
+    if (this.model) return 'gemini';
+
+    // Last resort: mock responses
+    return 'mock';
   }
 }

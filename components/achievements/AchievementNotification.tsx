@@ -303,9 +303,9 @@ export function AchievementNotification({
                 </motion.div>
               )}
             </div>
-          </motion.div>
-        </GlassCard>
-      </motion.div>
+          </GlassCard>
+        </motion.div>
+      )}
     </AnimatePresence>
   );
 }

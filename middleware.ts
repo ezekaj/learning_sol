@@ -9,51 +9,75 @@ const PROTECTED_ROUTES = {
   '/admin': {
     roles: ['ADMIN'],
     requireAuth: true,
-    redirectTo: '/auth'
+    redirectTo: '/auth/login'
   },
   
   // Profile routes - require authentication
   '/profile': {
     requireAuth: true,
-    redirectTo: '/auth'
+    redirectTo: '/auth/login'
   },
-  
+
   // Settings routes - require authentication
   '/settings': {
     requireAuth: true,
-    redirectTo: '/auth'
+    redirectTo: '/auth/login'
   },
-  
+
   // Instructor routes - require INSTRUCTOR or ADMIN role
   '/instructor': {
     roles: ['INSTRUCTOR', 'ADMIN'],
     requireAuth: true,
-    redirectTo: '/auth'
+    redirectTo: '/auth/login'
   },
-  
+
   // Mentor routes - require MENTOR, INSTRUCTOR, or ADMIN role
   '/mentor': {
     roles: ['MENTOR', 'INSTRUCTOR', 'ADMIN'],
     requireAuth: true,
-    redirectTo: '/auth'
+    redirectTo: '/auth/login'
   },
   
   // Dashboard - require authentication
   '/dashboard': {
     requireAuth: true,
-    redirectTo: '/auth'
+    redirectTo: '/auth/login'
+  },
+
+  // Profile - require authentication
+  '/profile': {
+    requireAuth: true,
+    redirectTo: '/auth/login'
+  },
+
+  // Jobs - require authentication
+  '/jobs': {
+    requireAuth: true,
+    redirectTo: '/auth/login'
+  },
+
+  // Certificates - require authentication
+  '/certificates': {
+    requireAuth: true,
+    redirectTo: '/auth/login'
+  },
+
+  // Achievements - require authentication
+  '/achievements': {
+    requireAuth: true,
+    redirectTo: '/auth/login'
   },
   
   // Course management - require INSTRUCTOR or ADMIN
   '/courses/create': {
     roles: ['INSTRUCTOR', 'ADMIN'],
     requireAuth: true,
-    redirectTo: '/auth'
+    redirectTo: '/auth/login'
   },
   '/courses/manage': {
     roles: ['INSTRUCTOR', 'ADMIN'],
     requireAuth: true,
-    redirectTo: '/auth'
+    redirectTo: '/auth/login'
   },
   
   // API routes protection

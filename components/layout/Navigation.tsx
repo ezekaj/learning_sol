@@ -22,7 +22,9 @@ import {
   Brain,
   Rocket,
   Shield,
-  Palette
+  Palette,
+  Briefcase,
+  Award
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -69,13 +71,14 @@ export function Navigation() {
     { href: '/code', label: 'Code Lab', icon: Code },
     { href: '/collaborate', label: 'Collaborate', icon: Users },
     { href: '/achievements', label: 'Achievements', icon: Trophy },
+    { href: '/jobs', label: 'Jobs', icon: Briefcase },
+    { href: '/certificates', label: 'Certificates', icon: Award },
   ];
 
   // Development-only navigation items
   const devNavigationItems = process.env.NODE_ENV === 'development' ? [
     { href: '/auth/local-test', label: 'Auth Test', icon: Shield },
     { href: '/auth/demo', label: 'Auth Demo', icon: Palette },
-    { href: '/admin', label: 'Admin', icon: Settings },
   ] : [];
 
   const allNavigationItems = [...navigationItems, ...devNavigationItems];
@@ -123,7 +126,15 @@ export function Navigation() {
                   className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white/10"
                   role="menuitem"
                   tabIndex={0}
-                  aria-label={`${item.label} - ${item.href === '/learn' ? 'Interactive lessons' : item.href === '/code' ? 'Code playground' : item.href === '/collaborate' ? 'Real-time collaboration' : 'View achievements'}`}
+                  aria-label={`${item.label} - ${
+                    item.href === '/learn' ? 'Interactive lessons' :
+                    item.href === '/code' ? 'Code playground' :
+                    item.href === '/collaborate' ? 'Real-time collaboration' :
+                    item.href === '/achievements' ? 'View achievements' :
+                    item.href === '/jobs' ? 'Browse job opportunities' :
+                    item.href === '/certificates' ? 'View certificates' :
+                    item.label
+                  }`}
                 >
                   <item.icon className="w-4 h-4" aria-hidden="true" />
                   <span className="font-medium">{item.label}</span>
@@ -229,7 +240,15 @@ export function Navigation() {
                     onClick={() => setIsOpen(false)}
                     role="menuitem"
                     tabIndex={0}
-                    aria-label={`${item.label} - ${item.href === '/learn' ? 'Interactive lessons' : item.href === '/code' ? 'Code playground' : item.href === '/collaborate' ? 'Real-time collaboration' : 'View achievements'}`}
+                    aria-label={`${item.label} - ${
+                      item.href === '/learn' ? 'Interactive lessons' :
+                      item.href === '/code' ? 'Code playground' :
+                      item.href === '/collaborate' ? 'Real-time collaboration' :
+                      item.href === '/achievements' ? 'View achievements' :
+                      item.href === '/jobs' ? 'Browse job opportunities' :
+                      item.href === '/certificates' ? 'View certificates' :
+                      item.label
+                    }`}
                   >
                     <item.icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                     <span className="font-medium">{item.label}</span>
@@ -288,6 +307,8 @@ function StaticNavigation() {
     { href: '/code', label: 'Code Lab', icon: Code },
     { href: '/collaborate', label: 'Collaborate', icon: Users },
     { href: '/achievements', label: 'Achievements', icon: Trophy },
+    { href: '/jobs', label: 'Jobs', icon: Briefcase },
+    { href: '/certificates', label: 'Certificates', icon: Award },
   ];
 
   return (

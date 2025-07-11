@@ -266,7 +266,7 @@ export interface CommunityError {
   timestamp: Date;
 }
 
-export type CommunityErrorCode = 
+export type CommunityErrorCode =
   | 'LEADERBOARD_FETCH_FAILED'
   | 'STATS_FETCH_FAILED'
   | 'WEBSOCKET_CONNECTION_FAILED'
@@ -276,6 +276,21 @@ export type CommunityErrorCode =
   | 'INVALID_FILTERS'
   | 'EXPORT_FAILED'
   | 'UPDATE_FAILED';
+
+// Community Error class
+export class CommunityError extends Error {
+  public code: CommunityErrorCode;
+  public details?: any;
+  public timestamp: Date;
+
+  constructor(code: CommunityErrorCode, message: string, details?: any) {
+    super(message);
+    this.name = 'CommunityError';
+    this.code = code;
+    this.details = details;
+    this.timestamp = new Date();
+  }
+}
 
 // Performance monitoring types
 export interface PerformanceMetrics {

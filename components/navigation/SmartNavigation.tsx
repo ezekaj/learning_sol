@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  Home, 
-  ChevronRight, 
-  BookOpen, 
-  Code, 
-  Users, 
+import {
+  ArrowLeft,
+  Home,
+  ChevronRight,
+  BookOpen,
+  Code,
+  Users,
   Trophy,
   Settings,
   User,
@@ -18,7 +18,9 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  Zap
+  Zap,
+  Briefcase,
+  Award
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSettings } from '@/lib/hooks/useSettings';
@@ -134,6 +136,8 @@ export function SmartBreadcrumbs({
         case 'code': icon = Code; break;
         case 'collaborate': icon = Users; break;
         case 'achievements': icon = Trophy; break;
+        case 'jobs': icon = Briefcase; break;
+        case 'certificates': icon = Award; break;
         case 'settings': icon = Settings; break;
         case 'profile': icon = User; break;
         default: icon = undefined;

@@ -123,7 +123,7 @@ export class RetryManager {
 // Offline detection and management
 export class OfflineManager {
   private static instance: OfflineManager;
-  private isOnline: boolean = navigator.onLine;
+  private isOnline: boolean = typeof navigator !== 'undefined' ? navigator.onLine : true;
   private config: OfflineConfig;
   private checkInterval: NodeJS.Timeout | null = null;
   private listeners: Set<(isOnline: boolean) => void> = new Set();
@@ -192,7 +192,7 @@ export class OfflineManager {
   }
 
   private async checkConnection(): Promise<boolean> {
-    if (!navigator.onLine) {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
       this.setOnlineStatus(false);
       return false;
     }

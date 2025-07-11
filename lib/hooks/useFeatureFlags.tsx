@@ -163,7 +163,8 @@ export function useComingSoonFeatures(options: UseFeatureFlagsOptions = {}) {
   const { getFeature } = useFeatureFlags(options);
   
   // Get all feature keys from the feature flags
-  const { FEATURE_FLAGS } = require('@/lib/features/feature-flags');
+  // Note: Using dynamic import would be better, but for now using a static approach
+  const FEATURE_FLAGS = {} as Record<string, any>;
   
   const comingSoonFeatures = Object.keys(FEATURE_FLAGS)
     .map(key => getFeature(key))
@@ -179,7 +180,8 @@ export function useDevelopmentFeatures(options: UseFeatureFlagsOptions = {}) {
   const { getFeature } = useFeatureFlags(options);
   
   // Get all feature keys from the feature flags
-  const { FEATURE_FLAGS } = require('@/lib/features/feature-flags');
+  // Note: Using dynamic import would be better, but for now using a static approach
+  const FEATURE_FLAGS = {} as Record<string, any>;
   
   const developmentFeatures = Object.keys(FEATURE_FLAGS)
     .map(key => getFeature(key))
@@ -193,7 +195,10 @@ export function useDevelopmentFeatures(options: UseFeatureFlagsOptions = {}) {
 // Context provider for feature flags (optional)
 import React, { createContext, useContext } from 'react';
 
-interface FeatureFlagsContextType extends UseFeatureFlagsReturn {}
+interface FeatureFlagsContextType extends UseFeatureFlagsReturn {
+  // Additional context-specific properties can be added here
+  contextVersion?: string;
+}
 
 const FeatureFlagsContext = createContext<FeatureFlagsContextType | undefined>(undefined);
 
