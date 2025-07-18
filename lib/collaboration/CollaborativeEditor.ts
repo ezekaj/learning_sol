@@ -248,8 +248,8 @@ export class CollaborativeEditor {
   // Transform cursor position based on operation
   private transformCursorPosition(position: any, operation: TextOperation): any {
     // Simplified cursor transformation - in production, this would be more sophisticated
-    let line = position.lineNumber;
-    let column = position.column;
+    const line = position.lineNumber;
+    const column = position.column;
     
     // This is a basic implementation - real cursor transformation is complex
     // and depends on the specific changes made by the operation

@@ -24,8 +24,9 @@ import { AsyncSubmitButton } from '@/components/ui/EnhancedButton';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { loginSchema, type LoginData } from '@/lib/auth/password';
 import { cn } from '@/lib/utils';
+import { withAuthErrorBoundary } from '@/lib/components/ErrorBoundaryHOCs';
 
-export default function LoginPage() {
+function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get('returnUrl') || '/dashboard';
@@ -357,3 +358,11 @@ export default function LoginPage() {
     </div>
   );
 }
+
+// Wrap with auth error boundary for specialized authentication error handling
+export default withAuthErrorBoundary(LoginPage, {
+  name: 'LoginPage',
+  enableRetry: true,
+  maxRetries: 1,
+  showErrorDetails: process.env.NODE_ENV === 'development'
+});

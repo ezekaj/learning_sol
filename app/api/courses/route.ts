@@ -12,6 +12,7 @@ import {
   methodNotAllowedResponse
 } from '@/lib/api/utils';
 import { ApiErrorCode, HttpStatus, ApiCourse, DifficultyLevel, CourseStatus } from '@/lib/api/types';
+import { logger } from '@/lib/api/logger';
 
 // Validation schemas
 const createCourseSchema = z.object({
@@ -183,7 +184,7 @@ async function getCoursesHandler(request: NextRequest) {
     const { page, limit, sortBy, sortOrder, search, category, difficulty, status, instructorId } = validation.data;
     
     // Filter courses
-    let filteredCourses = mockCourses.filter(course => {
+    const filteredCourses = mockCourses.filter(course => {
       if (search) {
         const searchLower = search.toLowerCase();
         if (!course.title.toLowerCase().includes(searchLower) && 
@@ -228,7 +229,12 @@ async function getCoursesHandler(request: NextRequest) {
     return successResponse(paginatedCourses, meta, HttpStatus.OK, requestId);
     
   } catch (error) {
-    console.error('Get courses error:', error);
+    logger.error('Get courses error', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      operation: 'get-courses',
+      requestId
+    }, error instanceof Error ? error : undefined);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to fetch courses',
@@ -294,7 +300,12 @@ async function createCourseHandler(request: NextRequest) {
     return successResponse(newCourse, undefined, HttpStatus.CREATED, requestId);
     
   } catch (error) {
-    console.error('Create course error:', error);
+    logger.error('Create course error', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      operation: 'create-course',
+      requestId
+    }, error instanceof Error ? error : undefined);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to create course',

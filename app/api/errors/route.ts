@@ -54,7 +54,7 @@ async function getErrorsHandler(request: NextRequest) {
     const recentEvents = errorTracker.getRecentEvents(1000); // Get more events for filtering
 
     // Filter events based on query parameters
-    let filteredEvents = recentEvents.filter(event => {
+    const filteredEvents = recentEvents.filter(event => {
       if (level && event.level !== level) return false;
       if (component && event.context.component !== component) return false;
       if (search && !event.message.toLowerCase().includes(search.toLowerCase())) return false;

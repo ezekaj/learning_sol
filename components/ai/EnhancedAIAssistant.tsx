@@ -9,6 +9,7 @@ import {
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import CustomToast from '../ui/CustomToast';
+import { withAsyncErrorBoundary } from '@/lib/components/ErrorBoundaryHOCs';
 
 interface AIMessage {
   id: string;
@@ -44,7 +45,7 @@ const quickActions = [
   { id: 'exercise', label: 'Practice Exercise', icon: Star, type: 'generate-exercise' },
 ];
 
-export const EnhancedAIAssistant: React.FC<EnhancedAIAssistantProps> = ({
+const EnhancedAIAssistantComponent: React.FC<EnhancedAIAssistantProps> = ({
   onCodeAnalysis,
   onConceptExplanation,
   currentCode = '',
@@ -537,5 +538,14 @@ export const EnhancedAIAssistant: React.FC<EnhancedAIAssistantProps> = ({
     </div>
   );
 };
+
+// Wrap with async error boundary for AI API call error handling
+export const EnhancedAIAssistant = withAsyncErrorBoundary(EnhancedAIAssistantComponent, {
+  name: 'EnhancedAIAssistant',
+  operationType: 'api',
+  enableRetry: true,
+  maxRetries: 3,
+  showErrorDetails: process.env.NODE_ENV === 'development'
+});
 
 export default EnhancedAIAssistant;

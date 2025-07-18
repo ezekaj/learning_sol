@@ -2,15 +2,12 @@
 
 > Next-generation Solidity learning platform with AI-powered features, interactive coding, immersive blockchain education, and comprehensive accessibility support.
 
-[![Build and Test](https://github.com/ezekaj/learning_sol/actions/workflows/deploy.yml/badge.svg)](https://github.com/ezekaj/learning_sol/actions/workflows/deploy.yml)
-[![Server Deployment](https://img.shields.io/badge/Deployment-Server%20Ready-green)](https://github.com/ezekaj/learning_sol)
 [![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-15.1.0-black)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15.3.4-black)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.0.0-blue)](https://react.dev/)
 [![Performance](https://img.shields.io/badge/Lighthouse-90%2B-brightgreen)](https://web.dev/performance-scoring/)
 [![Accessibility](https://img.shields.io/badge/WCAG-2.1%20AA-blue)](https://www.w3.org/WAI/WCAG21/quickref/)
-[![PWA](https://img.shields.io/badge/PWA-Ready-purple)](https://web.dev/progressive-web-apps/)
-
-<!-- Build fix: Case sensitivity resolved for UI components -->
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ## ✨ Features
 
@@ -75,23 +72,16 @@
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Node.js 20.0.0 or higher** (Required for modern packages: @google/genai, @playwright/test)
-- **npm 10.0.0 or higher**
+- **Node.js 18.0.0 or higher** (20+ recommended)
+- **npm 9.0.0 or higher**
 - **Git** for version control
-- **Database**: PostgreSQL 14+ (recommended) or compatible provider (Supabase, PlanetScale)
-- **Redis** (optional, for production caching and real-time features)
-
-### System Requirements
-- **Memory**: 4GB RAM minimum, 8GB recommended for development
-- **Storage**: 2GB free space for dependencies and build artifacts
-- **Network**: Stable internet connection for AI services and real-time collaboration
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/ezekaj/learning_sol.git
-   cd learning_sol
+   git clone https://github.com/[your-username]/learning_solidity.git
+   cd learning_solidity/learning_sol
    ```
 
 2. **Install dependencies**
@@ -105,23 +95,25 @@
    # Edit .env.local with your configuration
    ```
 
+   Required environment variables:
+   - `DATABASE_URL` - Database connection string
+   - `NEXTAUTH_SECRET` - Authentication secret (generate with: `openssl rand -hex 32`)
+   - `NEXTAUTH_URL` - Application URL (default: http://localhost:5000)
+
 4. **Initialize the database**
    ```bash
-   npm run db:generate
-   npm run db:push
-   npm run db:seed  # Optional: Add sample data
+   npx prisma generate
+   npx prisma db push
    ```
 
-5. **Start the development server with Turbopack (Recommended)**
+5. **Start the development server**
    ```bash
-   npm run dev  # Uses Turbopack for faster compilation
-   # OR use Webpack if needed:
-   npm run dev:webpack
+   npm run dev
+   # Open http://localhost:3000 in your browser
+   
+   # Or run on a different port:
+   npm run dev -- -p 5000
    ```
-
-   **Turbopack Benefits:**
-   - ⚡ 10x faster cold starts
-   - 🔄 Instant hot module replacement
    - 📦 Optimized for Next.js 15
    - 🚀 Better development experience
 
@@ -160,53 +152,53 @@ npm run docker:run
 
 ## 🚀 Deployment
 
-This application uses server-side functionality and requires a hosting platform that supports Next.js server features.
-
-### Recommended Platforms
-
-#### Vercel (Recommended)
+### Build for Production
 ```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy to Vercel
-npm run deploy:vercel
+npm run build
+npm start
 ```
+
+### Recommended Deployment Platforms
+
+#### Vercel (Recommended for Next.js)
+1. Install Vercel CLI: `npm i -g vercel`
+2. Run: `vercel`
+3. Follow the prompts to deploy
 
 #### Railway
-```bash
-# Install Railway CLI
-npm i -g @railway/cli
+1. Install Railway CLI: `npm i -g @railway/cli`
+2. Run: `railway login` and `railway up`
+3. Configure environment variables in Railway dashboard
 
-# Deploy to Railway
-npm run deploy:railway
-```
-
-#### Other Options
-- **Netlify**: Supports Next.js with serverless functions
-- **Render**: Full-stack hosting with PostgreSQL support
+#### Other Platforms
+- **Netlify**: Great for static sites with serverless functions
+- **Render**: Full-stack hosting with PostgreSQL included
+- **Heroku**: Easy deployment with buildpacks
 - **DigitalOcean App Platform**: Container-based deployment
-- **AWS Amplify**: Serverless deployment with database integration
 
-### Environment Variables
+### Production Environment Variables
 
-Ensure these environment variables are configured in your deployment platform:
+Configure these in your deployment platform:
 
 ```env
-# Database
-DATABASE_URL=your_postgresql_connection_string
-REDIS_URL=your_redis_connection_string
+# Required
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+NEXTAUTH_SECRET=your-production-secret-min-32-chars
+NEXTAUTH_URL=https://your-domain.com
 
-# Authentication
-NEXTAUTH_SECRET=your_nextauth_secret
-NEXTAUTH_URL=your_deployment_url
+# Optional
+GEMINI_API_KEY=your_gemini_api_key
 GITHUB_CLIENT_ID=your_github_oauth_id
 GITHUB_CLIENT_SECRET=your_github_oauth_secret
 GOOGLE_CLIENT_ID=your_google_oauth_id
 GOOGLE_CLIENT_SECRET=your_google_oauth_secret
+```
 
-# AI Services
-GEMINI_API_KEY=your_gemini_api_key
+### Important Notes
+- Use PostgreSQL for production (not SQLite)
+- Generate a secure NEXTAUTH_SECRET: `openssl rand -hex 32`
+- Set NODE_ENV=production in your deployment platform
+- Enable HTTPS for production deployments
 
 # Optional: Monitoring
 SENTRY_DSN=your_sentry_dsn

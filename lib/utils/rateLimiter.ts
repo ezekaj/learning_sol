@@ -5,6 +5,8 @@
  * and Redis-based storage for distributed systems.
  */
 
+import { logger } from '@/lib/api/logger';
+
 interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds
   maxRequests: number; // Maximum requests per window
@@ -220,7 +222,11 @@ export function withRateLimit(
       
       return response;
     } catch (error) {
-      console.error('Rate limiting error:', error);
+      logger.error('Rate limiting error', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        operation: 'rate-limiting'
+      }, error instanceof Error ? error : undefined);
       // If rate limiting fails, allow the request to proceed
       return handler(request, ...args);
     }

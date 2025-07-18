@@ -42,7 +42,7 @@ export class NetworkSimulator {
   }
 
   static async simulateIntermittentConnection(page: Page): Promise<void> {
-    let isOnline = true;
+    const isOnline = true;
     
     await page.route('**/*', async (route) => {
       // Randomly drop requests to simulate intermittent connection
@@ -360,7 +360,7 @@ export class PerformanceTestUtils {
     // Monitor frame rate during animations
     await page.evaluate(() => {
       let frameCount = 0;
-      let startTime = performance.now();
+      const startTime = performance.now();
       
       function countFrames() {
         frameCount++;

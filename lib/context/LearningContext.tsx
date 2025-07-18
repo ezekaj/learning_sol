@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, useReducer, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { AchievementManager } from '@/lib/achievements/manager';
 import { AchievementEvent } from '@/lib/achievements/types';
@@ -422,30 +422,47 @@ export function LearningProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'RESET_STATE' });
   };
 
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    state,
+    setCurrentCourse,
+    setCurrentModule,
+    setCurrentLesson,
+    updateProgress,
+    addAchievement,
+    addXP,
+    updateStreak,
+    completeChallenge,
+    completeGoal,
+    setTotalGoals,
+    completeLesson,
+    completeQuiz,
+    submitProject,
+    triggerAchievementEvent,
+    addXPListener,
+    addLevelListener,
+    resetSessionXP,
+    resetLearningState,
+  }), [
+    state,
+    setCurrentCourse,
+    setCurrentModule,
+    setCurrentLesson,
+    updateProgress,
+    addAchievement,
+    addXP,
+    updateStreak,
+    completeLesson,
+    completeQuiz,
+    submitProject,
+    triggerAchievementEvent,
+    addXPListener,
+    addLevelListener,
+    resetSessionXP
+  ]);
+
   return (
-    <LearningContext.Provider
-      value={{
-        state,
-        setCurrentCourse,
-        setCurrentModule,
-        setCurrentLesson,
-        updateProgress,
-        addAchievement,
-        addXP,
-        updateStreak,
-        completeChallenge,
-        completeGoal,
-        setTotalGoals,
-        completeLesson,
-        completeQuiz,
-        submitProject,
-        triggerAchievementEvent,
-        addXPListener,
-        addLevelListener,
-        resetSessionXP,
-        resetLearningState,
-      }}
-    >
+    <LearningContext.Provider value={contextValue}>
       {children}
     </LearningContext.Provider>
   );

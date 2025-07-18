@@ -12,6 +12,7 @@ import {
   parseUserAgent
 } from '@/lib/api/utils';
 import { ApiErrorCode, HttpStatus, LoginRequest, AuthResponse } from '@/lib/api/types';
+import { logger } from '@/lib/api/logger';
 
 // Validation schema
 const loginSchema = z.object({
@@ -203,7 +204,11 @@ async function loginHandler(request: NextRequest) {
 
     // Validate JWT secret length for security
     if (jwtSecret.length < 32) {
-      console.error('JWT_SECRET is too short. Must be at least 32 characters.');
+      logger.error('JWT_SECRET is too short. Must be at least 32 characters.', {
+        requestId,
+        secretLength: jwtSecret.length,
+        minimumRequired: 32
+      });
       return errorResponse(
         ApiErrorCode.INTERNAL_SERVER_ERROR,
         'Server configuration error',
@@ -247,13 +252,14 @@ async function loginHandler(request: NextRequest) {
     const userAgent = request.headers.get('user-agent') || '';
     const { browser, os } = parseUserAgent(userAgent);
     
-    console.log('Login successful:', {
+    logger.info('Login successful', {
       userId: user.id,
       email: user.email,
       ip: clientIP,
       browser,
       os,
       rememberMe,
+      requestId,
       timestamp: new Date().toISOString()
     });
     
@@ -291,7 +297,11 @@ async function loginHandler(request: NextRequest) {
     return response;
     
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error('Login error', {
+      requestId,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    }, error instanceof Error ? error : undefined);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Login failed',

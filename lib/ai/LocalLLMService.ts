@@ -1,5 +1,6 @@
 // Local LLM Integration Service
 import axios from 'axios';
+import { logger } from '@/lib/api/logger';
 
 interface LocalLLMConfig {
   baseURL: string;
@@ -53,7 +54,15 @@ ${context ? `Context: ${context}` : ''}`
 
       return response.data.choices[0].message.content;
     } catch (error) {
-      console.error('Local LLM Error:', error);
+      logger.error('Local LLM Error', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        config: {
+          baseURL: this.config.baseURL,
+          model: this.config.model,
+          maxTokens: this.config.maxTokens
+        }
+      }, error instanceof Error ? error : undefined);
       throw new Error('Failed to generate response from local LLM');
     }
   }
@@ -99,7 +108,15 @@ Focus on:
         return this.parseAnalysisResponse(response);
       }
     } catch (error) {
-      console.error('Code analysis failed:', error);
+      logger.error('Code analysis failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        codeLength: code.length,
+        config: {
+          model: this.config.model,
+          maxTokens: this.config.maxTokens
+        }
+      }, error instanceof Error ? error : undefined);
       return {
         issues: [{ type: 'error', message: 'Analysis failed', severity: 'low' }],
         optimizations: [],

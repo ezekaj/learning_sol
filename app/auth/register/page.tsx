@@ -25,8 +25,9 @@ import { AsyncSubmitButton } from '@/components/ui/EnhancedButton';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { registrationSchema, type RegistrationData, PasswordUtils } from '@/lib/auth/password';
 import { cn } from '@/lib/utils';
+import { withAuthErrorBoundary } from '@/lib/components/ErrorBoundaryHOCs';
 
-export default function RegisterPage() {
+function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get('returnUrl') || '/dashboard';
@@ -400,3 +401,11 @@ export default function RegisterPage() {
     </div>
   );
 }
+
+// Wrap with auth error boundary for specialized authentication error handling
+export default withAuthErrorBoundary(RegisterPage, {
+  name: 'RegisterPage',
+  enableRetry: true,
+  maxRetries: 1,
+  showErrorDetails: process.env.NODE_ENV === 'development'
+});

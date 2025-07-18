@@ -7,6 +7,7 @@ import { generateDiagramForConcept } from '../services/geminiService'; // Import
 import SpinnerIcon from './icons/SpinnerIcon'; // For loading state
 import BotIcon from './icons/BotIcon'; // For diagram section title
 import { marked } from 'marked'; // Import marked
+import { withLearningModuleErrorBoundary } from '@/lib/components/ErrorBoundaryHOCs';
 
 interface ModuleContentProps {
   module: LearningModule | null;
@@ -52,7 +53,7 @@ const parseModuleContent = (content: string): ContentSegment[] => {
   return segments;
 };
 
-const ModuleContent: React.FC<ModuleContentProps> = ({ module, isApiKeyMissing, onQuizComplete }) => {
+const ModuleContentComponent: React.FC<ModuleContentProps> = ({ module, isApiKeyMissing, onQuizComplete }) => {
   const [diagramState, setDiagramState] = useState<DiagramState>({
     image: null,
     isLoading: false,
@@ -256,5 +257,13 @@ const ModuleContent: React.FC<ModuleContentProps> = ({ module, isApiKeyMissing, 
     </article>
   );
 };
+
+// Wrap with learning module error boundary for specialized learning content error handling
+const ModuleContent = withLearningModuleErrorBoundary(ModuleContentComponent, {
+  name: 'ModuleContent',
+  enableRetry: true,
+  maxRetries: 2,
+  showErrorDetails: process.env.NODE_ENV === 'development'
+});
 
 export default ModuleContent;

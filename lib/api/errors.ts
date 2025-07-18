@@ -4,11 +4,61 @@
 
 import { ApiErrorCode, HttpStatus } from './types';
 
+// Enhanced type definitions for error handling
+export interface ErrorDetails {
+  [key: string]: unknown;
+}
+
+export interface RequestContext {
+  requestId?: string;
+  userId?: string;
+  ip?: string;
+  userAgent?: string;
+  url?: string;
+  method?: string;
+  headers?: Record<string, string>;
+  query?: Record<string, unknown>;
+  body?: Record<string, unknown>;
+}
+
+export interface ValidationErrorDetail {
+  field: string;
+  message: string;
+  code?: string;
+  value?: unknown;
+}
+
+export interface FileUploadErrorDetails extends ErrorDetails {
+  maxSize?: number;
+  actualSize?: number;
+  allowedTypes?: string[];
+  actualType?: string;
+}
+
+export interface RateLimitErrorDetails extends ErrorDetails {
+  retryAfter?: number;
+  limit?: number;
+  windowMs?: number;
+  remaining?: number;
+}
+
+export interface BusinessLogicErrorDetails extends ErrorDetails {
+  required?: number;
+  current?: number;
+  lessonId?: string;
+  courseId?: string;
+  achievementId?: string;
+  reason?: string;
+  resource?: string;
+  field?: string;
+  value?: string;
+}
+
 // Base API Error class
 export class ApiError extends Error {
   public readonly code: ApiErrorCode;
   public readonly statusCode: HttpStatus;
-  public readonly details?: any;
+  public readonly details?: ErrorDetails;
   public readonly field?: string;
   public readonly isOperational: boolean;
 
@@ -16,7 +66,7 @@ export class ApiError extends Error {
     code: ApiErrorCode,
     message: string,
     statusCode: HttpStatus = HttpStatus.BAD_REQUEST,
-    details?: any,
+    details?: ErrorDetails,
     field?: string,
     isOperational: boolean = true
   ) {
@@ -37,44 +87,44 @@ export class ApiError extends Error {
 
 // Authentication & Authorization Errors
 export class UnauthorizedError extends ApiError {
-  constructor(message: string = 'Authentication required', details?: any) {
+  constructor(message: string = 'Authentication required', details?: ErrorDetails) {
     super(ApiErrorCode.UNAUTHORIZED, message, HttpStatus.UNAUTHORIZED, details);
   }
 }
 
 export class ForbiddenError extends ApiError {
-  constructor(message: string = 'Insufficient permissions', details?: any) {
+  constructor(message: string = 'Insufficient permissions', details?: ErrorDetails) {
     super(ApiErrorCode.FORBIDDEN, message, HttpStatus.FORBIDDEN, details);
   }
 }
 
 export class InvalidTokenError extends ApiError {
-  constructor(message: string = 'Invalid or expired token', details?: any) {
+  constructor(message: string = 'Invalid or expired token', details?: ErrorDetails) {
     super(ApiErrorCode.TOKEN_INVALID, message, HttpStatus.UNAUTHORIZED, details);
   }
 }
 
 export class TokenExpiredError extends ApiError {
-  constructor(message: string = 'Token has expired', details?: any) {
+  constructor(message: string = 'Token has expired', details?: ErrorDetails) {
     super(ApiErrorCode.TOKEN_EXPIRED, message, HttpStatus.UNAUTHORIZED, details);
   }
 }
 
 // Validation Errors
 export class ValidationError extends ApiError {
-  constructor(message: string, field?: string, details?: any) {
+  constructor(message: string, field?: string, details?: ErrorDetails) {
     super(ApiErrorCode.VALIDATION_ERROR, message, HttpStatus.UNPROCESSABLE_ENTITY, details, field);
   }
 }
 
 export class InvalidInputError extends ApiError {
-  constructor(message: string, field?: string, details?: any) {
+  constructor(message: string, field?: string, details?: ErrorDetails) {
     super(ApiErrorCode.INVALID_INPUT, message, HttpStatus.BAD_REQUEST, details, field);
   }
 }
 
 export class MissingFieldError extends ApiError {
-  constructor(field: string, details?: any) {
+  constructor(field: string, details?: ErrorDetails) {
     super(
       ApiErrorCode.MISSING_REQUIRED_FIELD,
       `Missing required field: ${field}`,
@@ -87,7 +137,7 @@ export class MissingFieldError extends ApiError {
 
 // Resource Errors
 export class NotFoundError extends ApiError {
-  constructor(resource: string = 'Resource', details?: any) {
+  constructor(resource: string = 'Resource', details?: ErrorDetails) {
     super(
       ApiErrorCode.RESOURCE_NOT_FOUND,
       `${resource} not found`,
@@ -98,7 +148,7 @@ export class NotFoundError extends ApiError {
 }
 
 export class AlreadyExistsError extends ApiError {
-  constructor(resource: string = 'Resource', field?: string, details?: any) {
+  constructor(resource: string = 'Resource', field?: string, details?: ErrorDetails) {
     super(
       ApiErrorCode.RESOURCE_ALREADY_EXISTS,
       `${resource} already exists`,
@@ -110,14 +160,14 @@ export class AlreadyExistsError extends ApiError {
 }
 
 export class ConflictError extends ApiError {
-  constructor(message: string, details?: any) {
+  constructor(message: string, details?: ErrorDetails) {
     super(ApiErrorCode.RESOURCE_CONFLICT, message, HttpStatus.CONFLICT, details);
   }
 }
 
 // Rate Limiting Errors
 export class RateLimitError extends ApiError {
-  constructor(retryAfter: number, details?: any) {
+  constructor(retryAfter: number, details?: RateLimitErrorDetails) {
     super(
       ApiErrorCode.RATE_LIMIT_EXCEEDED,
       'Rate limit exceeded',
@@ -128,7 +178,7 @@ export class RateLimitError extends ApiError {
 }
 
 export class TooManyRequestsError extends ApiError {
-  constructor(message: string = 'Too many requests', retryAfter?: number, details?: any) {
+  constructor(message: string = 'Too many requests', retryAfter?: number, details?: RateLimitErrorDetails) {
     super(
       ApiErrorCode.TOO_MANY_REQUESTS,
       message,
@@ -140,7 +190,7 @@ export class TooManyRequestsError extends ApiError {
 
 // Server Errors
 export class InternalServerError extends ApiError {
-  constructor(message: string = 'Internal server error', details?: any) {
+  constructor(message: string = 'Internal server error', details?: ErrorDetails) {
     super(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       message,
@@ -153,7 +203,7 @@ export class InternalServerError extends ApiError {
 }
 
 export class DatabaseError extends ApiError {
-  constructor(message: string = 'Database operation failed', details?: any) {
+  constructor(message: string = 'Database operation failed', details?: ErrorDetails) {
     super(
       ApiErrorCode.DATABASE_ERROR,
       message,
@@ -166,7 +216,7 @@ export class DatabaseError extends ApiError {
 }
 
 export class ServiceUnavailableError extends ApiError {
-  constructor(message: string = 'Service temporarily unavailable', details?: any) {
+  constructor(message: string = 'Service temporarily unavailable', details?: ErrorDetails) {
     super(
       ApiErrorCode.SERVICE_UNAVAILABLE,
       message,
@@ -178,7 +228,7 @@ export class ServiceUnavailableError extends ApiError {
 
 // File Upload Errors
 export class FileTooLargeError extends ApiError {
-  constructor(maxSize: number, actualSize: number, details?: any) {
+  constructor(maxSize: number, actualSize: number, details?: FileUploadErrorDetails) {
     super(
       ApiErrorCode.FILE_TOO_LARGE,
       `File size ${actualSize} bytes exceeds maximum allowed size of ${maxSize} bytes`,
@@ -189,7 +239,7 @@ export class FileTooLargeError extends ApiError {
 }
 
 export class InvalidFileTypeError extends ApiError {
-  constructor(allowedTypes: string[], actualType: string, details?: any) {
+  constructor(allowedTypes: string[], actualType: string, details?: FileUploadErrorDetails) {
     super(
       ApiErrorCode.INVALID_FILE_TYPE,
       `File type ${actualType} is not allowed. Allowed types: ${allowedTypes.join(', ')}`,
@@ -200,7 +250,7 @@ export class InvalidFileTypeError extends ApiError {
 }
 
 export class UploadFailedError extends ApiError {
-  constructor(message: string = 'File upload failed', details?: any) {
+  constructor(message: string = 'File upload failed', details?: ErrorDetails) {
     super(
       ApiErrorCode.UPLOAD_FAILED,
       message,
@@ -212,7 +262,7 @@ export class UploadFailedError extends ApiError {
 
 // Feature Flag Errors
 export class FeatureDisabledError extends ApiError {
-  constructor(feature: string, details?: any) {
+  constructor(feature: string, details?: ErrorDetails) {
     super(
       ApiErrorCode.FEATURE_DISABLED,
       `Feature '${feature}' is currently disabled`,
@@ -223,7 +273,7 @@ export class FeatureDisabledError extends ApiError {
 }
 
 export class FeatureNotAvailableError extends ApiError {
-  constructor(feature: string, userRole?: string, details?: any) {
+  constructor(feature: string, userRole?: string, details?: ErrorDetails) {
     super(
       ApiErrorCode.FEATURE_NOT_AVAILABLE,
       `Feature '${feature}' is not available for your account`,
@@ -235,7 +285,7 @@ export class FeatureNotAvailableError extends ApiError {
 
 // Business Logic Errors
 export class InsufficientXPError extends ApiError {
-  constructor(required: number, current: number, details?: any) {
+  constructor(required: number, current: number, details?: BusinessLogicErrorDetails) {
     super(
       ApiErrorCode.INSUFFICIENT_XP,
       `Insufficient XP. Required: ${required}, Current: ${current}`,
@@ -246,7 +296,7 @@ export class InsufficientXPError extends ApiError {
 }
 
 export class LessonNotCompletedError extends ApiError {
-  constructor(lessonId: string, details?: any) {
+  constructor(lessonId: string, details?: BusinessLogicErrorDetails) {
     super(
       ApiErrorCode.LESSON_NOT_COMPLETED,
       `Lesson ${lessonId} must be completed first`,
@@ -257,7 +307,7 @@ export class LessonNotCompletedError extends ApiError {
 }
 
 export class CourseNotAccessibleError extends ApiError {
-  constructor(courseId: string, reason: string, details?: any) {
+  constructor(courseId: string, reason: string, details?: BusinessLogicErrorDetails) {
     super(
       ApiErrorCode.COURSE_NOT_ACCESSIBLE,
       `Course ${courseId} is not accessible: ${reason}`,
@@ -268,7 +318,7 @@ export class CourseNotAccessibleError extends ApiError {
 }
 
 export class AchievementAlreadyEarnedError extends ApiError {
-  constructor(achievementId: string, details?: any) {
+  constructor(achievementId: string, details?: BusinessLogicErrorDetails) {
     super(
       ApiErrorCode.ACHIEVEMENT_ALREADY_EARNED,
       `Achievement ${achievementId} has already been earned`,
@@ -279,7 +329,7 @@ export class AchievementAlreadyEarnedError extends ApiError {
 }
 
 // Error factory functions
-export function createValidationErrors(errors: Array<{ field: string; message: string; code?: string }>): ValidationError[] {
+export function createValidationErrors(errors: ValidationErrorDetail[]): ValidationError[] {
   return errors.map(error => new ValidationError(error.message, error.field, { code: error.code }));
 }
 
@@ -362,12 +412,12 @@ export interface ErrorContext {
   severity: ErrorSeverity;
   fingerprint?: string;
   tags?: string[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export function createErrorContext(
   error: ApiError,
-  request?: any,
+  request?: RequestContext,
   additionalContext?: Partial<ErrorContext>
 ): ErrorContext {
   const severity = getErrorSeverity(error);

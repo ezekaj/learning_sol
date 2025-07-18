@@ -44,7 +44,7 @@ export function AchievementGrid({
 
   // Filter and sort achievements
   const filteredAchievements = useMemo(() => {
-    let filtered = achievements.filter(achievement => {
+    const filtered = achievements.filter(achievement => {
       const userAchievement = userAchievements[achievement.id];
       
       // Search filter

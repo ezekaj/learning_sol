@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { logger } from '@/lib/monitoring/logger';
+import { logger } from '@/lib/monitoring/simple-logger';
 import { analytics } from '@/lib/monitoring/analytics';
 import { sanitize } from '@/lib/security/validation';
 

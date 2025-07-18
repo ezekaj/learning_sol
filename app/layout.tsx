@@ -1,18 +1,11 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { Providers } from './providers';
+import { MainProviders } from '@/lib/providers/AppProvider';
+import { SimpleErrorBoundary } from '@/components/errors/SimpleErrorBoundary';
 import { Toaster } from '@/components/ui/toaster';
 import { Navigation } from '@/components/layout/Navigation';
 import { Footer } from '@/components/layout/Footer';
-import { ErrorProvider } from '@/lib/errors/ErrorContext';
-import { PageErrorBoundary } from '@/components/errors/ErrorBoundary';
 import { SkipLink } from '@/components/ui/Accessibility';
-import AccessibilityTester from '@/components/dev/AccessibilityTester';
-import { PerformanceOptimizer } from '@/components/performance/PerformanceOptimizer';
-import { ServiceWorkerManager } from '@/components/performance/ServiceWorkerManager';
-import { PerformanceMonitor } from '@/components/monitoring/PerformanceMonitor';
-import { HelpProvider } from '@/components/help/HelpProvider';
-import { DiscoveryProvider } from '@/components/discovery/DiscoveryProvider';
 import './globals.css';
 
 const inter = Inter({
@@ -73,52 +66,78 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#3b82f6" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="SolidityLearn" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            // FORCE BROWSER TO ALWAYS BE ONLINE
+            Object.defineProperty(navigator, 'onLine', {
+              get: () => true,
+              configurable: true
+            });
+            
+            // Remove all offline event listeners
+            window.addEventListener = new Proxy(window.addEventListener, {
+              apply(target, thisArg, args) {
+                const [event] = args;
+                if (event === 'offline' || event === 'online') {
+                  return;
+                }
+                return target.apply(thisArg, args);
+              }
+            });
+            
+            // Aggressively prevent and remove all service workers
+            if ('serviceWorker' in navigator) {
+              // Unregister all existing service workers
+              navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                  registration.unregister();
+                }
+              });
+              
+              // Prevent any new registrations
+              const originalRegister = navigator.serviceWorker.register;
+              navigator.serviceWorker.register = function() {
+                return Promise.reject(new Error('Service workers are disabled'));
+              };
+              
+              // Listen for messages from service worker to reload
+              navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'RELOAD') {
+                  window.location.reload();
+                }
+              });
+            }
+          `
+        }} />
       </head>
       <body className={inter.className}>
-        <Providers>
-          <ErrorProvider>
-            <HelpProvider>
-              <DiscoveryProvider>
-                <PageErrorBoundary>
-                  <PerformanceOptimizer page="homepage">
-                    {/* Skip Links for Keyboard Navigation */}
-                    <SkipLink href="#main-content">Skip to main content</SkipLink>
-                    <SkipLink href="#navigation">Skip to navigation</SkipLink>
+        <MainProviders>
+          <SimpleErrorBoundary>
+            {/* Skip Links for Accessibility */}
+            <SkipLink href="#main-content">Skip to main content</SkipLink>
+            <SkipLink href="#navigation">Skip to navigation</SkipLink>
 
-                    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-                      {/* Navigation with semantic landmark */}
-                      <Navigation />
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+              {/* Navigation */}
+              <Navigation />
 
-                      {/* Main content with semantic landmark and skip target */}
-                      <main id="main-content" className="relative" role="main" tabIndex={-1}>
-                        {children}
-                      </main>
+              {/* Main content */}
+              <main id="main-content" className="relative" role="main" tabIndex={-1}>
+                {children}
+              </main>
 
-                      {/* Footer with semantic landmark */}
-                      <Footer />
-                    </div>
-                  </PerformanceOptimizer>
-                </PageErrorBoundary>
-                <Toaster />
+              {/* Footer */}
+              <Footer />
+            </div>
 
-                {/* Development Accessibility Tester */}
-                <AccessibilityTester />
-
-                {/* Service Worker Manager */}
-                <ServiceWorkerManager />
-
-                {/* Performance Monitor */}
-                <PerformanceMonitor />
-              </DiscoveryProvider>
-            </HelpProvider>
-          </ErrorProvider>
-        </Providers>
+            {/* Global UI Components */}
+            <Toaster />
+          </SimpleErrorBoundary>
+        </MainProviders>
       </body>
     </html>
   );

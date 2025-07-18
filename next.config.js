@@ -4,8 +4,20 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Removed static export configuration
+  // Production optimizations
+  poweredByHeader: false,
+  reactStrictMode: true,
+  
+  // External packages
   serverExternalPackages: ['@prisma/client'],
+  
+  // Optimize for production
+  compress: true,
+  
+  // Environment variables
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  },
   // Enhanced image optimization configuration
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -22,26 +34,70 @@ const nextConfig = {
       },
     ],
   },
+  // Security headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()'
+          },
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate'
+          }
+        ]
+      }
+    ];
+  },
+
   experimental: {
     // Removed deprecated appDir option (App Router is now stable)
     // Moved serverComponentsExternalPackages to serverExternalPackages at root level
   },
 
   webpack: (config, { isServer }) => {
-    // Handle Monaco Editor
+    // Optimized fallbacks - only essential ones
     if (!isServer) {
       config.resolve.fallback = {
-        ...config.resolve.fallback,
         fs: false,
         net: false,
         tls: false,
+        crypto: false,
+        stream: false,
+        util: false,
+        url: false,
+        zlib: false,
+        http: false,
+        https: false,
+        assert: false,
+        os: false,
+        path: false,
       };
     }
 
-    // Handle WASM files for Solidity compiler
+    // Essential experiments only
     config.experiments = {
-      ...config.experiments,
       asyncWebAssembly: true,
+      layers: true, // Enable layers for Next.js optimization
     };
 
     // Suppress OpenTelemetry warnings from Sentry

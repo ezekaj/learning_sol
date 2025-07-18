@@ -1,17 +1,17 @@
 // API Response Types
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
-  error?: ApiError;
+  error?: ApiErrorResponse;
   meta?: ResponseMeta;
   timestamp: string;
   requestId: string;
 }
 
-export interface ApiError {
+export interface ApiErrorResponse {
   code: string;
   message: string;
-  details?: ValidationError[] | Record<string, any>;
+  details?: ValidationError[] | Record<string, unknown>;
   stack?: string; // Only in development
 }
 
@@ -19,7 +19,7 @@ export interface ValidationError {
   field: string;
   message: string;
   code: string;
-  value?: any;
+  value?: unknown;
 }
 
 export interface ResponseMeta {
@@ -85,6 +85,15 @@ export enum ApiErrorCode {
   DATABASE_ERROR = 'DATABASE_ERROR',
   EXTERNAL_SERVICE_ERROR = 'EXTERNAL_SERVICE_ERROR',
   SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
+
+  // File Upload Errors
+  FILE_TOO_LARGE = 'FILE_TOO_LARGE',
+  INVALID_FILE_TYPE = 'INVALID_FILE_TYPE',
+  UPLOAD_FAILED = 'UPLOAD_FAILED',
+
+  // Feature Flag Errors
+  FEATURE_DISABLED = 'FEATURE_DISABLED',
+  FEATURE_NOT_AVAILABLE = 'FEATURE_NOT_AVAILABLE',
 
   // Business Logic
   INSUFFICIENT_XP = 'INSUFFICIENT_XP',

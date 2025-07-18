@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/api/logger';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
@@ -47,6 +48,30 @@ export async function GET(_request: NextRequest) {
     const totalLessons = totalProgress.length;
     const completionRate = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
 
+    // Get project statistics
+    const projectStats = await prisma.projectSubmission.findMany({
+      where: { userId: session.user.id },
+      select: {
+        status: true,
+        score: true
+      }
+    });
+
+    const completedProjects = projectStats.filter(p => p.status === 'APPROVED').length;
+    
+    // Get challenge statistics (using PersonalizedChallenge model)
+    const challengeStats = await prisma.personalizedChallenge.findMany({
+      where: { 
+        userId: session.user.id,
+        isCompleted: true
+      },
+      select: {
+        bestScore: true
+      }
+    });
+
+    const challengesWon = challengeStats.filter(c => (c.bestScore || 0) >= 70).length;
+
     // Get course progress
     const courseProgress = await prisma.course.findMany({
       include: {
@@ -62,12 +87,19 @@ export async function GET(_request: NextRequest) {
     });
 
     const progressData = {
-      totalXP: userProfile.totalXP,
-      currentLevel: userProfile.currentLevel,
-      streak: userProfile.streak,
-      completionRate,
-      completedLessons,
-      totalLessons,
+      profile: {
+        totalXP: userProfile.totalXP,
+        currentLevel: userProfile.currentLevel,
+        streak: userProfile.streak,
+      },
+      stats: {
+        completionRate,
+        completedLessons,
+        totalLessons,
+        completedProjects,
+        challengesWon,
+        rank: Math.floor(userProfile.totalXP / 1000) + 1 // Simple ranking system
+      },
       achievements: userProfile.user.achievements.map((ua: any) => ({
         id: ua.achievement.id,
         title: ua.achievement.title,
@@ -92,7 +124,11 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json(progressData);
   } catch (error) {
-    console.error('Error fetching user progress:', error);
+    logger.error('Error fetching user progress', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      operation: 'get-user-progress'
+    }, error instanceof Error ? error : undefined);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -168,7 +204,11 @@ export async function POST(_request: NextRequest) {
 
     return NextResponse.json({ success: true, progress: progressRecord });
   } catch (error) {
-    console.error('Error updating progress:', error);
+    logger.error('Error updating progress', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      operation: 'update-user-progress'
+    }, error instanceof Error ? error : undefined);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

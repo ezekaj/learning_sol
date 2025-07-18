@@ -7,6 +7,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AchievementGrid } from '@/components/achievements/AchievementGrid';
 import { AchievementNotificationManager } from '@/components/achievements/AchievementNotification';
 import { GlassCard } from '@/components/ui/Glassmorphism';
+import { SmartBreadcrumbs } from '@/components/navigation/SmartNavigation';
 import { useAchievements, useGamificationStats } from '@/lib/hooks/useAchievements';
 import { Achievement } from '@/lib/achievements/types';
 
@@ -70,6 +71,11 @@ export default function AchievementsPage() {
     <ProtectedRoute requireAuth>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
         <div className="max-w-7xl mx-auto">
+          {/* Breadcrumbs */}
+          <div className="mb-6">
+            <SmartBreadcrumbs />
+          </div>
+
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}

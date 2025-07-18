@@ -1,5 +1,5 @@
 import { monitoringConfig, isProduction } from '@/lib/config/environment';
-import { logger } from './logger';
+import { logger } from './simple-logger';
 
 /**
  * Comprehensive Analytics and Performance Monitoring

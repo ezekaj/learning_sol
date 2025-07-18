@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
+import { withLearningModuleErrorBoundary } from '@/lib/components/ErrorBoundaryHOCs';
 
 interface LearningModule {
   id: string;
@@ -50,7 +51,7 @@ const skillCategories = {
   advanced: { icon: Brain, color: 'pink' }
 };
 
-export const AILearningPath: React.FC<AILearningPathProps> = ({
+const AILearningPathComponent: React.FC<AILearningPathProps> = ({
   userLevel = 'beginner',
   interests = [],
   timeCommitment = '1 hour per day',
@@ -521,5 +522,13 @@ export const AILearningPath: React.FC<AILearningPathProps> = ({
     </div>
   );
 };
+
+// Wrap with learning module error boundary for specialized learning path error handling
+export const AILearningPath = withLearningModuleErrorBoundary(AILearningPathComponent, {
+  name: 'AILearningPath',
+  enableRetry: true,
+  maxRetries: 2,
+  showErrorDetails: process.env.NODE_ENV === 'development'
+});
 
 export default AILearningPath;

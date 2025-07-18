@@ -4,6 +4,7 @@ import { getRateLimitManager } from './rateLimit';
 import { ApiResponseBuilder, addSecurityHeaders, addCorsHeaders, addRateLimitHeaders } from './response';
 import { ApiErrorCode, HttpStatus } from './types';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from './logger';
 
 // Middleware Types
 export interface MiddlewareContext {
@@ -56,9 +57,9 @@ export class RequestLogger {
     };
 
     if (error) {
-      console.error('API Request Error:', logData);
+      logger.error('API Request Error', logData, error);
     } else {
-      console.log('API Request:', logData);
+      logger.info('API Request', logData);
     }
   }
 
@@ -346,13 +347,13 @@ export const uploadEndpoint = (
 
 // Error handling middleware
 export function errorHandler(error: Error, request: NextRequest): NextResponse {
-  console.error('Unhandled API Error:', {
+  logger.error('Unhandled API Error', {
     error: error.message,
     stack: error.stack,
     url: request.url,
     method: request.method,
     timestamp: new Date().toISOString()
-  });
+  }, error);
 
   return ApiResponseBuilder.internalServerError(
     process.env.NODE_ENV === 'development' 

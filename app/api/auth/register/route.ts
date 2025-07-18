@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { PasswordUtils, registrationSchema } from '@/lib/auth/password';
-import { logger } from '@/lib/monitoring/logger';
+import { logger } from '@/lib/monitoring/simple-logger';
 import { rateLimiter, rateLimitConfigs } from '@/lib/security/rateLimiting';
 import {
   successResponse,

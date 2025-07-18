@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { ErrorBoundary } from '@/components/error-handling/ErrorBoundary';
+import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
 import { ContextualHelp } from '@/components/ui/ContextualHelp';
 import { FeatureFlagsProvider } from '@/lib/hooks/useFeatureFlags';
 import { errorTracker } from '@/lib/monitoring/error-tracking';
@@ -115,8 +115,8 @@ export function FallbackProvider({
             });
           }}
         >
-          {/* Offline Overlay */}
-          {!isOnline && enableOfflineDetection && (
+          {/* Offline Overlay - DISABLED */}
+          {false && (
             <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
               <div className="max-w-md mx-4">
                 <OfflineState />

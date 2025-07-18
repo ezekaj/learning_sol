@@ -7,6 +7,7 @@
 
 import * as monaco from 'monaco-editor';
 import { enhancedTutor } from '@/lib/ai/EnhancedTutorSystem';
+import { logger } from '@/lib/api/logger';
 
 export interface GasEstimate {
   operation: string;
@@ -247,7 +248,11 @@ export class GasOptimizationAnalyzer {
 
       return result;
     } catch (error) {
-      console.error('Gas analysis failed:', error);
+      logger.error('Gas analysis failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        operation: 'gas-analysis'
+      }, error instanceof Error ? error : undefined);
       throw error;
     }
   }
@@ -485,7 +490,11 @@ export class GasOptimizationAnalyzer {
       const analysis = await enhancedTutor.analyzeCodeSecurity(code, userId);
       return this.convertAIGasOptimizations(analysis.gasOptimizations || []);
     } catch (error) {
-      console.error('AI gas analysis failed:', error);
+      logger.error('AI gas analysis failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        operation: 'ai-gas-analysis'
+      }, error instanceof Error ? error : undefined);
       return [];
     }
   }
@@ -513,9 +522,9 @@ export class GasOptimizationAnalyzer {
     }));
   }
 
-  private mergeOptimizations(static: GasOptimization[], ai: GasOptimization[]): GasOptimization[] {
+  private mergeOptimizations(staticOptimizations: GasOptimization[], aiOptimizations: GasOptimization[]): GasOptimization[] {
     // Simple merge - in production, would deduplicate and prioritize
-    return [...static, ...ai];
+    return [...staticOptimizations, ...aiOptimizations];
   }
 
   private generateFunctionBreakdown(code: string, estimates: GasEstimate[]): Record<string, number> {

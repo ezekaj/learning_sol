@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/api/logger';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -14,157 +15,237 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // For now, return static project data since we don't have a Project model yet
-    // TODO: Create Project model in Prisma schema and implement real database queries
+    // Get query parameters for filtering
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get('category');
+    const difficulty = searchParams.get('difficulty');
     
-    const staticProjects = [
-      {
-        id: 'hello-world',
-        title: 'Hello World Contract',
-        description: 'Create your first smart contract that stores and retrieves a message',
-        difficulty: 'beginner',
-        category: 'utility',
-        estimatedHours: 2,
-        xpReward: 200,
-        steps: [
-          {
-            id: 'step-1',
-            title: 'Setup Contract Structure',
-            description: 'Create the basic contract structure with state variables',
-            instructions: [
-              'Create a new contract called HelloWorld',
-              'Add a string state variable to store a message',
-              'Create a constructor to initialize the message',
-              'Add the SPDX license identifier'
-            ],
-            code: `// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+    // Build where clause for filtering
+    const where: any = {
+      isPublished: true
+    };
+    
+    if (category) {
+      where.category = category.toUpperCase();
+    }
+    
+    if (difficulty) {
+      where.difficulty = difficulty.toUpperCase();
+    }
 
-contract HelloWorld {
-    string public message;
-    
-    constructor() {
-        message = "Hello, World!";
-    }
-}`,
-            completed: false,
-            estimatedTime: 30
-          },
-          {
-            id: 'step-2',
-            title: 'Add Message Functions',
-            description: 'Implement functions to get and set the message',
-            instructions: [
-              'Add a function to get the current message',
-              'Add a function to update the message',
-              'Make sure the functions have proper visibility',
-              'Add events for message updates'
-            ],
-            code: `// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
-
-contract HelloWorld {
-    string public message;
-    
-    event MessageUpdated(string newMessage, address updatedBy);
-    
-    constructor() {
-        message = "Hello, World!";
-    }
-    
-    function getMessage() public view returns (string memory) {
-        return message;
-    }
-    
-    function setMessage(string memory _newMessage) public {
-        message = _newMessage;
-        emit MessageUpdated(_newMessage, msg.sender);
-    }
-}`,
-            completed: false,
-            estimatedTime: 45
-          },
-          {
-            id: 'step-3',
-            title: 'Deploy and Test',
-            description: 'Deploy your contract and test its functionality',
-            instructions: [
-              'Compile the contract and fix any errors',
-              'Deploy the contract to a test network',
-              'Test the getMessage function',
-              'Test the setMessage function with different inputs',
-              'Verify the events are emitted correctly'
-            ],
-            code: `// Test your deployed contract with these interactions:
-// 1. Call getMessage() to see the initial message
-// 2. Call setMessage("Hello, Blockchain!") to update
-// 3. Call getMessage() again to verify the change
-// 4. Check the transaction logs for the MessageUpdated event`,
-            completed: false,
-            estimatedTime: 60
+    // Fetch projects from database
+    const projects = await prisma.project.findMany({
+      where,
+      include: {
+        submissions: {
+          where: { userId: session.user.id },
+          select: {
+            id: true,
+            status: true,
+            score: true,
+            submittedAt: true
           }
-        ],
-        currentStep: 0,
-        completed: false,
-        deployed: false
+        },
+        _count: {
+          select: {
+            submissions: true,
+            reviews: true
+          }
+        }
       },
-      {
-        id: 'token-contract',
-        title: 'ERC-20 Token Contract',
-        description: 'Build a complete ERC-20 token with minting and burning capabilities',
-        difficulty: 'intermediate',
-        category: 'defi',
-        estimatedHours: 6,
-        xpReward: 500,
-        steps: [
-          {
-            id: 'token-step-1',
-            title: 'Basic Token Structure',
-            description: 'Implement the basic ERC-20 token interface',
-            instructions: [
-              'Import OpenZeppelin ERC20 contract',
-              'Create your token contract inheriting from ERC20',
-              'Set token name, symbol, and initial supply',
-              'Implement constructor with initial minting'
-            ],
-            code: `// SPDX-License-Identifier: MIT
+      orderBy: [
+        { difficulty: 'asc' },
+        { xpReward: 'desc' }
+      ]
+    });
+
+    // Transform projects to include user progress
+    const projectsWithProgress = projects.map(project => {
+      const userSubmission = project.submissions[0];
+      return {
+        ...project,
+        userProgress: {
+          started: !!userSubmission,
+          completed: userSubmission?.status === 'APPROVED',
+          score: userSubmission?.score,
+          submittedAt: userSubmission?.submittedAt
+        },
+        totalSubmissions: project._count.submissions,
+        totalReviews: project._count.reviews
+      };
+    });
+
+    // If no projects exist, seed some example projects
+    if (projects.length === 0) {
+      await seedExampleProjects();
+      return GET(request); // Retry after seeding
+    }
+
+    return NextResponse.json({ projects: projectsWithProgress });
+  } catch (error) {
+    logger.error('Error fetching projects', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      operation: 'get-projects'
+    }, error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// Helper function to seed example projects
+async function seedExampleProjects() {
+  const exampleProjects = [
+    {
+      title: 'Hello World Contract',
+      description: 'Create your first smart contract that stores and retrieves a message',
+      difficulty: 'BEGINNER',
+      category: 'EDUCATIONAL',
+      tags: 'beginner,basics,hello-world,first-contract',
+      requirements: JSON.stringify([
+        'Create a contract that stores a message',
+        'Implement functions to get and set the message',
+        'Add events for message updates',
+        'Deploy and test the contract'
+      ]),
+      starterCode: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract HelloWorld {
+    // TODO: Add state variable for message
+    
+    constructor() {
+        // TODO: Initialize message
+    }
+    
+    // TODO: Add getMessage function
+    
+    // TODO: Add setMessage function
+}`,
+      testCases: JSON.stringify([
+        {
+          name: 'Should deploy with initial message',
+          type: 'deployment',
+          expected: 'Hello, World!'
+        },
+        {
+          name: 'Should update message',
+          type: 'function',
+          function: 'setMessage',
+          args: ['Hello, Blockchain!'],
+          expected: 'Hello, Blockchain!'
+        }
+      ]),
+      estimatedHours: 2,
+      xpReward: 200,
+      isPublished: true,
+      resources: JSON.stringify({
+        links: [
+          'https://docs.soliditylang.org/en/latest/introduction-to-smart-contracts.html',
+          'https://ethereum.org/en/developers/docs/smart-contracts/'
+        ],
+        videos: [],
+        articles: []
+      })
+    },
+    {
+      title: 'Simple Storage Contract',
+      description: 'Build a contract that stores and retrieves different data types',
+      difficulty: 'BEGINNER',
+      category: 'UTILITY',
+      tags: 'storage,data-types,state-variables,functions',
+      requirements: JSON.stringify([
+        'Store different data types (uint, string, address, bool)',
+        'Create getter and setter functions',
+        'Implement access control for setters',
+        'Add input validation'
+      ]),
+      starterCode: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract SimpleStorage {
+    // TODO: Add state variables for different types
+    
+    // TODO: Add getter functions
+    
+    // TODO: Add setter functions with access control
+}`,
+      testCases: JSON.stringify([
+        {
+          name: 'Should store and retrieve uint',
+          type: 'storage',
+          variable: 'storedNumber',
+          value: 42
+        },
+        {
+          name: 'Should restrict setter access',
+          type: 'access',
+          function: 'setNumber',
+          shouldRevert: true
+        }
+      ]),
+      estimatedHours: 3,
+      xpReward: 300,
+      isPublished: true
+    },
+    {
+      title: 'ERC-20 Token Contract',
+      description: 'Create a fungible token following the ERC-20 standard',
+      difficulty: 'INTERMEDIATE',
+      category: 'DEFI',
+      tags: 'erc20,token,defi,fungible,openzeppelin',
+      requirements: JSON.stringify([
+        'Implement ERC-20 interface',
+        'Add minting and burning functions',
+        'Implement ownership and access control',
+        'Add pausable functionality',
+        'Include token metadata'
+      ]),
+      starterCode: `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MyToken is ERC20 {
+contract MyToken is ERC20, Ownable {
     constructor() ERC20("MyToken", "MTK") {
-        _mint(msg.sender, 1000000 * 10**decimals());
+        // TODO: Mint initial supply
     }
+    
+    // TODO: Add minting function
+    
+    // TODO: Add burning function
 }`,
-            completed: false,
-            estimatedTime: 90
-          }
-        ],
-        currentStep: 0,
-        completed: false,
-        deployed: false
-      },
-      {
-        id: 'nft-collection',
-        title: 'NFT Collection Contract',
-        description: 'Create an ERC-721 NFT collection with metadata and minting functionality',
-        difficulty: 'advanced',
-        category: 'nft',
-        estimatedHours: 8,
-        xpReward: 750,
-        steps: [
-          {
-            id: 'nft-step-1',
-            title: 'NFT Contract Setup',
-            description: 'Set up the basic NFT contract structure',
-            instructions: [
-              'Import OpenZeppelin ERC721 contracts',
-              'Create NFT contract with enumerable extension',
-              'Set collection name and symbol',
-              'Implement basic minting functionality'
-            ],
-            code: `// SPDX-License-Identifier: MIT
+      testCases: JSON.stringify([
+        {
+          name: 'Should have correct name and symbol',
+          type: 'metadata',
+          expected: { name: 'MyToken', symbol: 'MTK' }
+        },
+        {
+          name: 'Should mint tokens correctly',
+          type: 'mint',
+          amount: '1000000000000000000000',
+          recipient: 'owner'
+        }
+      ]),
+      estimatedHours: 6,
+      xpReward: 500,
+      isPublished: true
+    },
+    {
+      title: 'NFT Collection',
+      description: 'Build an ERC-721 NFT collection with metadata and minting',
+      difficulty: 'ADVANCED',
+      category: 'NFT',
+      tags: 'nft,erc721,metadata,minting,collection',
+      requirements: JSON.stringify([
+        'Implement ERC-721 standard',
+        'Add metadata URI functionality',
+        'Create public and whitelist minting',
+        'Implement royalties (ERC-2981)',
+        'Add reveal mechanism'
+      ]),
+      starterCode: `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -172,43 +253,88 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract MyNFTCollection is ERC721, ERC721Enumerable, Ownable {
-    uint256 private _nextTokenId;
-    
-    constructor() ERC721("MyNFTCollection", "MNC") {}
-    
-    function mint(address to) public onlyOwner {
-        uint256 tokenId = _nextTokenId++;
-        _safeMint(to, tokenId);
+    constructor() ERC721("MyNFTCollection", "MNC") {
+        // TODO: Initialize collection
     }
+    
+    // TODO: Add minting functions
+    
+    // TODO: Add metadata functions
 }`,
-            completed: false,
-            estimatedTime: 120
-          }
-        ],
-        currentStep: 0,
-        completed: false,
-        deployed: false
-      }
-    ];
+      testCases: JSON.stringify([
+        {
+          name: 'Should mint NFT with correct tokenId',
+          type: 'mint',
+          expectedTokenId: 1
+        },
+        {
+          name: 'Should return correct metadata URI',
+          type: 'metadata',
+          tokenId: 1,
+          expectedPrefix: 'ipfs://'
+        }
+      ]),
+      estimatedHours: 8,
+      xpReward: 750,
+      isPublished: true
+    },
+    {
+      title: 'Decentralized Voting System',
+      description: 'Create a secure voting contract with proposals and delegation',
+      difficulty: 'ADVANCED',
+      category: 'DAO',
+      tags: 'dao,voting,governance,delegation,proposals',
+      requirements: JSON.stringify([
+        'Create proposal system',
+        'Implement voting with weight',
+        'Add vote delegation',
+        'Include time-based voting periods',
+        'Prevent double voting'
+      ]),
+      starterCode: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
-    // TODO: Replace with real database queries when Project model is implemented
-    // const projects = await prisma.project.findMany({
-    //   include: {
-    //     steps: true,
-    //     userProgress: {
-    //       where: { userId: session.user.id }
-    //     }
-    //   }
-    // });
+contract Voting {
+    struct Proposal {
+        string description;
+        uint256 voteCount;
+        uint256 deadline;
+    }
+    
+    // TODO: Add state variables
+    
+    // TODO: Add proposal creation
+    
+    // TODO: Add voting mechanism
+    
+    // TODO: Add delegation
+}`,
+      testCases: JSON.stringify([
+        {
+          name: 'Should create proposal',
+          type: 'proposal',
+          description: 'Increase funding',
+          duration: 86400
+        },
+        {
+          name: 'Should count votes correctly',
+          type: 'voting',
+          proposalId: 0,
+          expectedCount: 1
+        }
+      ]),
+      estimatedHours: 10,
+      xpReward: 1000,
+      isPublished: true
+    }
+  ];
 
-    return NextResponse.json({ projects: staticProjects });
-  } catch (error) {
-    console.error('Error fetching projects:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+  await prisma.project.createMany({
+    data: exampleProjects
+  });
 }
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -216,7 +342,8 @@ export async function POST(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { action, projectId, stepId, code } = await request.json();
+    const body = await request.json();
+    const { action, projectId, title, description, code, githubUrl, deploymentUrl } = body;
 
     switch (action) {
       case 'start_project':
@@ -224,91 +351,165 @@ export async function POST(_request: NextRequest) {
           return NextResponse.json({ error: 'Project ID required' }, { status: 400 });
         }
 
-        // TODO: Implement project progress tracking in database
-        console.log(`User ${session.user.id} started project ${projectId}`);
+        // Check if project exists
+        const project = await prisma.project.findUnique({
+          where: { id: projectId }
+        });
+
+        if (!project) {
+          return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+        }
+
+        // Create or update submission
+        const submission = await prisma.projectSubmission.upsert({
+          where: {
+            projectId_userId: {
+              projectId,
+              userId: session.user.id
+            }
+          },
+          update: {
+            status: 'IN_PROGRESS',
+            updatedAt: new Date()
+          },
+          create: {
+            projectId,
+            userId: session.user.id,
+            title: project.title,
+            description: project.description,
+            code: project.starterCode || '',
+            status: 'IN_PROGRESS'
+          }
+        });
 
         return NextResponse.json({ 
-          success: true, 
+          success: true,
+          submissionId: submission.id,
           message: 'Project started successfully' 
         });
 
-      case 'complete_step':
-        if (!projectId || !stepId) {
-          return NextResponse.json({ error: 'Project ID and Step ID required' }, { status: 400 });
+      case 'submit_project':
+        if (!projectId || !code) {
+          return NextResponse.json({ error: 'Project ID and code required' }, { status: 400 });
         }
 
-        // TODO: Implement step completion tracking in database
-        console.log(`User ${session.user.id} completed step ${stepId} in project ${projectId}`);
+        // Get existing submission
+        const existingSubmission = await prisma.projectSubmission.findUnique({
+          where: {
+            projectId_userId: {
+              projectId,
+              userId: session.user.id
+            }
+          }
+        });
 
-        // Award XP for step completion
-        const stepXP = 50; // Base XP per step
-        await prisma.userProfile.upsert({
-          where: { userId: session.user.id },
-          update: {
-            totalXP: {
-              increment: stepXP,
+        if (!existingSubmission) {
+          return NextResponse.json({ error: 'Please start the project first' }, { status: 400 });
+        }
+
+        // Update submission
+        const updatedSubmission = await prisma.projectSubmission.update({
+          where: { id: existingSubmission.id },
+          data: {
+            title: title || existingSubmission.title,
+            description: description || existingSubmission.description,
+            code,
+            githubUrl,
+            deploymentUrl,
+            status: 'SUBMITTED',
+            submittedAt: new Date()
+          }
+        });
+
+        // Award XP for submission
+        const projectData = await prisma.project.findUnique({
+          where: { id: projectId }
+        });
+        
+        if (projectData) {
+          await prisma.userProfile.upsert({
+            where: { userId: session.user.id },
+            update: {
+              totalXP: {
+                increment: projectData.xpReward
+              }
             },
+            create: {
+              userId: session.user.id,
+              totalXP: projectData.xpReward
+            }
+          });
+        }
+
+        return NextResponse.json({ 
+          success: true,
+          submissionId: updatedSubmission.id,
+          xpAwarded: projectData?.xpReward || 0,
+          message: 'Project submitted successfully' 
+        });
+
+      case 'save_progress':
+        if (!projectId || !code) {
+          return NextResponse.json({ error: 'Project ID and code required' }, { status: 400 });
+        }
+
+        // Update submission with latest code
+        const savedSubmission = await prisma.projectSubmission.update({
+          where: {
+            projectId_userId: {
+              projectId,
+              userId: session.user.id
+            }
           },
-          create: {
-            userId: session.user.id,
-            totalXP: stepXP,
-          },
+          data: {
+            code,
+            title: title || undefined,
+            description: description || undefined,
+            githubUrl: githubUrl || undefined,
+            deploymentUrl: deploymentUrl || undefined,
+            updatedAt: new Date()
+          }
         });
 
         return NextResponse.json({ 
-          success: true, 
-          xpAwarded: stepXP,
-          message: 'Step completed successfully' 
+          success: true,
+          submissionId: savedSubmission.id,
+          message: 'Progress saved successfully' 
         });
 
-      case 'deploy_project':
+      case 'request_review':
         if (!projectId) {
           return NextResponse.json({ error: 'Project ID required' }, { status: 400 });
         }
 
-        // TODO: Implement actual contract deployment
-        console.log(`User ${session.user.id} deployed project ${projectId}`);
-
-        // Award bonus XP for deployment
-        const deploymentXP = 200;
-        await prisma.userProfile.upsert({
-          where: { userId: session.user.id },
-          update: {
-            totalXP: {
-              increment: deploymentXP,
-            },
+        // Update submission status to under review
+        const reviewSubmission = await prisma.projectSubmission.update({
+          where: {
+            projectId_userId: {
+              projectId,
+              userId: session.user.id
+            }
           },
-          create: {
-            userId: session.user.id,
-            totalXP: deploymentXP,
-          },
+          data: {
+            status: 'UNDER_REVIEW'
+          }
         });
 
         return NextResponse.json({ 
-          success: true, 
-          xpAwarded: deploymentXP,
-          deploymentAddress: '0x' + Math.random().toString(16).substr(2, 40), // Mock address
-          message: 'Project deployed successfully' 
-        });
-
-      case 'save_code':
-        if (!projectId || !stepId || !code) {
-          return NextResponse.json({ error: 'Project ID, Step ID, and code required' }, { status: 400 });
-        }
-
-        // TODO: Implement code saving in database
-        console.log(`User ${session.user.id} saved code for step ${stepId} in project ${projectId}`);
-
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Code saved successfully' 
+          success: true,
+          submissionId: reviewSubmission.id,
+          message: 'Project submitted for review' 
         });
 
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Error processing project action:', error);
+    logger.error('Error processing project action', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      operation: 'post-project-action'
+    }, error instanceof Error ? error : undefined);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

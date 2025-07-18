@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Redis } from 'ioredis';
 import { env, rateLimitConfig } from '@/lib/config/environment';
+import { logger } from '@/lib/api/logger';
 
 /**
  * Advanced Rate Limiting Implementation
@@ -42,8 +43,11 @@ class RateLimiter {
           lazyConnect: true,
         });
       } catch (error) {
-        console.warn('Failed to initialize Redis for rate limiting:', error);
-        console.log('Falling back to memory-based rate limiting');
+        logger.warn('Failed to initialize Redis for rate limiting', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          fallback: 'memory-based-rate-limiting'
+        });
+        logger.info('Falling back to memory-based rate limiting');
       }
     }
   }
@@ -183,7 +187,7 @@ class RateLimiter {
       const bucketKey = `bucket:${key}`;
       const bucketData = await this.redis.get(bucketKey);
       
-      let bucket: TokenBucketState = bucketData 
+      const bucket: TokenBucketState = bucketData 
         ? JSON.parse(bucketData)
         : { tokens: capacity, lastRefill: now };
 
@@ -206,7 +210,7 @@ class RateLimiter {
         totalHits: capacity - Math.floor(bucket.tokens),
       };
     } else {
-      let bucket: TokenBucketState = this.memoryStore.get(key) || { tokens: capacity, lastRefill: now };
+      const bucket: TokenBucketState = this.memoryStore.get(key) || { tokens: capacity, lastRefill: now };
 
       const timePassed = (now - bucket.lastRefill) / 1000;
       bucket.tokens = Math.min(capacity, bucket.tokens + timePassed * refillRate);
@@ -277,7 +281,11 @@ class RateLimiter {
 
         return null; // Allow request to proceed
       } catch (error) {
-        console.error('Rate limiting error:', error);
+        logger.error('Rate limiting error', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined,
+          operation: 'rate-limiting'
+        }, error instanceof Error ? error : undefined);
         return null; // Allow request on error (fail open)
       }
     };
@@ -430,7 +438,10 @@ export async function getRateLimitStats(): Promise<{
       const keys = await rateLimiter['redis'].keys('rate_limit:*');
       totalKeys = keys.length;
     } catch (error) {
-      console.error('Error getting Redis keys:', error);
+      logger.error('Error getting Redis keys', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        operation: 'redis-keys'
+      }, error instanceof Error ? error : undefined);
     }
   }
 

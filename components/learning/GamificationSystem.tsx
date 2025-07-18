@@ -18,6 +18,13 @@ import { Progress } from '../ui/progress';
 import { useAuth } from '@/components/auth/EnhancedAuthProvider';
 import { useToast } from '@/components/ui/use-toast';
 
+// Helper function to calculate user rank based on XP
+const calculateUserRank = (totalXP: number): number => {
+  // Simple ranking system: every 1000 XP = 1 rank level
+  // This could be made more sophisticated with actual leaderboard data
+  return Math.floor(totalXP / 1000) + 1;
+};
+
 interface Achievement {
   id: string;
   title: string;
@@ -109,9 +116,9 @@ export const GamificationSystem: React.FC<GamificationSystemProps> = ({
             totalXp: progressData.profile?.totalXP || 0,
             streak: progressData.profile?.streak || 0,
             lessonsCompleted: progressData.stats?.completedLessons || 0,
-            projectsCompleted: 0, // TODO: Add projects tracking
-            challengesWon: 0, // TODO: Add challenges tracking
-            rank: 1, // TODO: Calculate rank from leaderboard
+            projectsCompleted: progressData.stats?.completedProjects || 0,
+            challengesWon: progressData.stats?.challengesWon || 0,
+            rank: progressData.stats?.rank || calculateUserRank(progressData.profile?.totalXP || 0),
             badges: progressData.achievements?.map((a: any) => a.achievement.title) || []
           };
           setUserProgress(transformedProgress);
@@ -171,7 +178,6 @@ export const GamificationSystem: React.FC<GamificationSystemProps> = ({
         }
 
       } catch (error) {
-        console.error('Error fetching gamification data:', error);
         toast({
           title: 'Error loading progress',
           description: 'Failed to load your progress data. Please try again.',
@@ -304,7 +310,6 @@ export const GamificationSystem: React.FC<GamificationSystemProps> = ({
         throw new Error('Failed to claim achievement');
       }
     } catch (error) {
-      console.error('Error claiming reward:', error);
       toast({
         title: 'Error',
         description: 'Failed to claim achievement. Please try again.',
@@ -317,20 +322,20 @@ export const GamificationSystem: React.FC<GamificationSystemProps> = ({
     // Handle quick gamification actions
     switch (actionType) {
       case 'boost':
-        console.log('XP Boost activated!');
+        // XP Boost activated
         break;
       case 'shield':
-        console.log('Shield protection activated!');
+        // Shield protection activated
         break;
       case 'star':
-        console.log('Star power activated!');
+        // Star power activated
         break;
     }
   };
 
   const handleSecurityChallenge = () => {
     // Handle security-focused challenges
-    console.log('Starting security challenge...');
+    // Security challenge started
   };
 
   const AchievementCard: React.FC<{ achievement: Achievement }> = ({ achievement }) => (

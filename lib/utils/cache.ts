@@ -5,6 +5,7 @@
  */
 
 import crypto from 'crypto';
+import { logger } from '@/lib/api/logger';
 
 interface CacheEntry<T> {
   data: T;
@@ -190,7 +191,10 @@ class InMemoryCache {
     if (deletedCount > 0) {
       this.stats.deletes += deletedCount;
       this.updateStats();
-      console.log(`🧹 Cache cleanup: removed ${deletedCount} expired entries`);
+      logger.info('Cache cleanup completed', {
+        deletedCount,
+        operation: 'cache-cleanup'
+      });
     }
   }
 
@@ -285,7 +289,10 @@ export function withCache<T>(
       // Try to get from cache first
       const cached = await getCached<T>(cacheKey, options);
       if (cached) {
-        console.log(`🎯 Cache hit for key: ${cacheKey}`);
+        logger.debug('Cache hit', {
+          cacheKey,
+          operation: 'cache-get'
+        });
         return new Response(JSON.stringify(cached), {
           headers: {
             'Content-Type': 'application/json',
@@ -302,13 +309,19 @@ export function withCache<T>(
         try {
           const data = await response.clone().json();
           await setCached(cacheKey, data, options);
-          console.log(`💾 Cached response for key: ${cacheKey}`);
+          logger.debug('Response cached', {
+            cacheKey,
+            operation: 'cache-set'
+          });
           
           // Add cache headers
           response.headers.set('X-Cache', 'MISS');
           response.headers.set('X-Cache-Key', cacheKey);
         } catch (error) {
-          console.warn('Failed to cache response:', error);
+          logger.warn('Failed to cache response', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            operation: 'cache-set'
+          });
         }
       }
       

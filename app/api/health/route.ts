@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { env } from '@/lib/config/environment';
 import { apiPerformanceMonitor } from '@/lib/monitoring/apiPerformance';
-import { logger } from '@/lib/monitoring/logger';
+import { logger } from '@/lib/monitoring/simple-logger';
 import { errorTracker } from '@/lib/monitoring/errorTracking';
 import { analytics } from '@/lib/monitoring/analytics';
 import { getRateLimitStats } from '@/lib/security/rateLimiting';

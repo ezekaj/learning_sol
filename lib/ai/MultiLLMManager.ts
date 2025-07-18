@@ -1,5 +1,6 @@
 // Multi-LLM Integration Service for Solidity Learning Platform
 import axios from 'axios';
+import { logger } from '@/lib/api/logger';
 
 interface LLMService {
   name: string;
@@ -82,14 +83,21 @@ export class MultiLLMManager {
           responseTime
         });
         
-        console.log(`✅ ${service.name} is healthy (${responseTime}ms)`);
+        logger.info('LLM service health check', {
+          serviceName: service.name,
+          responseTime,
+          status: 'healthy'
+        });
       } catch (error) {
         this.services.set(key, {
           ...service,
           isHealthy: false,
           responseTime: -1
         });
-        console.warn(`❌ ${service.name} is not responding`);
+        logger.warn('LLM service health check failed', {
+          serviceName: service.name,
+          status: 'unhealthy'
+        });
       }
     });
 
@@ -178,7 +186,11 @@ export class MultiLLMManager {
     const serviceKey = this.selectBestService(request);
     const service = this.services.get(serviceKey)!;
 
-    console.log(`🎯 Routing ${request.type} request to ${service.name}`);
+    logger.info('LLM request routing', {
+      requestType: request.type,
+      serviceName: service.name,
+      operation: 'route-request'
+    });
 
     try {
       const startTime = Date.now();
@@ -219,7 +231,11 @@ export class MultiLLMManager {
       };
 
     } catch (error) {
-      console.error(`❌ ${service.name} failed:`, error.message);
+      logger.error('LLM service request failed', {
+        serviceName: service.name,
+        error: error.message,
+        operation: 'llm-request'
+      }, error);
       
       // Try fallback to another service
       return this.tryFallback(request, serviceKey);
@@ -240,7 +256,10 @@ export class MultiLLMManager {
       current[1].responseTime < fastest[1].responseTime ? current : fastest
     );
 
-    console.log(`🔄 Falling back to ${fallbackService[1].name}`);
+    logger.info('LLM service fallback', {
+      fallbackService: fallbackService[1].name,
+      operation: 'fallback-request'
+    });
 
     const service = fallbackService[1];
     

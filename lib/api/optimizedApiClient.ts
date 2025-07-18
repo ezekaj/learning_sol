@@ -1,10 +1,31 @@
 // Optimized API client with caching, deduplication, and performance monitoring
 import { apiPerformanceMonitor, requestDeduplicator, apiCache } from '@/lib/monitoring/apiPerformance';
+import { logger } from '@/lib/api/logger';
+
+// Enhanced type definitions
+export type RequestBody = 
+  | Record<string, unknown>
+  | string
+  | number
+  | boolean
+  | null
+  | undefined;
+
+export interface ApiError {
+  message: string;
+  status?: number;
+  code?: string;
+  details?: Record<string, unknown>;
+}
+
+export interface QueryParams {
+  [key: string]: string | number | boolean | undefined;
+}
 
 export interface ApiRequestConfig {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   headers?: Record<string, string>;
-  body?: any;
+  body?: RequestBody;
   cache?: boolean;
   cacheTTL?: number;
   deduplicate?: boolean;
@@ -13,7 +34,7 @@ export interface ApiRequestConfig {
   priority?: 'high' | 'normal' | 'low';
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T;
   status: number;
   headers: Headers;
@@ -24,7 +45,7 @@ export interface ApiResponse<T = any> {
 class OptimizedApiClient {
   private baseURL: string;
   private defaultHeaders: Record<string, string>;
-  private requestQueue: Map<string, Promise<any>> = new Map();
+  private requestQueue: Map<string, Promise<ApiResponse<unknown>>> = new Map();
 
   constructor(baseURL: string = '/api', defaultHeaders: Record<string, string> = {}) {
     this.baseURL = baseURL;
@@ -34,7 +55,7 @@ class OptimizedApiClient {
     };
   }
 
-  async request<T = any>(
+  async request<T = unknown>(
     endpoint: string,
     config: ApiRequestConfig = {}
   ): Promise<ApiResponse<T>> {
@@ -82,7 +103,7 @@ class OptimizedApiClient {
     url: string,
     method: string,
     headers: Record<string, string>,
-    body: any,
+    body: RequestBody,
     retries: number,
     timeout: number,
     startTime: number,
@@ -174,34 +195,34 @@ class OptimizedApiClient {
     throw lastError || new Error('Request failed after retries');
   }
 
-  private generateCacheKey(method: string, url: string, body?: any): string {
+  private generateCacheKey(method: string, url: string, body?: RequestBody): string {
     const bodyHash = body ? JSON.stringify(body) : '';
     return `${method}:${url}:${bodyHash}`;
   }
 
   // Convenience methods
-  async get<T = any>(endpoint: string, config?: Omit<ApiRequestConfig, 'method'>): Promise<ApiResponse<T>> {
+  async get<T = unknown>(endpoint: string, config?: Omit<ApiRequestConfig, 'method'>): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...config, method: 'GET' });
   }
 
-  async post<T = any>(endpoint: string, data?: any, config?: Omit<ApiRequestConfig, 'method' | 'body'>): Promise<ApiResponse<T>> {
+  async post<T = unknown>(endpoint: string, data?: RequestBody, config?: Omit<ApiRequestConfig, 'method' | 'body'>): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...config, method: 'POST', body: data, cache: false, deduplicate: false });
   }
 
-  async put<T = any>(endpoint: string, data?: any, config?: Omit<ApiRequestConfig, 'method' | 'body'>): Promise<ApiResponse<T>> {
+  async put<T = unknown>(endpoint: string, data?: RequestBody, config?: Omit<ApiRequestConfig, 'method' | 'body'>): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...config, method: 'PUT', body: data, cache: false, deduplicate: false });
   }
 
-  async delete<T = any>(endpoint: string, config?: Omit<ApiRequestConfig, 'method'>): Promise<ApiResponse<T>> {
+  async delete<T = unknown>(endpoint: string, config?: Omit<ApiRequestConfig, 'method'>): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...config, method: 'DELETE', cache: false, deduplicate: false });
   }
 
-  async patch<T = any>(endpoint: string, data?: any, config?: Omit<ApiRequestConfig, 'method' | 'body'>): Promise<ApiResponse<T>> {
+  async patch<T = unknown>(endpoint: string, data?: RequestBody, config?: Omit<ApiRequestConfig, 'method' | 'body'>): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...config, method: 'PATCH', body: data, cache: false, deduplicate: false });
   }
 
   // Batch requests
-  async batch<T = any>(requests: Array<{ endpoint: string; config?: ApiRequestConfig }>): Promise<Array<ApiResponse<T>>> {
+  async batch<T = unknown>(requests: Array<{ endpoint: string; config?: ApiRequestConfig }>): Promise<Array<ApiResponse<T>>> {
     return Promise.all(
       requests.map(({ endpoint, config }) => this.request<T>(endpoint, config))
     );
@@ -213,7 +234,11 @@ class OptimizedApiClient {
       await this.request(endpoint, { ...config, priority: 'low' });
     } catch (error) {
       // Ignore prefetch errors
-      console.warn('Prefetch failed:', error);
+      logger.warn('Prefetch failed', {
+        endpoint,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        operation: 'prefetch'
+      });
     }
   }
 
@@ -232,13 +257,13 @@ class OptimizedApiClient {
 export const apiClient = new OptimizedApiClient();
 
 // React Query integration
-export const createQueryKey = (endpoint: string, params?: Record<string, any>): string[] => {
+export const createQueryKey = (endpoint: string, params?: QueryParams): string[] => {
   const baseKey = endpoint.split('/').filter(Boolean);
   return params ? [...baseKey, JSON.stringify(params)] : baseKey;
 };
 
 // Custom hooks for common API patterns
-export const useOptimizedQuery = <T = any>(
+export const useOptimizedQuery = <T = unknown>(
   endpoint: string,
   config?: ApiRequestConfig,
   options?: {
@@ -255,9 +280,9 @@ export const useOptimizedQuery = <T = any>(
     enabled,
     refetchInterval,
     staleTime,
-    retry: (failureCount: number, error: any) => {
+    retry: (failureCount: number, error: ApiError | Error) => {
       // Don't retry on 4xx errors
-      if (error?.status >= 400 && error?.status < 500) {
+      if ('status' in error && error.status && error.status >= 400 && error.status < 500) {
         return false;
       }
       return failureCount < 3;
@@ -265,7 +290,7 @@ export const useOptimizedQuery = <T = any>(
   };
 };
 
-export const useOptimizedMutation = <T = any, V = any>(
+export const useOptimizedMutation = <T = unknown, V = RequestBody>(
   endpoint: string,
   method: 'POST' | 'PUT' | 'DELETE' | 'PATCH' = 'POST',
   config?: ApiRequestConfig
@@ -289,8 +314,12 @@ export const useOptimizedMutation = <T = any, V = any>(
       // Invalidate related queries
       // This would integrate with React Query's query client
     },
-    onError: (error: any) => {
-      console.error('Mutation failed:', error);
+    onError: (error: ApiError | Error) => {
+      logger.error('Mutation failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        operation: 'mutation'
+      }, error instanceof Error ? error : undefined);
     },
   };
 };

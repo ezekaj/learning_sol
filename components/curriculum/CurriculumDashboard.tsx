@@ -80,7 +80,7 @@ export function CurriculumDashboard({
 
   // Filter and sort modules
   const filteredModules = useMemo(() => {
-    let filtered = modules.filter(module => {
+    const filtered = modules.filter(module => {
       // Search filter
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();

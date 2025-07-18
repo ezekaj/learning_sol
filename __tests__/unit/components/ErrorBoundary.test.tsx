@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { ErrorBoundary } from '@/components/error-handling/ErrorBoundary';
+import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
 
 // Mock error tracking
 jest.mock('@/lib/monitoring/error-tracking', () => ({

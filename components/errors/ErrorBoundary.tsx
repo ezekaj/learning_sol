@@ -80,13 +80,59 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       errorId: this.state.errorId,
       timestamp: new Date().toISOString(),
       userAgent: navigator.userAgent,
-      url: window.location.href
+      url: window.location.href,
+      // Additional context for better debugging
+      retryCount: this.state.retryCount,
+      props: process.env.NODE_ENV === 'development' ? this.props : undefined,
+      buildInfo: {
+        version: process.env.NEXT_PUBLIC_APP_VERSION || 'unknown',
+        environment: process.env.NODE_ENV,
+        timestamp: process.env.BUILD_TIMESTAMP || 'unknown'
+      }
     };
 
-    // In production, send to error monitoring service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Integrate with Sentry, LogRocket, or other monitoring service
-      console.log('Error report:', errorReport);
+    // Report to structured logger
+    if (typeof window !== 'undefined') {
+      try {
+        // Send to monitoring service (Sentry integration ready)
+        if (process.env.NODE_ENV === 'production' && window.Sentry) {
+          window.Sentry.withScope((scope) => {
+            scope.setTag('errorBoundary.level', this.props.level);
+            scope.setTag('errorBoundary.name', this.props.name || 'unknown');
+            scope.setTag('errorBoundary.retryCount', this.state.retryCount);
+            scope.setContext('errorBoundary', {
+              errorId: this.state.errorId,
+              componentStack: errorInfo.componentStack,
+              level: this.props.level,
+              name: this.props.name
+            });
+            window.Sentry.captureException(error);
+          });
+        }
+
+        // Send to analytics/logging service
+        if (window.gtag) {
+          window.gtag('event', 'error_boundary_triggered', {
+            error_boundary_level: this.props.level,
+            error_boundary_name: this.props.name || 'unknown',
+            error_message: error.message,
+            custom_parameter_error_id: this.state.errorId
+          });
+        }
+
+        // Development logging
+        if (process.env.NODE_ENV === 'development') {
+          console.group(`🚨 Error Boundary (${this.props.level}): ${this.props.name || 'unnamed'}`);
+          console.error('Error:', error);
+          console.error('Error Info:', errorInfo);
+          console.error('Full Report:', errorReport);
+          console.groupEnd();
+        }
+      } catch (reportingError) {
+        // Fallback if error reporting fails
+        console.error('Error reporting failed:', reportingError);
+        console.error('Original error:', error);
+      }
     }
   };
 

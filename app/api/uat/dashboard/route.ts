@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { logger } from '@/lib/monitoring/logger';
+import { logger } from '@/lib/monitoring/simple-logger';
 import { analytics } from '@/lib/monitoring/analytics';
 import { prisma } from '@/lib/prisma-client-wrapper';
 

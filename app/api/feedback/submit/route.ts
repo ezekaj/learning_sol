@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { logger } from '@/lib/monitoring/logger';
+import { logger } from '@/lib/monitoring/simple-logger';
 import { analytics } from '@/lib/monitoring/analytics';
 import { sanitize, validate } from '@/lib/security/validation';
 // Note: Using mock implementation for feedback storage since Prisma models are not yet deployed

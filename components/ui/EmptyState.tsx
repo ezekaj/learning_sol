@@ -262,18 +262,8 @@ export function ErrorState({
 }
 
 export function OfflineState() {
-  return (
-    <EmptyState
-      icon={<WifiOff className="w-8 h-8 text-orange-400" />}
-      title="You're Offline"
-      description="It looks like you've lost your internet connection. Some features may not be available until you're back online."
-      action={{
-        label: "Try Again",
-        onClick: () => window.location.reload(),
-        variant: "secondary"
-      }}
-    />
-  );
+  // DISABLED: Never show offline state
+  return null;
 }
 
 export function LoadingErrorState({ onRetry }: { onRetry?: () => void }) {

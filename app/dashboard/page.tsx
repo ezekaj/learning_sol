@@ -24,6 +24,7 @@ import { GlassCard } from '@/components/ui/Glassmorphism';
 import { EnhancedButton } from '@/components/ui/EnhancedButton';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { cn } from '@/lib/utils';
+import { withPageErrorBoundary } from '@/lib/components/ErrorBoundaryHOCs';
 
 type DashboardView = 'overview' | 'modules' | 'path' | 'analytics';
 
@@ -294,10 +295,17 @@ function DashboardContent() {
   );
 }
 
-export default function DashboardPage() {
+function DashboardPage() {
   return (
     <ProtectedRoute>
       <DashboardContent />
     </ProtectedRoute>
   );
 }
+
+// Wrap with page-level error boundary for comprehensive error handling
+export default withPageErrorBoundary(DashboardPage, {
+  name: 'DashboardPage',
+  enableRetry: false,
+  showErrorDetails: process.env.NODE_ENV === 'development'
+});

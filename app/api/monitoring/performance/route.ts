@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiPerformanceMonitor } from '@/lib/monitoring/apiPerformance';
 
 // GET /api/monitoring/performance - Get performance metrics
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const timeWindow = parseInt(searchParams.get('timeWindow') || '300000'); // 5 minutes default
@@ -80,7 +80,7 @@ api_slow_request_rate ${stats.slowRequestRate}
 }
 
 // POST /api/monitoring/performance - Record performance metric
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const metric = await request.json();
     

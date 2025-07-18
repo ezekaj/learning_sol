@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { logger } from '@/lib/api/logger';
 
 // Import the local LLM service
 interface LocalLLMService {
@@ -59,15 +60,24 @@ export class LearningAssistant {
         this.genAI = new GoogleGenerativeAI(apiKey);
         this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
         this.streamingModel = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
-        console.log('✅ LearningAssistant initialized with real Google Generative AI');
+        logger.info('LearningAssistant initialized with real Google Generative AI', {
+          model: 'gemini-pro',
+          apiKeyConfigured: true
+        });
       } catch (error) {
-        console.error('❌ Failed to initialize Google Generative AI:', error);
+        logger.error('Failed to initialize Google Generative AI', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined
+        }, error instanceof Error ? error : undefined);
         this.genAI = null as any;
         this.model = null as any;
         this.streamingModel = null as any;
       }
     } else {
-      console.warn('❌ GEMINI_API_KEY not found. LearningAssistant will use mock responses.');
+      logger.warn('GEMINI_API_KEY not found. LearningAssistant will use mock responses', {
+        fallbackMode: 'mock-responses',
+        geminiAvailable: false
+      });
       this.genAI = null as any;
       this.model = null as any;
       this.streamingModel = null as any;
@@ -86,13 +96,22 @@ export class LearningAssistant {
       // Test if local LLM is healthy
       const isHealthy = await this.localLLM.isHealthy();
       if (isHealthy) {
-        console.log('✅ Local LLM initialized and healthy');
+        logger.info('Local LLM initialized and healthy', {
+          localLLMAvailable: true,
+          healthStatus: 'healthy'
+        });
       } else {
-        console.warn('⚠️ Local LLM initialized but not responding');
+        logger.warn('Local LLM initialized but not responding', {
+          localLLMAvailable: false,
+          healthStatus: 'unhealthy'
+        });
         this.localLLM = null;
       }
     } catch (error) {
-      console.warn('⚠️ Local LLM not available, using Gemini fallback only:', error.message);
+      logger.warn('Local LLM not available, using Gemini fallback only', {
+        error: error.message,
+        fallbackMode: 'gemini-only'
+      });
       this.localLLM = null;
     }
   }
@@ -122,7 +141,10 @@ export class LearningAssistant {
 
           return this.parseAIResponse(fullText);
         } catch (streamError) {
-          console.warn('Streaming unavailable, using mock response:', streamError);
+          logger.warn('Streaming unavailable, using mock response', {
+            error: streamError instanceof Error ? streamError.message : 'Unknown error',
+            fallbackMode: 'mock-streaming'
+          });
         }
       }
 
@@ -139,7 +161,11 @@ export class LearningAssistant {
 
       return fullResponse;
     } catch (error) {
-      console.error('AI Assistant streaming error:', error);
+      logger.error('AI Assistant streaming error', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        operation: 'streaming'
+      }, error instanceof Error ? error : undefined);
       return {
         message: 'I apologize, but I encountered an error. Please try asking your question again.',
         confidence: 0.1,
@@ -163,14 +189,21 @@ export class LearningAssistant {
           const text = response.text();
           return this.parseAIResponse(text);
         } catch (aiError) {
-          console.warn('AI service unavailable, using mock response:', aiError);
+          logger.warn('AI service unavailable, using mock response', {
+            error: aiError instanceof Error ? aiError.message : 'Unknown error',
+            fallbackMode: 'mock-response'
+          });
         }
       }
 
       // Fallback to mock response
       return this.generateMockResponse(question, context);
     } catch (error) {
-      console.error('AI Assistant error:', error);
+      logger.error('AI Assistant error', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        operation: 'ask-question'
+      }, error instanceof Error ? error : undefined);
       return {
         message: 'I apologize, but I encountered an error. Please try asking your question again.',
         confidence: 0.1,
@@ -256,7 +289,11 @@ Format your response as a helpful mentor would, encouraging learning while point
 
       return this.parseAIResponse(text);
     } catch (error) {
-      console.error('Code review error:', error);
+      logger.error('Code review error', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        operation: 'code-review'
+      }, error instanceof Error ? error : undefined);
       return {
         message: 'I encountered an error while reviewing your code. Please try again.',
       };
@@ -287,7 +324,11 @@ Make the explanation engaging and easy to understand, with practical examples.
 
       return this.parseAIResponse(text);
     } catch (error) {
-      console.error('Concept explanation error:', error);
+      logger.error('Concept explanation error', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        operation: 'concept-explanation'
+      }, error instanceof Error ? error : undefined);
       return {
         message: 'I encountered an error while explaining the concept. Please try again.',
       };
@@ -328,7 +369,11 @@ Be encouraging and educational in your response.
 
       return this.parseAIResponse(text);
     } catch (error) {
-      console.error('Debug assistance error:', error);
+      logger.error('Debug assistance error', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        operation: 'debug-assistance'
+      }, error instanceof Error ? error : undefined);
       return {
         message: 'I encountered an error while debugging. Please try again.',
       };
@@ -361,7 +406,11 @@ Make it engaging and appropriately challenging for their level.
 
       return this.parseAIResponse(text);
     } catch (error) {
-      console.error('Exercise generation error:', error);
+      logger.error('Exercise generation error', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        operation: 'exercise-generation'
+      }, error instanceof Error ? error : undefined);
       return {
         message: 'I encountered an error while generating an exercise. Please try again.',
       };
@@ -397,7 +446,11 @@ Make it practical and achievable within their time constraints.
 
       return this.parseAIResponse(text);
     } catch (error) {
-      console.error('Learning path error:', error);
+      logger.error('Learning path error', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        operation: 'learning-path'
+      }, error instanceof Error ? error : undefined);
       return {
         message: 'I encountered an error while creating your learning path. Please try again.',
       };
@@ -626,7 +679,10 @@ Be supportive, clear, and practical in your response.
         const isHealthy = await this.localLLM.isHealthy();
         if (isHealthy) return 'local';
       } catch (error) {
-        console.warn('Local LLM health check failed:', error);
+        logger.warn('Local LLM health check failed', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          operation: 'health-check'
+        });
       }
     }
 

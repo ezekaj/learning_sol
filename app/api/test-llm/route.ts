@@ -1,5 +1,6 @@
 // API endpoint to test multi-LLM setup
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/api/logger';
 
 export async function GET() {
   try {
@@ -166,7 +167,11 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('LLM test error:', error);
+    logger.error('LLM test error', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      operation: 'llm-test'
+    }, error instanceof Error ? error : undefined);
     
     return NextResponse.json(
       { 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/api/logger';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
@@ -124,7 +125,7 @@ export async function GET(_request: NextRequest) {
 
     // Calculate current streak
     let currentStreak = 0;
-    let checkDate = new Date();
+    const checkDate = new Date();
     
     while (currentStreak < 365) { // Max check 1 year
       const startOfDay = new Date(checkDate.setHours(0, 0, 0, 0));
@@ -178,7 +179,11 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json({ stats });
   } catch (error) {
-    console.error('Error fetching progress stats:', error);
+    logger.error('Error fetching progress stats', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      operation: 'get-progress-stats'
+    }, error instanceof Error ? error : undefined);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -198,7 +203,12 @@ export async function POST(_request: NextRequest) {
         const { goalId, completed } = data;
         
         // TODO: Implement goal tracking in database
-        console.log(`User ${session.user.id} updated goal ${goalId} to ${completed ? 'completed' : 'incomplete'}`);
+        logger.info('User goal updated', {
+          userId: session.user.id,
+          goalId,
+          completed,
+          operation: 'update-goal'
+        });
 
         return NextResponse.json({ 
           success: true, 
@@ -209,7 +219,11 @@ export async function POST(_request: NextRequest) {
         const { schedule } = data;
         
         // TODO: Implement study schedule in database
-        console.log(`User ${session.user.id} set study schedule:`, schedule);
+        logger.info('User study schedule updated', {
+          userId: session.user.id,
+          schedule,
+          operation: 'update-schedule'
+        });
 
         return NextResponse.json({ 
           success: true, 
@@ -220,7 +234,11 @@ export async function POST(_request: NextRequest) {
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Error processing progress stats action:', error);
+    logger.error('Error processing progress stats action', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      operation: 'post-progress-stats'
+    }, error instanceof Error ? error : undefined);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

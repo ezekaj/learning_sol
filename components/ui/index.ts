@@ -50,11 +50,7 @@ export { Input } from './input';
 export { Label } from './label';
 
 // Advanced Animation Components
-export * from './GSAPAnimations';
-export * from './LottieAnimations';
-export * from './ThreeJSComponents';
 export * from './SVGAnimations';
-export * from './AnimationShowcase';
 
 // Glassmorphism & Neumorphism default exports
 export { default as GlassContainer } from './Glassmorphism';
@@ -66,4 +62,3 @@ export { default as InteractiveCodeEditor } from '../learning/InteractiveCodeEdi
 export { default as GamificationSystem } from '../learning/GamificationSystem';
 export { default as StructuredCurriculum } from '../learning/StructuredCurriculum';
 export { default as ProjectBasedLearning } from '../learning/ProjectBasedLearning';
-export { default as ComprehensiveLearningPlatform } from '../learning/ComprehensiveLearningPlatform';

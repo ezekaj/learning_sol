@@ -81,7 +81,7 @@ export function SecuritySection({
   // Password strength calculation
   const calculatePasswordStrength = useCallback((password: string) => {
     let score = 0;
-    let feedback: string[] = [];
+    const feedback: string[] = [];
 
     if (password.length >= PASSWORD_REQUIREMENTS.minLength) {
       score += 20;

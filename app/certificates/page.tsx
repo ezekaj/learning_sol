@@ -24,6 +24,7 @@ import {
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { GlassCard } from '@/components/ui/Glassmorphism';
 import { EnhancedButton } from '@/components/ui/EnhancedButton';
+import { SmartBreadcrumbs } from '@/components/navigation/SmartNavigation';
 import { cn } from '@/lib/utils';
 
 interface Certificate {
@@ -203,6 +204,11 @@ export default function CertificatesPage() {
     <ProtectedRoute requireAuth>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
         <div className="max-w-7xl mx-auto">
+          {/* Breadcrumbs */}
+          <div className="mb-6">
+            <SmartBreadcrumbs />
+          </div>
+
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
