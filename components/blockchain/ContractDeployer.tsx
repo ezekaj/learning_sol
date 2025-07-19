@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import type { ContractABI } from '../types/abi';
 import { motion } from 'framer-motion';
 import { 
   Rocket, 
@@ -30,7 +31,7 @@ interface DeploymentResult {
 
 interface ContractDeployerProps {
   bytecode?: string;
-  abi?: any[];
+  abi?: ContractABI;
   contractName?: string;
 }
 
@@ -80,7 +81,7 @@ export function ContractDeployer({ bytecode, abi, contractName = 'Contract' }: C
     setIsDeploying(true);
     try {
       // Parse constructor arguments
-      let args: any[] = [];
+      let args: unknown[] = [];
       if (constructorArgs.trim()) {
         try {
           args = JSON.parse(`[${constructorArgs}]`);

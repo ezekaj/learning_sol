@@ -2,24 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Briefcase, 
-  MapPin, 
-  Clock, 
-  DollarSign, 
-  Users, 
-  Star,
-  Filter,
-  Search,
-  ExternalLink,
-  Building,
-  Calendar,
-  TrendingUp,
-  Award,
-  BookOpen,
-  Code,
-  Zap
-} from 'lucide-react';
+import { Briefcase, MapPin, Clock, DollarSign, Search, ExternalLink, Building, TrendingUp } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { GlassCard } from '@/components/ui/Glassmorphism';
 import { EnhancedButton } from '@/components/ui/EnhancedButton';
@@ -110,7 +93,7 @@ export default function JobsPage() {
   const [selectedExperience, setSelectedExperience] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
 
   // Fetch jobs from API
   useEffect(() => {
@@ -208,7 +191,7 @@ export default function JobsPage() {
   };
 
   return (
-    <ProtectedRoute requireAuth>
+    <ProtectedRoute permission={{ requireAuth: true }}>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
         <div className="max-w-7xl mx-auto">
           {/* Breadcrumbs */}
@@ -415,7 +398,7 @@ export default function JobsPage() {
                         </div>
                         
                         <EnhancedButton
-                          variant="primary"
+                          variant="default"
                           size="sm"
                           className="bg-blue-600 hover:bg-blue-700"
                           onClick={() => {

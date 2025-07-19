@@ -2,30 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Play,
-  Save,
-  Undo,
-  Redo,
-  Code,
-  Settings,
-  Share2,
-  Download,
-  Upload,
-  Search,
-  Copy,
-  Clipboard,
-  ChevronLeft,
-  ChevronRight,
-  Maximize2,
-  Minimize2,
-  Type,
-  ZoomIn,
-  ZoomOut,
-  RefreshCw,
-  CheckCircle,
-  X
-} from 'lucide-react';
+import { Play, Save, Undo, Redo, Code, Settings, Share2, Download, Search, Copy, Clipboard, ChevronLeft, ChevronRight, Maximize2, Minimize2, ZoomIn, ZoomOut, RefreshCw, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSwipeGesture } from '@/lib/hooks/useSwipeGesture';
 
@@ -73,13 +50,13 @@ export function MobileEditorToolbar({
   onShare,
   onSettings,
   onDownload,
-  onUpload,
+  onUpload: _onUpload,
   onSearch,
   onCopy,
   onPaste,
   onZoomIn,
   onZoomOut,
-  onRefresh,
+  onRefresh: _onRefresh,
   canUndo = false,
   canRedo = false,
   isSaving = false,

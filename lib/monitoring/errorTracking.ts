@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/nextjs';
 import React from 'react';
 import { env, monitoringConfig, isProduction } from '@/lib/config/environment';
-import { logger } from './logger';
+import { logger } from './simple-logger';
 
 /**
  * Comprehensive Error Tracking and Monitoring

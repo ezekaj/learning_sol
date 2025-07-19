@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { 
@@ -9,6 +9,7 @@ import {
   generateRequestId
 } from '@/lib/api/utils';
 import { ApiErrorCode, HttpStatus } from '@/lib/api/types';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
@@ -196,7 +197,7 @@ async function getCertificateHandler(request: NextRequest, { params }: { params:
     return successResponse(certificateWithVerification, undefined, HttpStatus.OK, requestId);
     
   } catch (error) {
-    console.error('Get certificate error:', error);
+    logger.error('Get certificate error', error as Error);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to fetch certificate',
@@ -278,7 +279,7 @@ async function updateCertificateHandler(request: NextRequest, { params }: { para
     return successResponse(updatedCertificate, undefined, HttpStatus.OK, requestId);
     
   } catch (error) {
-    console.error('Update certificate error:', error);
+    logger.error('Update certificate error', error as Error);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to update certificate',
@@ -289,7 +290,7 @@ async function updateCertificateHandler(request: NextRequest, { params }: { para
   }
 }
 
-async function deleteCertificateHandler(request: NextRequest, { params }: { params: { id: string } }) {
+async function deleteCertificateHandler(_request: NextRequest, { params }: { params: { id: string } }) {
   const requestId = generateRequestId();
   
   try {
@@ -347,7 +348,7 @@ async function deleteCertificateHandler(request: NextRequest, { params }: { para
     );
     
   } catch (error) {
-    console.error('Delete certificate error:', error);
+    logger.error('Delete certificate error', error as Error);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to delete certificate',

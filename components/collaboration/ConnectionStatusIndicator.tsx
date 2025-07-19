@@ -6,7 +6,6 @@ import {
   Wifi,
   WifiOff,
   AlertCircle,
-  CheckCircle,
   Loader2,
   RefreshCw,
   Signal,

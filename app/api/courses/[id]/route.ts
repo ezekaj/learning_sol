@@ -9,6 +9,7 @@ import {
   generateRequestId
 } from '@/lib/api/utils';
 import { ApiErrorCode, HttpStatus, ApiCourse, DifficultyLevel, CourseStatus } from '@/lib/api/types';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Validation schema for updates
 const updateCourseSchema = z.object({
@@ -108,7 +109,7 @@ const mockCourses: ApiCourse[] = [
 ];
 
 // GET /api/courses/[id] - Get a specific course
-async function getCourseHandler(request: NextRequest, { params }: { params: { id: string } }) {
+async function getCourseHandler(_request: NextRequest, { params }: { params: { id: string } }) {
   const requestId = generateRequestId();
   
   try {
@@ -123,7 +124,7 @@ async function getCourseHandler(request: NextRequest, { params }: { params: { id
     return successResponse(course, undefined, HttpStatus.OK, requestId);
     
   } catch (error) {
-    console.error('Get course error:', error);
+    logger.error('Get course error', error as Error);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to fetch course',
@@ -185,12 +186,12 @@ async function updateCourseHandler(request: NextRequest, { params }: { params: {
       }
     }
     
-    mockCourses[courseIndex] = updatedCourse;
+    mockCourses[courseIndex] = updatedCourse as ApiCourse;
     
     return successResponse(updatedCourse, undefined, HttpStatus.OK, requestId);
     
   } catch (error) {
-    console.error('Update course error:', error);
+    logger.error('Update course error', error as Error);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to update course',
@@ -202,7 +203,7 @@ async function updateCourseHandler(request: NextRequest, { params }: { params: {
 }
 
 // DELETE /api/courses/[id] - Delete a specific course
-async function deleteCourseHandler(request: NextRequest, { params }: { params: { id: string } }) {
+async function deleteCourseHandler(_request: NextRequest, { params }: { params: { id: string } }) {
   const requestId = generateRequestId();
   
   try {
@@ -242,7 +243,7 @@ async function deleteCourseHandler(request: NextRequest, { params }: { params: {
     );
     
   } catch (error) {
-    console.error('Delete course error:', error);
+    logger.error('Delete course error', error as Error);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to delete course',

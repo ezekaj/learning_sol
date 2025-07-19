@@ -33,7 +33,7 @@ export interface SessionXPData {
 }
 
 export function useRealTimeXP() {
-  const { state: learningState, addXP, triggerAchievementEvent } = useLearning();
+  const { state: learningState, addXP, triggerAchievementEvent: _triggerAchievementEvent } = useLearning();
   const { triggerEvent } = useAchievements();
   const { triggerXPGain } = useXPNotifications();
   const { triggerLevelUp } = useLevelUp();

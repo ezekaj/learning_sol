@@ -1,33 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import {
-  Settings,
-  Toggle,
-  Eye,
-  EyeOff,
-  Users,
-  Trophy,
-  BarChart3,
-  Shield,
-  RefreshCw,
-  Save,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Activity
-} from 'lucide-react';
+import { Trophy, BarChart3, Shield, RefreshCw, Save, AlertTriangle, CheckCircle, Clock, Activity } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
-import {
-  CommunityConfig,
-  CommunityFeatureFlags,
-  AdminCommunityControls,
-  LeaderboardCategory
-} from '@/lib/community/types';
-import { adminAuth, ADMIN_PERMISSIONS } from '@/lib/admin/auth';
+import { CommunityConfig, CommunityFeatureFlags, LeaderboardCategory } from '@/lib/community/types';
+;
 
 interface CommunityControlsProps {
   className?: string;

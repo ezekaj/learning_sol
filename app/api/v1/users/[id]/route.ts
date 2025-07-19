@@ -2,8 +2,10 @@ import { NextRequest } from 'next/server';
 import { protectedEndpoint, adminEndpoint } from '@/lib/api/middleware';
 import { ApiResponseBuilder, NotFoundException, ForbiddenException } from '@/lib/api/response';
 import { validateBody, UpdateUserSchema, IdSchema } from '@/lib/api/validation';
-import { ApiUser, UserRole, UserStatus, MiddlewareContext } from '@/lib/api/types';
+import { ApiUser, UserRole, UserStatus } from '@/lib/api/types';
+import { MiddlewareContext } from '@/lib/api/middleware';
 import { sanitizeForResponse } from '@/lib/api/response';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Mock users database (same as users/route.ts)
 const mockUsers: Array<ApiUser & { passwordHash: string }> = [
@@ -79,7 +81,7 @@ function canAccessUser(requestingUserId: string, targetUserId: string, userRole:
   }
 
   // Admins can access any user data
-  if (userRole === UserRole.ADMIN || userRole === UserRole.SUPER_ADMIN) {
+  if (userRole === UserRole.ADMIN) {
     return true;
   }
 
@@ -131,12 +133,12 @@ export const GET = protectedEndpoint(async (request: NextRequest, context: Middl
         name: safeUser.name,
         role: safeUser.role,
         profile: {
-          xpTotal: safeUser.profile.xpTotal,
-          level: safeUser.profile.level,
-          lessonsCompleted: safeUser.profile.lessonsCompleted,
-          coursesCompleted: safeUser.profile.coursesCompleted,
-          achievementsCount: safeUser.profile.achievementsCount,
-          bio: safeUser.profile.bio
+          xpTotal: safeUser.profile?.xpTotal || 0,
+          level: safeUser.profile?.level || 1,
+          lessonsCompleted: safeUser.profile?.lessonsCompleted || 0,
+          coursesCompleted: safeUser.profile?.coursesCompleted || 0,
+          achievementsCount: safeUser.profile?.achievementsCount || 0,
+          bio: safeUser.profile?.bio || null
         },
         createdAt: safeUser.createdAt
       };
@@ -145,7 +147,7 @@ export const GET = protectedEndpoint(async (request: NextRequest, context: Middl
 
     return ApiResponseBuilder.success(safeUser);
   } catch (error) {
-    console.error('Get user error:', error);
+    logger.error('Get user error', error as Error);
     
     if (error instanceof NotFoundException) {
       return ApiResponseBuilder.notFound(error.message);
@@ -178,8 +180,7 @@ export const PUT = protectedEndpoint(async (request: NextRequest, context: Middl
 
     // Check if user can update this data
     const canUpdate = context.user!.id === userId || 
-                     context.user!.role === UserRole.ADMIN || 
-                     context.user!.role === UserRole.SUPER_ADMIN;
+                     context.user!.role === UserRole.ADMIN;
 
     if (!canUpdate) {
       throw new ForbiddenException('You do not have permission to update this user');
@@ -195,12 +196,12 @@ export const PUT = protectedEndpoint(async (request: NextRequest, context: Middl
     const body = await validateBody(UpdateUserSchema, request);
 
     // Check if non-admin is trying to change role
-    if (body.role && context.user!.role !== UserRole.ADMIN && context.user!.role !== UserRole.SUPER_ADMIN) {
+    if (body.role && context.user!.role !== UserRole.ADMIN) {
       throw new ForbiddenException('Only administrators can change user roles');
     }
 
     // Check if non-admin is trying to change status
-    if (body.status && context.user!.role !== UserRole.ADMIN && context.user!.role !== UserRole.SUPER_ADMIN) {
+    if (body.status && context.user!.role !== UserRole.ADMIN) {
       throw new ForbiddenException('Only administrators can change user status');
     }
 
@@ -216,7 +217,7 @@ export const PUT = protectedEndpoint(async (request: NextRequest, context: Middl
 
     return ApiResponseBuilder.success(safeUser);
   } catch (error) {
-    console.error('Update user error:', error);
+    logger.error('Update user error', error as Error);
     
     if (error instanceof NotFoundException) {
       return ApiResponseBuilder.notFound(error.message);
@@ -267,7 +268,7 @@ export const DELETE = adminEndpoint(async (request: NextRequest, context: Middle
 
     return ApiResponseBuilder.noContent();
   } catch (error) {
-    console.error('Delete user error:', error);
+    logger.error('Delete user error', error as Error);
     
     if (error instanceof NotFoundException) {
       return ApiResponseBuilder.notFound(error.message);

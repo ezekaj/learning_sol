@@ -53,13 +53,13 @@ export class CommunityStatsManager {
     this.notifySubscribers(data);
   }
 
-  private handleProgressUpdate(data: any): void {
+  private handleProgressUpdate(_data: any): void {
     // Update lesson completion stats
     this.invalidateCache('lesson_stats');
     this.invalidateCache('engagement_stats');
   }
 
-  private handleUserRegistration(data: any): void {
+  private handleUserRegistration(_data: any): void {
     // Update user count stats
     this.invalidateCache('user_stats');
   }

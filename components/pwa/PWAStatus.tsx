@@ -9,20 +9,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Download,
-  RefreshCw,
-  Wifi,
-  WifiOff,
-  Bell,
-  BellOff,
-  Check,
-  X,
-  Smartphone,
-  Monitor,
-  AlertCircle,
-  Info
-} from 'lucide-react';
+import { Download, RefreshCw, Wifi, WifiOff, Bell, BellOff, X, Smartphone, Monitor, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { serviceWorkerManager, ServiceWorkerStatus } from '@/lib/pwa/service-worker-manager';

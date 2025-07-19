@@ -1,5 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Editor, Monaco } from '@monaco-editor/react';
+// import type { editor } from 'monaco-editor';
+// import { ShowLightbulbIconMode } from 'monaco-editor';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, 
@@ -79,7 +81,7 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
     updateSelection
   } = useSocket();
 
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
   const [code, setCode] = useState(initialCode);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -90,7 +92,7 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Session analytics and tracking using sessionId
-  const trackSessionActivity = useCallback((activity: string, metadata?: any) => {
+  const trackSessionActivity = useCallback((activity: string, metadata?: Record<string, unknown>) => {
     const activityData = {
       sessionId,
       activity,
@@ -703,7 +705,7 @@ export const MonacoCollaborativeEditor: React.FC<MonacoCollaborativeEditorProps>
             ariaLabel: readOnly
               ? 'Read-only Solidity code editor. Use arrow keys to navigate.'
               : 'Solidity code editor. Type to edit code. Press F1 for help.',
-            screenReaderAnnounceInlineSuggestions: true,
+            screenReaderAnnounceInlineSuggestion: true,
             tabFocusMode: false,
             unfoldOnClickAfterEndOfLine: true,
             links: true,

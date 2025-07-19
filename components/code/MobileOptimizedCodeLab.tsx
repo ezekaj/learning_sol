@@ -3,21 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
-import {
-  BookOpen,
-  Code,
-  Lightbulb,
-  Play,
-  Save,
-  Download,
-  Upload,
-  Zap,
-  Share2,
-  X
-} from 'lucide-react';
+import { Lightbulb, Play, Save, Download, Upload, Share2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+;
 import { WalletConnect } from '@/components/blockchain/WalletConnect';
 import { ContractDeployer } from '@/components/blockchain/ContractDeployer';
 import { useToast } from '@/components/ui/use-toast';
@@ -89,7 +78,7 @@ export function MobileOptimizedCodeLab() {
   const editorRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { isMobile, isTablet, isTouchDevice } = useMobileDetect();
+  const { isMobile, isTablet } = useMobileDetect();
   const { toast } = useToast();
 
   // Use mobile editor for mobile devices and tablets in portrait mode

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+;
 import { ErrorProvider } from '@/lib/errors/ErrorContext';
 import { AuthTesting } from '@/components/auth/AuthTesting';
 

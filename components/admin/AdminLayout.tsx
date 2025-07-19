@@ -37,7 +37,7 @@ interface AdminLayoutProps {
 interface NavigationItem {
   id: string;
   label: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   href: string;
   permission?: string;
   badge?: number;
@@ -47,7 +47,7 @@ interface NavigationItem {
 export function AdminLayout({ children, currentPage }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
+  const [, setNotifications] = useState<AdminNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
 

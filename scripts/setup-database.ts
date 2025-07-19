@@ -159,7 +159,7 @@ class DatabaseSetup {
     }
   }
 
-  private async handleConnectionFailure(connectionResult: DatabaseSetupResult): Promise<DatabaseSetupResult> {
+  private async handleConnectionFailure(_connectionResult: DatabaseSetupResult): Promise<DatabaseSetupResult> {
     console.log('⚠️  Database connection failed. Attempting fallback setup...');
     
     // Try to set up a development database

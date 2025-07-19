@@ -45,7 +45,8 @@ export interface ApiResponse<T = unknown> {
 class OptimizedApiClient {
   private baseURL: string;
   private defaultHeaders: Record<string, string>;
-  private requestQueue: Map<string, Promise<ApiResponse<unknown>>> = new Map();
+  // Request queue for deduplication - kept for future implementation
+  // private requestQueue: Map<string, Promise<ApiResponse<unknown>>> = new Map();
 
   constructor(baseURL: string = '/api', defaultHeaders: Record<string, string> = {}) {
     this.baseURL = baseURL;
@@ -68,7 +69,7 @@ class OptimizedApiClient {
       deduplicate = method === 'GET',
       retries = 3,
       timeout = 10000,
-      priority = 'normal',
+      priority = 'normal', // priority could be used for request prioritization
     } = config;
 
     const url = `${this.baseURL}${endpoint}`;

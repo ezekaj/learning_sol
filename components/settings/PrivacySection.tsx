@@ -2,26 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Database,
-  Shield,
-  Eye,
-  EyeOff,
-  Download,
-  Trash2,
-  Users,
-  Globe,
-  Lock,
-  AlertTriangle,
-  Info,
-  Check,
-  X,
-  Clock,
-  FileText,
-  Settings,
-  UserX,
-  Share
-} from 'lucide-react';
+import { Database, Eye, Download, Trash2, Users, Globe, Lock, AlertTriangle, Info, Clock, Settings, Share } from 'lucide-react';
 import { PrivacySettings, SettingsValidationError } from '@/types/settings';
 import { GlassContainer } from '@/components/ui/Glassmorphism';
 import { cn } from '@/lib/utils';
@@ -84,6 +65,7 @@ export function PrivacySection({
   }, [onRequestAccountDeletion]);
 
   // Get validation error for a specific field
+  // Validation errors are displayed inline
   const getFieldError = useCallback((field: string) => {
     return validationErrors.find(error => error.field === field);
   }, [validationErrors]);

@@ -1,6 +1,6 @@
 // Solidity curriculum data and learning paths
 
-import { Module, Lesson, LearningPath, DifficultyLevel } from './types';
+import { Module, Lesson, LearningPath } from './types';
 
 export const SOLIDITY_LESSONS: Lesson[] = [
   // Fundamentals Module Lessons

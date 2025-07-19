@@ -1,23 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Settings,
-  User,
-  Shield,
-  BookOpen,
-  Bell,
-  Eye,
-  Database,
-  Save,
-  RefreshCw,
-  AlertCircle,
-  Check,
-  X,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
+import { Settings, User, Shield, BookOpen, Bell, Eye, Database, Save, RefreshCw, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSettings } from '@/lib/hooks/useSettings';
 import { ProfileSection } from './ProfileSection';
 import { SecuritySection } from './SecuritySection';
@@ -25,7 +10,7 @@ import { LearningPreferencesSection } from './LearningPreferencesSection';
 import { NotificationSection } from './NotificationSection';
 import { AccessibilitySection } from './AccessibilitySection';
 import { PrivacySection } from './PrivacySection';
-import { GlassContainer } from '@/components/ui/Glassmorphism';
+;
 import { cn } from '@/lib/utils';
 
 export interface SettingsPageProps {
@@ -94,11 +79,27 @@ export function SettingsPage({ className }: SettingsPageProps) {
     activeSessions,
     revokeSession,
     refreshSessions,
-    auditLog,
+    auditLog: _auditLog,
     refreshAuditLog,
     requestDataExport,
     requestAccountDeletion
   } = useSettings();
+
+  // Wrapper functions to match expected signatures
+  const wrappedRequestDataExport = useCallback(async () => {
+    const result = await requestDataExport('all', 'json');
+    return {
+      success: result !== null,
+      downloadUrl: result?.downloadUrl
+    };
+  }, [requestDataExport]);
+
+  const wrappedRequestAccountDeletion = useCallback(async () => {
+    const result = await requestAccountDeletion();
+    return {
+      success: result !== null
+    };
+  }, [requestAccountDeletion]);
 
   // Load sessions and audit log when security tab is active
   useEffect(() => {
@@ -354,8 +355,8 @@ export function SettingsPage({ className }: SettingsPageProps) {
                 <PrivacySection
                   privacy={settings.privacy}
                   onUpdate={(data) => updateSettings('privacy', data)}
-                  onRequestDataExport={requestDataExport}
-                  onRequestAccountDeletion={requestAccountDeletion}
+                  onRequestDataExport={wrappedRequestDataExport}
+                  onRequestAccountDeletion={wrappedRequestAccountDeletion}
                   validationErrors={validationErrors.privacy || []}
                 />
               )}

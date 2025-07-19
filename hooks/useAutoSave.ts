@@ -199,9 +199,18 @@ export function useAutoSave({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [sessionId, lessonId, language, isAutoSaveEnabled, hasUnsavedChanges]);
 
+  // Wrap debouncedSave to match the expected signature
+  const saveCodeAsync = useCallback(async (code: string, force = false): Promise<void> => {
+    if (force) {
+      await saveCode(code, force);
+    } else {
+      debouncedSave(code);
+    }
+  }, [saveCode, debouncedSave]);
+
   return {
     saveStatus,
-    saveCode: debouncedSave,
+    saveCode: saveCodeAsync,
     loadCode,
     resetCode,
     isAutoSaveEnabled,

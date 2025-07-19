@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Check, AlertCircle, Info } from 'lucide-react';
+import { Loader2, Check, AlertCircle } from 'lucide-react';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { buttonVariants } from '@/lib/animations/micro-interactions';
 import { cn } from '@/lib/utils';
 import { useAsyncButton, AsyncButtonOptions } from '@/lib/hooks/useAsyncButton';
 import Tooltip from '@/components/ui/Tooltip';
 
-interface EnhancedButtonProps extends ButtonProps {
+export interface EnhancedButtonProps extends ButtonProps {
   // Async handling
   asyncAction?: () => Promise<void>;
   asyncOptions?: AsyncButtonOptions;
@@ -83,7 +83,7 @@ export function EnhancedButton({
 
   // Local state for visual feedback
   const [isPressed, setIsPressed] = useState(false);
-  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [_showSuccessAnimation, _setShowSuccessAnimation] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Determine current state (prioritize async state over props)
@@ -370,7 +370,7 @@ export function EnhancedButton({
   // Wrap with tooltip if provided
   if (tooltip) {
     return (
-      <Tooltip content={tooltip} position={tooltipPosition}>
+      <Tooltip content={tooltip} side={tooltipPosition}>
         {buttonContent}
       </Tooltip>
     );
@@ -459,7 +459,7 @@ export function FloatingActionButton(props: EnhancedButtonProps) {
 }
 
 // Specialized async button components
-export function AsyncSubmitButton(props: Omit<EnhancedButtonProps, 'asyncAction'> & {
+export function AsyncSubmitButton(props: Omit<EnhancedButtonProps, 'asyncAction' | 'children'> & {
   onSubmit: () => Promise<void>;
   submitText?: string;
 }) {
@@ -484,7 +484,7 @@ export function AsyncSubmitButton(props: Omit<EnhancedButtonProps, 'asyncAction'
   );
 }
 
-export function AsyncSaveButton(props: Omit<EnhancedButtonProps, 'asyncAction'> & {
+export function AsyncSaveButton(props: Omit<EnhancedButtonProps, 'asyncAction' | 'children'> & {
   onSave: () => Promise<void>;
 }) {
   const { onSave, ...buttonProps } = props;
@@ -515,7 +515,7 @@ export function AsyncSaveButton(props: Omit<EnhancedButtonProps, 'asyncAction'> 
   );
 }
 
-export function AsyncDeleteButton(props: Omit<EnhancedButtonProps, 'asyncAction'> & {
+export function AsyncDeleteButton(props: Omit<EnhancedButtonProps, 'asyncAction' | 'children'> & {
   onDelete: () => Promise<void>;
   confirmText?: string;
 }) {

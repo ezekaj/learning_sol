@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, RefreshCw, Wifi, WifiOff, Clock } from 'lucide-react';
 import { GlassContainer } from '@/components/ui/Glassmorphism';
 import { errorTracker } from '@/lib/monitoring/error-tracking';
-import { useSettings } from '@/lib/hooks/useSettings';
+;
 
 // Async Error Boundary for handling async operation errors
 interface AsyncErrorBoundaryProps {

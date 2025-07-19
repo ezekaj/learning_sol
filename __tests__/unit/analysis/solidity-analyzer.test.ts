@@ -1,11 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { 
-  SolidityCodeAnalyzer,
-  AnalysisResult,
-  SecurityVulnerability,
-  OptimizationSuggestion,
-  AnalysisIssue
-} from '@/lib/analysis/SolidityCodeAnalyzer';
+import { SolidityCodeAnalyzer } from '@/lib/analysis/SolidityCodeAnalyzer';
 
 // Mock console.error to suppress error logs during testing
 const originalConsoleError = console.error;

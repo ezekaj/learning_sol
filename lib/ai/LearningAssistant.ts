@@ -672,6 +672,8 @@ Be supportive, clear, and practical in your response.
   }
 
   // Enhanced method to choose the best AI service
+  // NOTE: This method is kept for legacy compatibility but is no longer used directly
+  // The enhanced tutor system now handles service selection
   private async selectAIService(): Promise<'local' | 'gemini' | 'mock'> {
     // Prefer local LLM for code-related tasks
     if (this.localLLM) {

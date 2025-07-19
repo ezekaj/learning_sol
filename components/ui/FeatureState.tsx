@@ -3,21 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import {
-  Clock,
-  Zap,
-  Settings,
-  Lock,
-  Users,
-  Calendar,
-  MessageSquare,
-  ExternalLink,
-  Mail,
-  Info,
-  AlertCircle,
-  CheckCircle,
-  Wrench
-} from 'lucide-react';
+import { Clock, Zap, Lock, Calendar, MessageSquare, ExternalLink, Mail, Info, CheckCircle, Wrench } from 'lucide-react';
 import { FeatureFlag, FeatureState, getFeatureAccessReason, UserRole } from '@/lib/features/feature-flags';
 import { GlassContainer } from '@/components/ui/Glassmorphism';
 import { cn } from '@/lib/utils';

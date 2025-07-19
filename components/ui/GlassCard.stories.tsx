@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { GlassCard } from './GlassCard';
+import { GlassContainer as GlassCard } from './Glassmorphism';
 import { Star, Trophy, Zap } from 'lucide-react';
 
 /**

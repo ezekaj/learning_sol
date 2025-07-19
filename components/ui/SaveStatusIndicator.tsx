@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+;
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Save, 
@@ -217,7 +217,7 @@ export function SaveStatusIndicator({
 // Floating save status indicator for minimal UI
 export function FloatingSaveStatus({
   status,
-  lastSaved,
+  lastSaved: _lastSaved,
   hasUnsavedChanges,
   className
 }: Pick<SaveStatusIndicatorProps, 'status' | 'lastSaved' | 'hasUnsavedChanges' | 'className'>) {

@@ -27,32 +27,41 @@ export const Skeleton: React.FC<SkeletonProps> = ({
     circle: 'rounded-full',
   };
 
-  const Component = animate ? motion.div : 'div';
-  const animationProps = animate ? {
-    animate: {
-      backgroundPosition: ['200% 0', '-200% 0'],
-    },
-    transition: {
-      duration: 1.5,
-      repeat: Infinity,
-      ease: 'linear',
-    },
-    style: {
-      backgroundSize: '200% 100%',
-    },
-  } : {};
+  if (animate) {
+    return (
+      <motion.div
+        className={cn(
+          baseClasses,
+          variantClasses[variant],
+          className
+        )}
+        animate={{
+          backgroundPosition: ['200% 0', '-200% 0'],
+        }}
+        transition={{
+          duration: 1.5,
+          repeat: Infinity,
+          ease: 'linear',
+        }}
+        style={{
+          backgroundSize: '200% 100%',
+        }}
+      >
+        {children}
+      </motion.div>
+    );
+  }
 
   return (
-    <Component
+    <div
       className={cn(
         baseClasses,
         variantClasses[variant],
         className
       )}
-      {...animationProps}
     >
       {children}
-    </Component>
+    </div>
   );
 };
 

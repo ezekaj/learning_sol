@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+;
 import { 
   AlertTriangle, 
   Wifi, 
@@ -36,8 +36,8 @@ export function ErrorTesting() {
     state: errorState 
   } = useError();
   
-  const { isOnline, forceCheck } = useOfflineDetection();
-  const { trackError, getStats } = useErrorAnalytics();
+  const { isOnline, forceCheck: _forceCheck } = useOfflineDetection();
+  const { trackError: _trackError, getStats } = useErrorAnalytics();
   const { submitBugReport, isSubmitting } = useErrorReporting();
 
   const addTestResult = (result: string) => {
@@ -167,10 +167,11 @@ export function ErrorTesting() {
     }
   );
 
-  const testErrorBoundary = () => {
-    // This will trigger an error boundary
-    throw new Error('Test error boundary');
-  };
+  // Error boundary testing is handled by dedicated test button
+  // const _testErrorBoundary = () => {
+  //   // This will trigger an error boundary
+  //   throw new Error('Test error boundary');
+  // };
 
   const testBugReport = async () => {
     if (!currentError) {

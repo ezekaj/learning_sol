@@ -1,3 +1,10 @@
+// Enum Types
+export enum SkillLevel {
+  BEGINNER = 'beginner',
+  INTERMEDIATE = 'intermediate',
+  ADVANCED = 'advanced'
+}
+
 // API Response Types
 export interface ApiResponse<T = unknown> {
   success: boolean;
@@ -56,6 +63,9 @@ export interface FilterQuery {
   dateTo?: string;
 }
 
+// Re-export ApiError from errors module
+export { ApiError } from './errors';
+
 // API Error Codes
 export enum ApiErrorCode {
   // Authentication & Authorization
@@ -70,6 +80,7 @@ export enum ApiErrorCode {
   INVALID_INPUT = 'INVALID_INPUT',
   MISSING_REQUIRED_FIELD = 'MISSING_REQUIRED_FIELD',
   INVALID_FORMAT = 'INVALID_FORMAT',
+  BAD_REQUEST = 'BAD_REQUEST',
 
   // Resources
   RESOURCE_NOT_FOUND = 'RESOURCE_NOT_FOUND',
@@ -79,6 +90,7 @@ export enum ApiErrorCode {
   // Rate Limiting
   RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
   TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS',
+  REQUEST_TIMEOUT = 'REQUEST_TIMEOUT',
 
   // Server Errors
   INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR',
@@ -116,7 +128,16 @@ export enum HttpStatus {
   TOO_MANY_REQUESTS = 429,
   INTERNAL_SERVER_ERROR = 500,
   BAD_GATEWAY = 502,
-  SERVICE_UNAVAILABLE = 503
+  SERVICE_UNAVAILABLE = 503,
+  REQUEST_TIMEOUT = 408
+}
+
+
+export interface SessionUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
 }
 
 // User Types
@@ -131,6 +152,8 @@ export interface ApiUser {
   createdAt: string;
   updatedAt: string;
   lastLoginAt?: string;
+  passwordHash?: string;
+  tokenVersion?: number;
 }
 
 export interface UserProfile {
@@ -162,9 +185,9 @@ export interface UserPreferences {
 
 export enum UserRole {
   STUDENT = 'STUDENT',
+  MENTOR = 'MENTOR',
   INSTRUCTOR = 'INSTRUCTOR',
-  ADMIN = 'ADMIN',
-  SUPER_ADMIN = 'SUPER_ADMIN'
+  ADMIN = 'ADMIN'
 }
 
 export enum UserStatus {
@@ -377,9 +400,90 @@ export interface ServiceHealth {
   lastCheck: string;
 }
 
+// Metrics Types
+export interface MetricsResponseData {
+  summary: {
+    timeRange: string;
+    granularity: string;
+    totalRequests: number;
+    totalErrors: number;
+    totalWarnings: number;
+    errorRate: number;
+    averageResponseTime: number;
+    uptime: number;
+    lastUpdated: string;
+  };
+  errors?: {
+    total: number;
+    rate: number;
+    topErrors: Array<{ type: string; count: number; message: string }>;
+    errorsByPage: Record<string, number>;
+    errorsByBrowser: Record<string, number>;
+  };
+  performance?: {
+    averageResponseTime: number;
+    slowestEndpoints: Array<{
+      endpoint: string;
+      averageTime: number;
+      requestCount: number;
+      maxTime: number;
+      minTime: number;
+    }>;
+    responseTimePercentiles: {
+      p50: number;
+      p90: number;
+      p95: number;
+      p99: number;
+    };
+  };
+  traffic?: {
+    totalRequests: number;
+    requestsPerMinute: number;
+    statusCodes: Record<number, number>;
+    topPages: Array<{ page: string; requests: number }>;
+  };
+  timeSeries?: Array<{
+    timestamp: string;
+    requests: number;
+    errors: number;
+    responseTime: number;
+  }>;
+  system?: {
+    memoryUsage: NodeJS.MemoryUsage;
+    uptime: number;
+    nodeVersion: string;
+    platform: NodeJS.Platform;
+    environment: string;
+  };
+  // Additional top-level properties for filtered responses
+  statusCodes?: Record<number, number>;
+}
+
+// Activity Feed Types
+export interface ActivityItem {
+  id: string;
+  type: 'lesson' | 'achievement' | 'social';
+  description: string;
+  timestamp: Date | null;
+  metadata: Record<string, unknown>;
+}
+
+// LLM Integration Types
+export interface LLMModel {
+  id: string;
+  object?: string;
+  created?: number;
+  owned_by?: string;
+}
+
+export interface LLMModelsResponse {
+  data?: LLMModel[];
+  object?: string;
+}
+
 // File Upload Types
 export interface FileUploadRequest {
-  file: File;
+  file: any; // File type not available in server context
   type: 'avatar' | 'course-thumbnail' | 'lesson-video' | 'course-material';
   metadata?: Record<string, any>;
 }

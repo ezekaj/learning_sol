@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { motion, AnimatePresence, PanInfo, useAnimation } from 'framer-motion';
+import { motion, AnimatePresence, PanInfo, useAnimation, Variants } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useSwipeGesture } from '@/lib/hooks/useSwipeGesture';
+;
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -41,7 +41,7 @@ export function BottomSheet({
   defaultSnapPoint = 0,
   onSnapPointChange
 }: BottomSheetProps) {
-  const [currentSnapPoint, setCurrentSnapPoint] = useState(defaultSnapPoint);
+  const [_currentSnapPoint, setCurrentSnapPoint] = useState(defaultSnapPoint);
   const sheetRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const controls = useAnimation();
@@ -83,7 +83,7 @@ export function BottomSheet({
   }, [controls, getSnapPointY, onSnapPointChange]);
 
   // Handle drag end
-  const handleDragEnd = useCallback((event: any, info: PanInfo) => {
+  const handleDragEnd = useCallback((_event: any, info: PanInfo) => {
     const velocity = info.velocity.y;
     const offset = info.offset.y;
     
@@ -157,7 +157,7 @@ export function BottomSheet({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
-  const sheetVariants = {
+  const sheetVariants: Variants = {
     hidden: { y: '100%' },
     visible: { 
       y: snapPoints.length > 0 ? getSnapPointY(defaultSnapPoint) : 0,

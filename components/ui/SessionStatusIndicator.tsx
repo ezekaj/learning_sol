@@ -2,15 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CheckCircle, 
-  Clock, 
-  AlertTriangle, 
-  RefreshCw, 
-  WifiOff,
-  X,
-  Shield
-} from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle, RefreshCw, WifiOff, X } from 'lucide-react';
 import { SessionManager, SessionStatus, SessionEvent } from '@/lib/auth/sessionManager';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { EnhancedButton } from './EnhancedButton';
@@ -34,7 +26,7 @@ export function SessionStatusIndicator({
   const { isAuthenticated, refreshSession } = useAuth();
   const [sessionStatus, setSessionStatus] = useState<SessionStatus | null>(null);
   const [sessionManager] = useState(() => SessionManager.getInstance());
-  const [showWarning, setShowWarning] = useState(false);
+  const [_showWarning, setShowWarning] = useState(false);
   const [timeDisplay, setTimeDisplay] = useState('');
   const [isVisible, setIsVisible] = useState(false);
 

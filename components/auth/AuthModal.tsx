@@ -16,8 +16,7 @@ import {
   Lock, 
   User,
   CheckCircle,
-  AlertCircle,
-  Loader2
+  AlertCircle
 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/Glassmorphism';
 import { AsyncSubmitButton } from '@/components/ui/EnhancedButton';
@@ -25,10 +24,10 @@ import { ErrorMessage, InlineFormError } from '@/components/ui/ErrorMessage';
 import { AuthErrorBoundary } from '@/components/errors/SpecializedErrorBoundaries';
 import { useError } from '@/lib/errors/ErrorContext';
 import { useFormErrorHandler } from '@/lib/hooks/useErrorRecovery';
-import { ErrorFactory } from '@/lib/errors/types';
+import { ErrorFactory, AuthError } from '@/lib/errors/types';
 import { loginSchema, registrationSchema, PasswordUtils } from '@/lib/auth/password';
 import type { LoginData, RegistrationData } from '@/lib/auth/password';
-import { AccessibleForm, AccessibleField, FormErrorSummary, AccessibleSubmitButton } from '@/components/ui/AccessibleForm';
+;
 
 // Check if we're in development mode without database
 const isDevelopmentMode = process.env.NODE_ENV === 'development' && !process.env.DATABASE_URL;
@@ -50,10 +49,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [currentError, setCurrentError] = useState<any>(null);
+  const [currentError, setCurrentError] = useState<AuthError | null>(null);
 
   // Enhanced error handling
-  const { showAuthError, showFormError } = useError();
+  const { showAuthError } = useError();
   const { handleFieldError, handleSubmissionError } = useFormErrorHandler();
 
   // Login form
@@ -274,7 +273,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     // Retry logic handled by AsyncSubmitButton
                   }}
                   compact
-                  showActions={currentError.retryable}
+                  showActions={'retryable' in currentError ? currentError.retryable : false}
                 />
               </div>
             )}
@@ -361,9 +360,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         userMessage: registerForm.formState.errors.name.message || 'Please enter your full name'
                       })}
                       className="mt-1"
-                      id="name-error"
-                      role="alert"
-                      aria-live="polite"
                     />
                   )}
                 </div>
@@ -525,7 +521,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       }, 1000);
                     }
                   },
-                  onError: (error) => {
+                  onError: (error: Error) => {
                     setError(error.message);
                   }
                 }}

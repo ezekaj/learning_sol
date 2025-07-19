@@ -3,21 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  HelpCircle,
-  X,
-  BookOpen,
-  Play,
-  Code,
-  Users,
-  Settings,
-  Lightbulb,
-  ArrowRight,
-  ExternalLink,
-  MessageSquare,
-  ChevronDown,
-  ChevronUp
-} from 'lucide-react';
+import { HelpCircle, X, BookOpen, Play, Code, Lightbulb, ArrowRight, ExternalLink, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
 import { GlassContainer } from '@/components/ui/Glassmorphism';
 import { cn } from '@/lib/utils';
 
@@ -285,7 +271,7 @@ export function ContextualHelp({
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             className="w-96 max-w-[90vw] max-h-[80vh] mb-4"
           >
-            <GlassContainer intensity="high" className="overflow-hidden">
+            <GlassContainer intensity="heavy" className="overflow-hidden">
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-white/10">
                 <div className="flex items-center space-x-2">

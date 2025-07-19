@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/api/logger';
+import { Prisma, ProjectCategory, SkillLevel } from '@prisma/client';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
@@ -21,16 +22,16 @@ export async function GET(request: NextRequest) {
     const difficulty = searchParams.get('difficulty');
     
     // Build where clause for filtering
-    const where: any = {
+    const where: Prisma.ProjectWhereInput = {
       isPublished: true
     };
     
     if (category) {
-      where.category = category.toUpperCase();
+      where.category = category.toUpperCase() as ProjectCategory;
     }
     
     if (difficulty) {
-      where.difficulty = difficulty.toUpperCase();
+      where.difficulty = difficulty.toUpperCase() as SkillLevel;
     }
 
     // Fetch projects from database
@@ -330,7 +331,7 @@ contract Voting {
   ];
 
   await prisma.project.createMany({
-    data: exampleProjects
+    data: exampleProjects as any
   });
 }
 

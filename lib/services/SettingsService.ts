@@ -1,18 +1,6 @@
 'use client';
 
-import { 
-  UserSettings, 
-  SettingsUpdateRequest, 
-  SettingsUpdateResponse, 
-  SettingsValidationError,
-  AuditLogEntry,
-  ActiveSession,
-  TwoFactorSetup,
-  DataExportRequest,
-  AccountDeletionRequest,
-  PasswordRequirements,
-  DEFAULT_USER_SETTINGS
-} from '@/types/settings';
+import { UserSettings, SettingsUpdateResponse, SettingsValidationError, AuditLogEntry, ActiveSession, TwoFactorSetup, DataExportRequest, AccountDeletionRequest, DEFAULT_USER_SETTINGS } from '@/types/settings';
 
 export class SettingsService {
   private static instance: SettingsService;
@@ -504,7 +492,7 @@ export class SettingsService {
     return errors;
   }
 
-  private validateNotifications(data: any): SettingsValidationError[] {
+  private validateNotifications(_data: any): SettingsValidationError[] {
     // Basic validation - would be more comprehensive
     return [];
   }
@@ -533,11 +521,11 @@ export class SettingsService {
     return errors;
   }
 
-  private validateCollaboration(data: any): SettingsValidationError[] {
+  private validateCollaboration(_data: any): SettingsValidationError[] {
     return [];
   }
 
-  private validateAccessibility(data: any): SettingsValidationError[] {
+  private validateAccessibility(_data: any): SettingsValidationError[] {
     return [];
   }
 

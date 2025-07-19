@@ -3,76 +3,7 @@
  */
 
 import { z } from 'zod';
-import {
-  // Base schemas
-  IdSchema,
-  EmailSchema,
-  PasswordSchema,
-  PaginationSchema,
-  SearchSchema,
-  
-  // User schemas
-  CreateUserSchema,
-  UpdateUserSchema,
-  UpdateUserProfileSchema,
-  UpdateUserPreferencesSchema,
-  ChangePasswordSchema,
-  
-  // Authentication schemas
-  LoginSchema,
-  RegisterSchema,
-  ForgotPasswordSchema,
-  ResetPasswordSchema,
-  RefreshTokenSchema,
-  
-  // Lesson schemas
-  CreateLessonSchema,
-  UpdateLessonSchema,
-  PublishLessonSchema,
-  
-  // Course schemas
-  CreateCourseSchema,
-  UpdateCourseSchema,
-  
-  // Progress schemas
-  CreateProgressSchema,
-  UpdateProgressSchema,
-  CompleteProgressSchema,
-  
-  // Achievement schemas
-  CreateAchievementSchema,
-  UpdateAchievementSchema,
-  
-  // Community schemas
-  LeaderboardFiltersSchema,
-  StatsFiltersSchema,
-  
-  // Rate limiting schemas
-  RateLimitConfigSchema,
-  
-  // File upload schemas
-  FileUploadSchema,
-  ImageUploadSchema,
-  
-  // Settings schemas
-  SettingsUpdateSchema,
-  ProfileSettingsSchema,
-  SecuritySettingsSchema,
-  LearningSettingsSchema,
-  EditorSettingsSchema,
-  
-  // Search schemas
-  SearchQuerySchema,
-  
-  // Error reporting schemas
-  ErrorReportSchema,
-  
-  // Metrics schemas
-  MetricsQuerySchema,
-  
-  // Feature flag schemas
-  FeatureFlagQuerySchema
-} from './validation';
+import { IdSchema, EmailSchema, PasswordSchema, PaginationSchema, SearchSchema, CreateUserSchema, UpdateUserSchema, UpdateUserProfileSchema, UpdateUserPreferencesSchema, ChangePasswordSchema, RegisterSchema, ForgotPasswordSchema, ResetPasswordSchema, RefreshTokenSchema, CreateLessonSchema, UpdateLessonSchema, PublishLessonSchema, UpdateCourseSchema, UpdateProgressSchema, CompleteProgressSchema, UpdateAchievementSchema, StatsFiltersSchema, ImageUploadSchema, ProfileSettingsSchema, SecuritySettingsSchema, LearningSettingsSchema, EditorSettingsSchema } from './validation';
 
 // Base types
 export type Id = z.infer<typeof IdSchema>;

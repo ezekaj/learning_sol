@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+;
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { AdminGuard } from '@/components/admin/AdminGuard';
 import { CommunityManagement } from '@/components/admin/CommunityManagement';

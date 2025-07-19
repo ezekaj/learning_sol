@@ -46,9 +46,9 @@ const PAGES_TO_TEST: PageTest[] = [
   }
 ];
 
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const testType = searchParams.get('type') || 'basic';
+export async function GET(_request: NextRequest) {
+  // const { searchParams } = new URL(request.url);
+  // const testType = searchParams.get('type') || 'basic'; // Available for future use
 
   try {
     const results = await Promise.all(

@@ -1,14 +1,6 @@
 'use client';
 
-import { 
-  LeaderboardUser, 
-  LeaderboardCategory, 
-  LeaderboardFilters, 
-  LeaderboardResponse,
-  LeaderboardCache,
-  LeaderboardEvent,
-  CommunityError
-} from './types';
+import { LeaderboardCategory, LeaderboardFilters, LeaderboardResponse, LeaderboardCache, LeaderboardEvent, CommunityError } from './types';
 import { realTimeManager } from './websocket';
 
 export class LeaderboardManager {
@@ -79,7 +71,7 @@ export class LeaderboardManager {
     this.handleRealTimeUpdate(event);
   }
 
-  private invalidateUserCache(userId: string): void {
+  private invalidateUserCache(_userId: string): void {
     // Remove cache entries that might be affected by this user's update
     const keysToRemove: string[] = [];
     

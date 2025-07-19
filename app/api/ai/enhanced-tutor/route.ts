@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { enhancedTutor } from '@/lib/ai/EnhancedTutorSystem';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -90,9 +91,9 @@ export async function POST(request: NextRequest) {
         requestType,
         prompt: prompt || concept || description || topic || '',
         response: JSON.stringify(response),
-        aiModel: response.model || 'Enhanced-Tutor',
-        responseTime: response.responseTime || 0,
-        confidence: response.confidence || 0.8,
+        aiModel: (response as any).model || 'Enhanced-Tutor',
+        responseTime: (response as any).responseTime || 0,
+        confidence: (response as any).confidence || 0.8,
         contextUsed: {
           skillLevel: user.profile?.skillLevel || 'BEGINNER',
           currentLevel: user.profile?.currentLevel || 1,
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Enhanced tutor API error:', error);
+    logger.error('Enhanced tutor API error', error as Error);
     return NextResponse.json(
       { error: 'Internal server error' }, 
       { status: 500 }
@@ -164,7 +165,7 @@ export async function GET(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Enhanced tutor GET API error:', error);
+    logger.error('Enhanced tutor GET API error', error as Error);
     return NextResponse.json(
       { error: 'Internal server error' }, 
       { status: 500 }
@@ -210,7 +211,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    console.error('Enhanced tutor PUT API error:', error);
+    logger.error('Enhanced tutor PUT API error', error as Error);
     return NextResponse.json(
       { error: 'Internal server error' }, 
       { status: 500 }

@@ -2,20 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  User, 
-  Settings, 
-  LogOut, 
-  Clock, 
-  Shield, 
-  Crown,
-  ChevronDown,
-  RefreshCw,
-  AlertTriangle,
-  CheckCircle,
-  Wifi,
-  WifiOff
-} from 'lucide-react';
+import { User, Settings, LogOut, Clock, Shield, Crown, ChevronDown, RefreshCw, AlertTriangle, CheckCircle, WifiOff } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { SessionManager, SessionStatus } from '@/lib/auth/sessionManager';
 import { useLearning } from '@/lib/context/LearningContext';

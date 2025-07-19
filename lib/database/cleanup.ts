@@ -115,8 +115,8 @@ export class BackupService {
 
   private async simulateBackupCreation(
     tables: string[],
-    backupPath: string,
-    options: { compress?: boolean; includeData?: boolean }
+    _backupPath: string,
+    _options: { compress?: boolean; includeData?: boolean }
   ): Promise<void> {
     // Simulate backup time based on table count
     const backupTime = tables.length * 100; // 100ms per table
@@ -128,10 +128,10 @@ export class BackupService {
     // - mongodump for MongoDB
   }
 
-  async verifyBackup(backupPath: string): Promise<boolean> {
+  async verifyBackup(_backupPath: string): Promise<boolean> {
     try {
       // In production, this would verify the backup integrity
-      logger.info('Verifying backup integrity', { backupPath });
+      logger.info('Verifying backup integrity', { backupPath: _backupPath });
       
       // Simulate verification
       await new Promise(resolve => setTimeout(resolve, 500));

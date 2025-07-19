@@ -2,32 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  AlertTriangle,
-  Shield,
-  Lock,
-  Eye,
-  EyeOff,
-  Clock,
-  CheckCircle,
-  XCircle,
-  RotateCcw,
-  Trash2,
-  Ban,
-  Archive,
-  Key,
-  Smartphone,
-  X,
-  Users,
-  FileText,
-  BookOpen,
-  FileQuestion
-} from 'lucide-react';
+import { AlertTriangle, Shield, Eye, EyeOff, Clock, CheckCircle, RotateCcw, Trash2, Ban, Archive, Users, FileText, BookOpen, FileQuestion } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
 import { AdminConfirmation, AdminUndo } from '@/lib/admin/types';
-import { adminAuth } from '@/lib/admin/auth';
 
 interface SafetyConfirmationProps {
   isOpen: boolean;
@@ -40,12 +19,7 @@ interface UndoManagerProps {
   className?: string;
 }
 
-interface TwoFactorVerificationProps {
-  isOpen: boolean;
-  onVerify: (code: string) => Promise<boolean>;
-  onCancel: () => void;
-}
-
+/*
 function TwoFactorVerification({ isOpen, onVerify, onCancel }: TwoFactorVerificationProps) {
   const [code, setCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -150,12 +124,13 @@ function TwoFactorVerification({ isOpen, onVerify, onCancel }: TwoFactorVerifica
     </motion.div>
   );
 }
+*/
 
 export function SafetyConfirmation({ isOpen, confirmation, onConfirm, onCancel }: SafetyConfirmationProps) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [twoFactorCode, setTwoFactorCode] = useState('');
-  const [showTwoFactor, setShowTwoFactor] = useState(false);
+  const [_showTwoFactor, _setShowTwoFactor] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [error, setError] = useState('');
   const [step, setStep] = useState<'password' | 'twofactor' | 'final'>('password');

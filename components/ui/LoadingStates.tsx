@@ -1,18 +1,8 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useSettings } from '@/lib/hooks/useSettings';
-import { GlassContainer } from '@/components/ui/Glassmorphism';
-import {
-  Upload,
-  Download,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Pause,
-  Play,
-  X,
-  Loader2
-} from 'lucide-react';
+;
+;
 import { cn } from '@/lib/utils';
 
 // Skeleton Components
@@ -168,14 +158,15 @@ const LoadingSpinner: React.FC<SpinnerProps> = ({
   size = 'md',
   variant = 'default',
   className = '',
-  text,
-  subText,
-  progress,
-  showProgress = false,
-  'aria-label': ariaLabel,
+  text: _text,
+  subText: _subText,
+  progress: _progress,
+  showProgress: _showProgress = false,
+  'aria-label': _ariaLabel,
 }) => {
   const { settings } = useSettings();
-  const shouldAnimate = !settings?.accessibility?.reduceMotion;
+  // Animation control is handled by motion components directly
+  // const shouldAnimate = !settings?.accessibility?.reduceMotion;
   const sizeClasses = {
     sm: 'w-4 h-4',
     md: 'w-6 h-6',

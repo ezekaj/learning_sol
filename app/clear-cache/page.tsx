@@ -89,16 +89,16 @@ export default function ClearCachePage() {
         // Try multiple methods to ensure hard reload
         if ('caches' in window) {
           caches.keys().then(() => {
-            window.location.href = '/?nocache=' + Date.now();
+            (window as any).location.href = '/?nocache=' + Date.now();
           });
         } else {
-          window.location.href = '/?nocache=' + Date.now();
+          (window as any).location.href = '/?nocache=' + Date.now();
         }
       }, 1000);
 
     } catch (error) {
       console.error('Error during clearing:', error);
-      setStatus(`❌ Error: ${error.message || error}`);
+      setStatus(`❌ Error: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setIsClearing(false);
     }

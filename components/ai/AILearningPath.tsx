@@ -375,7 +375,7 @@ const AILearningPathComponent: React.FC<AILearningPathProps> = ({
                   </div>
                   
                   <Button
-                    onClick={(e) => {
+                    onClick={(e: React.MouseEvent) => {
                       e.stopPropagation();
                       selectPath(path);
                     }}

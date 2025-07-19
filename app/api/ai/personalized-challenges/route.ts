@@ -5,6 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { enhancedTutor } from '@/lib/ai/EnhancedTutorSystem';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
+import { PersonalizedChallengeQuery, PersonalizedChallengeUpdateData } from '@/app/api/types';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { topic, difficulty, customRequirements } = body;
+    const { topic } = body;
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
@@ -38,8 +40,8 @@ export async function POST(request: NextRequest) {
         topic,
         starterCode: challenge.starterCode,
         testCases: challenge.testCases,
-        hints: challenge.hints,
-        learningObjectives: challenge.learningObjectives,
+        hints: Array.isArray(challenge.hints) ? challenge.hints.join('\n') : challenge.hints,
+        learningObjectives: Array.isArray(challenge.learningObjectives) ? challenge.learningObjectives.join('\n') : challenge.learningObjectives,
         aiGenerated: true
       }
     });
@@ -53,7 +55,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Personalized challenge creation error:', error);
+    logger.error('Personalized challenge creation error', error as Error);
     return NextResponse.json(
       { error: 'Failed to create challenge' }, 
       { status: 500 }
@@ -102,7 +104,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, data: challenge });
     } else {
       // Get user's challenges
-      const whereClause: any = { userId: user.id };
+      const whereClause: PersonalizedChallengeQuery = { userId: user.id };
       
       if (status === 'completed') {
         whereClause.isCompleted = true;
@@ -125,7 +127,7 @@ export async function GET(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Get challenges error:', error);
+    logger.error('Get challenges error', error as Error);
     return NextResponse.json(
       { error: 'Failed to fetch challenges' }, 
       { status: 500 }
@@ -178,14 +180,14 @@ export async function PUT(request: NextRequest) {
         code,
         score,
         feedback: `Security Score: ${analysis.overallScore}/100`,
-        aiAnalysis: analysis,
+        aiAnalysis: JSON.parse(JSON.stringify(analysis)),
         isCorrect,
         timeSpent: timeSpent || 0
       }
     });
 
     // Update challenge progress
-    const updateData: any = {
+    const updateData: PersonalizedChallengeUpdateData = {
       attempts: challenge.attempts + 1,
       timeSpent: challenge.timeSpent + (timeSpent || 0)
     };
@@ -214,7 +216,7 @@ export async function PUT(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Challenge submission error:', error);
+    logger.error('Challenge submission error', error as Error);
     return NextResponse.json(
       { error: 'Failed to submit solution' }, 
       { status: 500 }
@@ -259,7 +261,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    console.error('Delete challenge error:', error);
+    logger.error('Delete challenge error', error as Error);
     return NextResponse.json(
       { error: 'Failed to delete challenge' }, 
       { status: 500 }

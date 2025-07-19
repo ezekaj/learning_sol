@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/monitoring/simple-logger';
 import { analytics } from '@/lib/monitoring/analytics';
-import { prisma } from '@/lib/prisma-client-wrapper';
+import { prisma } from '@/lib/prisma';
 
 /**
  * UAT Dashboard API
@@ -72,7 +72,7 @@ interface UATDashboardData {
   }>;
 }
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   const startTime = Date.now();
   
   try {
@@ -107,12 +107,18 @@ export async function GET(_request: NextRequest) {
         },
         ...(category !== 'all' && {
           assignedTasks: {
-            hasSome: await getTaskIdsByCategory(category),
+            contains: category,
           },
         }),
       },
       include: {
-        tester: true,
+        tester: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
         feedback: true,
         taskResults: true,
       },
@@ -157,19 +163,19 @@ export async function GET(_request: NextRequest) {
       id: session.id,
       testerId: session.testerId,
       testerInfo: {
-        name: session.tester.name || 'Anonymous',
-        email: session.tester.email,
+        name: ((session as any).tester?.name || 'Anonymous') as string,
+        email: ((session as any).tester?.email || '') as string,
         experience: session.testerExperience || 'unknown',
         background: session.testerBackground || '',
         device: session.deviceInfo || 'unknown',
         browser: session.browserInfo || 'unknown',
       },
-      assignedTasks: session.assignedTasks,
-      startTime: session.startTime,
-      endTime: session.endTime,
-      status: session.status,
+      assignedTasks: Array.isArray(session.assignedTasks) ? session.assignedTasks as string[] : JSON.parse(session.assignedTasks || '[]') as string[],
+      startTime: session.startTime || new Date(),
+      endTime: session.endTime || undefined,
+      status: session.status || 'unknown',
       metrics: {
-        tasksCompleted: session.taskResults?.length || 0,
+        tasksCompleted: ((session as any).taskResults?.length || 0),
         totalTime: session.endTime 
           ? Math.floor((session.endTime.getTime() - session.startTime.getTime()) / 1000 / 60)
           : Math.floor((Date.now() - session.startTime.getTime()) / 1000 / 60),
@@ -456,15 +462,16 @@ function generatePerformanceTrends(sessions: any[], feedback: any[]) {
 
 /**
  * Get task IDs by category
+ * Currently unused but kept for future UAT task filtering
  */
-async function getTaskIdsByCategory(category: string): Promise<string[]> {
-  const tasksByCategory = {
-    onboarding: ['onboarding-new-user'],
-    collaboration: ['collaboration-session'],
-    'ai-tutoring': ['ai-tutoring-interaction'],
-    'learning-path': ['complete-learning-path'],
-    social: ['social-features-usage'],
-  };
-  
-  return tasksByCategory[category as keyof typeof tasksByCategory] || [];
-}
+// async function getTaskIdsByCategory(category: string): Promise<string[]> {
+//   const tasksByCategory = {
+//     onboarding: ['onboarding-new-user'],
+//     collaboration: ['collaboration-session'],
+//     'ai-tutoring': ['ai-tutoring-interaction'],
+//     'learning-path': ['complete-learning-path'],
+//     social: ['social-features-usage'],
+//   };
+//   
+//   return tasksByCategory[category as keyof typeof tasksByCategory] || [];
+// }

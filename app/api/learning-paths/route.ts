@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
@@ -21,7 +22,7 @@ export async function GET(_request: NextRequest) {
           include: {
             lessons: {
               include: {
-                userProgress: {
+                progress: {
                   where: {
                     userId: session.user.id,
                   },
@@ -118,7 +119,7 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json({ learningPaths });
   } catch (error) {
-    console.error('Error fetching learning paths:', error);
+    logger.error('Error fetching learning paths', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -131,7 +132,7 @@ export async function POST(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { action, courseId, lessonId } = await request.json();
+    const { action, courseId, lessonId } = await _request.json();
 
     switch (action) {
       case 'enroll':
@@ -201,6 +202,9 @@ export async function POST(_request: NextRequest) {
         // Get lesson details for XP reward
         const lesson = await prisma.lesson.findUnique({
           where: { id: lessonId },
+          include: {
+            module: true,
+          },
         });
 
         if (!lesson) {
@@ -210,22 +214,26 @@ export async function POST(_request: NextRequest) {
         // Update lesson progress
         const completedProgress = await prisma.userProgress.upsert({
           where: {
-            userId_lessonId: {
+            userId_courseId_moduleId_lessonId: {
               userId: session.user.id,
+              courseId: lesson.module.courseId,
+              moduleId: lesson.moduleId,
               lessonId,
             },
           },
           update: {
             status: 'COMPLETED',
             completedAt: new Date(),
-            progress: 100,
+            score: 100,
           },
           create: {
             userId: session.user.id,
+            courseId: lesson.module.courseId,
+            moduleId: lesson.moduleId,
             lessonId,
             status: 'COMPLETED',
             completedAt: new Date(),
-            progress: 100,
+            score: 100,
           },
         });
 
@@ -254,7 +262,7 @@ export async function POST(_request: NextRequest) {
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Error processing learning path action:', error);
+    logger.error('Error processing learning path action', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

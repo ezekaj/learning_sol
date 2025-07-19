@@ -172,7 +172,7 @@ export class AIServiceManager {
       // Collect metrics from database
       const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
       
-      const interactions = await prisma.aIInteraction.findMany({
+      const interactions = await prisma.aiInteraction.findMany({
         where: {
           createdAt: { gte: last24Hours }
         },
@@ -278,9 +278,9 @@ export class AIServiceManager {
   }
 
   public async logInteraction(
-    userId: string,
-    requestType: string,
-    responseTime: number,
+    _userId: string,
+    _requestType: string,
+    _responseTime: number,
     success: boolean,
     fallbackUsed: boolean = false
   ): Promise<void> {
@@ -309,7 +309,7 @@ export class AIServiceManager {
 
   public async recordUserFeedback(interactionId: string, wasHelpful: boolean): Promise<void> {
     try {
-      await prisma.aIInteraction.update({
+      await prisma.aiInteraction.update({
         where: { id: interactionId },
         data: { wasHelpful }
       });

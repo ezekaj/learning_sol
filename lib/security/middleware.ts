@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SECURITY_CONFIG, SecurityValidators, SecurityUtils } from './config';
-import { rateLimit } from '@/lib/api/rate-limit';
+import { rateLimit } from '@/lib/api/rateLimit';
 import { logger } from '@/lib/monitoring/simple-logger';
 
 /**

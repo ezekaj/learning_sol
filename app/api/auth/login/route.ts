@@ -11,7 +11,7 @@ import {
   getClientIP,
   parseUserAgent
 } from '@/lib/api/utils';
-import { ApiErrorCode, HttpStatus, LoginRequest, AuthResponse } from '@/lib/api/types';
+import { ApiErrorCode, HttpStatus, AuthResponse, UserRole, UserStatus, UserProfile } from '@/lib/api/types';
 import { logger } from '@/lib/api/logger';
 
 // Validation schema
@@ -269,9 +269,24 @@ async function loginHandler(request: NextRequest) {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
-        status: user.status,
-        profile: user.profile,
+        role: user.role as UserRole,
+        status: user.status as UserStatus,
+        profile: {
+          avatar: user.profile?.avatar || undefined,
+          bio: user.profile?.bio || undefined,
+          location: user.profile?.location || undefined,
+          website: user.profile?.website || undefined,
+          github: user.profile?.github || undefined,
+          twitter: user.profile?.twitter || undefined,
+          linkedin: user.profile?.linkedin || undefined,
+          xpTotal: user.profile?.xpTotal || 0,
+          level: user.profile?.level || 1,
+          lessonsCompleted: user.profile?.lessonsCompleted || 0,
+          coursesCompleted: user.profile?.coursesCompleted || 0,
+          achievementsCount: user.profile?.achievementsCount || 0,
+          currentStreak: user.profile?.currentStreak || 0,
+          longestStreak: user.profile?.longestStreak || 0,
+        } as UserProfile,
         preferences: user.preferences,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,

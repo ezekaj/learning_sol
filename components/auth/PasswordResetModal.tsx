@@ -9,8 +9,7 @@ import {
   X, 
   Mail, 
   ArrowLeft, 
-  CheckCircle, 
-  AlertCircle,
+  CheckCircle,
   Key,
   Eye,
   EyeOff
@@ -19,9 +18,9 @@ import { GlassCard } from '@/components/ui/Glassmorphism';
 import { AsyncSubmitButton } from '@/components/ui/EnhancedButton';
 import { ErrorMessage, InlineFormError } from '@/components/ui/ErrorMessage';
 import { AuthErrorBoundary } from '@/components/errors/SpecializedErrorBoundaries';
+import { ErrorFactory, AppError } from '@/lib/errors/types';
 import { useError } from '@/lib/errors/ErrorContext';
 import { useFormErrorHandler } from '@/lib/hooks/useErrorRecovery';
-import { ErrorFactory } from '@/lib/errors/types';
 
 // Validation schemas
 const emailSchema = z.object({
@@ -60,11 +59,12 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [email, setEmail] = useState('');
-  const [currentError, setCurrentError] = useState<any>(null);
+  const [currentError, setCurrentError] = useState<AppError | null>(null);
 
   // Enhanced error handling
   const { showAuthError } = useError();
   const { handleFieldError, handleSubmissionError } = useFormErrorHandler();
+  
 
   // Form setup
   const emailForm = useForm<EmailFormData>({
@@ -157,7 +157,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
 
         if (response.status === 422 && result.details) {
           // Handle validation errors
-          result.details.forEach((detail: any) => {
+          result.details.forEach((detail: { path: string[]; message: string }) => {
             handleFieldError(detail.path[0], detail.message);
           });
           return;

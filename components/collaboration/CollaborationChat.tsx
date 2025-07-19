@@ -2,26 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  MessageCircle,
-  Send,
-  Paperclip,
-  Smile,
-  MoreVertical,
-  Download,
-  Eye,
-  EyeOff,
-  Volume2,
-  VolumeX,
-  Search,
-  Filter,
-  X,
-  Code,
-  FileText,
-  Image,
-  CheckCheck,
-  Check
-} from 'lucide-react';
+import { MessageCircle, Send, Paperclip, Smile, Download, Eye, EyeOff, Volume2, VolumeX, Search, X, FileText, CheckCheck, Check } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
@@ -67,7 +48,7 @@ const EMOJI_LIST = ['👍', '👎', '❤️', '😂', '😮', '😢', '🎉', '�
 export function CollaborationChat({
   messages,
   currentUserId,
-  currentUserName,
+  currentUserName: _currentUserName,
   isConnected,
   onSendMessage,
   onFileUpload,
@@ -91,7 +72,7 @@ export function CollaborationChat({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -183,7 +164,7 @@ export function CollaborationChat({
     if (!file || !onFileUpload) return;
 
     try {
-      const fileUrl = await onFileUpload(file);
+      await onFileUpload(file);
       onSendMessage(`📎 ${file.name}`, 'file');
     } catch (error) {
       console.error('File upload failed:', error);

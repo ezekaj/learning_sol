@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { 
   Shield, 
   User, 
@@ -11,10 +10,6 @@ import {
   CheckCircle,
   RefreshCw,
   Eye,
-  EyeOff,
-  Github,
-  Chrome,
-  Wallet,
   ExternalLink,
   Play,
   BookOpen,
@@ -23,7 +18,14 @@ import {
   Target,
   Zap,
   Crown,
-  Info
+  Info,
+  ArrowRight,
+  Clock,
+  BarChart3,
+  X,
+  Code,
+  Calendar,
+  Award
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { EnhancedButton, AsyncSubmitButton } from '@/components/ui/EnhancedButton';
@@ -33,8 +35,10 @@ import { useError } from '@/lib/errors/ErrorContext';
 import { useFormErrorHandler } from '@/lib/hooks/useErrorRecovery';
 import { useSessionStatus, useSessionWarnings, useSessionAnalytics } from '@/lib/hooks/useSessionStatus';
 import { useRealTimeXP } from '@/lib/hooks/useRealTimeXP';
+import { useLearning } from '@/lib/context/LearningContext';
+import { useSession } from 'next-auth/react';
 import { CurriculumManager } from '@/lib/curriculum/manager';
-import { SOLIDITY_MODULES, SOLIDITY_LESSONS } from '@/lib/curriculum/data';
+import { SOLIDITY_LESSONS } from '@/lib/curriculum/data';
 import { SessionManager } from '@/lib/auth/sessionManager';
 import { cn } from '@/lib/utils';
 
@@ -49,14 +53,17 @@ export function AuthTesting() {
   });
   const [sessionManager] = useState(() => SessionManager.getInstance());
 
-  const { showAuthError, showFormError } = useError();
+  const { showAuthError } = useError();
   const { handleFieldError, handleSubmissionError } = useFormErrorHandler();
   const { status: sessionStatus, timeDisplay, refreshSession } = useSessionStatus();
-  const { activeWarnings, hasWarning } = useSessionWarnings();
+  const { activeWarnings } = useSessionWarnings();
   const { analytics, sessionHealth } = useSessionAnalytics();
+  const { triggerAchievementEvent } = useLearning();
+  const { data: session } = useSession();
+  const user = session?.user;
   const {
     currentXP,
-    previousXP,
+    previousXP: _previousXP,
     levelInfo,
     sessionXP,
     addLessonXP,
@@ -248,7 +255,6 @@ export function AuthTesting() {
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     addTestResult('✅ Authentication successful!');
-    return 'Authentication completed successfully';
   };
 
   const simulateFailedAuth = async () => {
@@ -418,7 +424,7 @@ export function AuthTesting() {
                 onSuccess: () => {
                   addTestResult('✅ Async successful auth test completed');
                 },
-                onError: (error) => {
+                onError: (error: Error) => {
                   addTestResult(`❌ Async auth test failed: ${error.message}`);
                 }
               }}
@@ -436,7 +442,7 @@ export function AuthTesting() {
                 onSuccess: () => {
                   addTestResult('✅ Async failed auth test completed');
                 },
-                onError: (error) => {
+                onError: (error: Error) => {
                   addTestResult(`❌ Expected auth failure: ${error.message}`);
                 }
               }}
@@ -602,8 +608,6 @@ export function AuthTesting() {
             <EnhancedButton
               onClick={() => {
                 // Test password strength validation
-                const weakPassword = '123456';
-                const strongPassword = 'MyStr0ng!P@ssw0rd';
                 addTestResult(`Weak password score: Low`);
                 addTestResult(`Strong password score: High`);
               }}

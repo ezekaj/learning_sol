@@ -52,7 +52,7 @@ export function LevelUpCelebration({
   autoCloseDelay = 8000
 }: LevelUpCelebrationProps) {
   const [showRewards, setShowRewards] = useState(false);
-  const [celebrationPhase, setCelebrationPhase] = useState<'entrance' | 'celebration' | 'rewards'>('entrance');
+  const [_celebrationPhase, setCelebrationPhase] = useState<'entrance' | 'celebration' | 'rewards'>('entrance');
 
   useEffect(() => {
     // Celebration sequence

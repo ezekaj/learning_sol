@@ -5,6 +5,14 @@ import { useSession, signIn, signOut } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, User, LogOut, Settings, Crown, Star } from 'lucide-react';
 
+interface ExtendedUser {
+  id?: string | null;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  role?: 'STUDENT' | 'INSTRUCTOR' | 'MENTOR' | 'ADMIN';
+}
+
 
 interface UserProfile {
   id: string;
@@ -66,11 +74,11 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
               name: session.user.name || '',
               email: session.user.email || '',
               image: session.user.image || undefined,
-              role: (session.user as any).role || 'student',
+              role: (session.user as ExtendedUser).role || 'STUDENT',
               level: mapSkillLevelToLevel(profileData.profile?.skillLevel || 'BEGINNER'),
               xp: profileData.profile?.totalXP || 0,
               streak: profileData.profile?.streak || 0,
-              achievements: profileData.achievements?.map((a: any) => a.achievement.title) || [],
+              achievements: profileData.achievements?.map((a: { achievement: { title: string } }) => a.achievement.title) || [],
               preferences: {
                 theme: profileData.profile?.preferences?.theme || 'auto',
                 notifications: profileData.profile?.preferences?.notifications ?? true,
@@ -85,7 +93,7 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
               name: session.user.name || '',
               email: session.user.email || '',
               image: session.user.image || undefined,
-              role: (session.user as any).role || 'student',
+              role: (session.user as ExtendedUser).role || 'STUDENT',
               level: 'beginner',
               xp: 0,
               streak: 0,
@@ -106,7 +114,7 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
             name: session.user.name || '',
             email: session.user.email || '',
             image: session.user.image || undefined,
-            role: (session.user as any).role || 'student',
+            role: (session.user as ExtendedUser).role || 'STUDENT',
             level: 'beginner',
             xp: 0,
             streak: 0,

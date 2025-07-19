@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
@@ -14,7 +15,7 @@ export async function POST(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { messageId, sessionId } = await request.json();
+    const { messageId, sessionId } = await _request.json();
 
     if (!messageId || !sessionId) {
       return NextResponse.json({ error: 'Message ID and session ID are required' }, { status: 400 });
@@ -38,7 +39,7 @@ export async function POST(_request: NextRequest) {
 
     // TODO: Implement actual message pinning
     // In a real implementation, you'd have a Message model with isPinned field
-    console.log(`User ${session.user.id} pinned/unpinned message ${messageId} in session ${sessionId}`);
+    logger.info(`User ${session.user.id} pinned/unpinned message ${messageId} in session ${sessionId}`);
 
     // const message = await prisma.message.findUnique({
     //   where: { id: messageId },
@@ -62,7 +63,7 @@ export async function POST(_request: NextRequest) {
       message: 'Message pin status updated successfully' 
     });
   } catch (error) {
-    console.error('Error updating message pin status:', error);
+    logger.error('Error updating message pin status', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

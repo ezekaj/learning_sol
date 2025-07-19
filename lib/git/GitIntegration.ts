@@ -246,7 +246,7 @@ export class GitIntegrationManager {
     return commonTerms.slice(0, 3); // Limit to 3 terms
   }
 
-  async commitLessonCompletion(lessonId: string, code: string): Promise<void> {
+  async commitLessonCompletion(lessonId: string, _code: string): Promise<void> {
     await this.commitChanges({
       message: `Complete lesson ${lessonId} with working solution`,
       prefix: 'Add',

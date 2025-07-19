@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Editor } from '@monaco-editor/react';
+// import type { editor } from 'monaco-editor';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, 
@@ -23,6 +24,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCollaboration } from '@/lib/context/CollaborationContext';
 import { useToast } from '@/components/ui/use-toast';
+import { CompilationResult } from '@/lib/compiler/SolidityCompiler';
 
 interface Participant {
   id: string;
@@ -55,18 +57,19 @@ const createChatMessage = (userId: string, userName: string, message: string): C
   timestamp: new Date()
 });
 
+
 export function CollaborativeEditor() {
   const [code, setCode] = useState('');
   const [chatInput, setChatInput] = useState('');
   const [showChat, setShowChat] = useState(true);
   const [isCompiling, setIsCompiling] = useState(false);
-  const [compilationResult, setCompilationResult] = useState<any>(null);
+  const [compilationResult, setCompilationResult] = useState<CompilationResult | null>(null);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [activeParticipants, setActiveParticipants] = useState<Participant[]>([]);
   const [localChatMessages, setLocalChatMessages] = useState<ChatMessage[]>([]);
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   
   const { 
@@ -126,7 +129,7 @@ export function CollaborativeEditor() {
 
   const handleCursorChange = (position: any) => {
     if (position) {
-      updateCursor(position.lineNumber, position.column);
+      updateCursor({ line: position.lineNumber, column: position.column });
     }
   };
 
@@ -208,7 +211,7 @@ export function CollaborativeEditor() {
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Compilation error",
         description: "Failed to compile the contract. Please try again.",
@@ -252,7 +255,7 @@ export function CollaborativeEditor() {
         title: isVoiceEnabled ? 'Voice chat disabled' : 'Voice chat enabled',
         description: isVoiceEnabled ? 'Microphone turned off' : 'Microphone turned on',
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Microphone access denied',
         description: 'Please allow microphone access to use voice chat.',
@@ -275,7 +278,7 @@ export function CollaborativeEditor() {
         title: isVideoEnabled ? 'Video chat disabled' : 'Video chat enabled',
         description: isVideoEnabled ? 'Camera turned off' : 'Camera turned on',
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Camera access denied',
         description: 'Please allow camera access to use video chat.',

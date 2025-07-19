@@ -52,7 +52,7 @@ interface MigrationDatabase {
 
 // Mock database implementation
 const migrationDb: MigrationDatabase = {
-  async query<T>(sql: string, params?: any[]): Promise<T[]> {
+  async query<T>(sql: string, _params?: any[]): Promise<T[]> {
     await new Promise(resolve => setTimeout(resolve, 100));
     
     if (sql.includes('schema_migrations')) {
@@ -65,7 +65,7 @@ const migrationDb: MigrationDatabase = {
     return [] as T[];
   },
 
-  async execute(sql: string, params?: any[]): Promise<{ affectedRows: number }> {
+  async execute(sql: string, _params?: any[]): Promise<{ affectedRows: number }> {
     await new Promise(resolve => setTimeout(resolve, 200));
     return { affectedRows: Math.floor(Math.random() * 100) + 1 };
   },

@@ -5,6 +5,7 @@ import { validateBody, RegisterSchema } from '@/lib/api/validation';
 import { AuthService } from '@/lib/api/auth';
 import { ApiUser, UserRole, UserStatus } from '@/lib/api/types';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Mock user storage - in production, this would be a real database
 const mockUsers: Array<ApiUser & { passwordHash: string }> = [];
@@ -58,12 +59,12 @@ async function createUser(userData: {
 
 async function sendWelcomeEmail(user: ApiUser): Promise<void> {
   // In production, this would send an actual email
-  console.log(`Welcome email sent to ${user.email}`);
+  logger.info(`Welcome email sent to ${user.email}`);
 }
 
 async function sendVerificationEmail(user: ApiUser): Promise<void> {
   // In production, this would send an email verification
-  console.log(`Verification email sent to ${user.email}`);
+  logger.info(`Verification email sent to ${user.email}`);
 }
 
 export const POST = authEndpoint(async (request: NextRequest) => {
@@ -129,7 +130,7 @@ export const POST = authEndpoint(async (request: NextRequest) => {
 
     return ApiResponseBuilder.created(responseData);
   } catch (error) {
-    console.error('Registration error:', error);
+    logger.error('Registration error', error as Error);
     
     if (error instanceof ConflictException) {
       return ApiResponseBuilder.conflict(error.message);

@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import * as monaco from 'monaco-editor';
+import { editor, Range } from 'monaco-editor';
 import { 
   GasOptimizationAnalyzer, 
   GasAnalysisResult, 
@@ -48,7 +48,7 @@ interface GasMetrics {
 }
 
 export function useGasAnalysis(
-  editor: monaco.editor.IStandaloneCodeEditor | null,
+  editorInstance: editorInstance.IStandaloneCodeEditor | null,
   userId: string,
   options: UseGasAnalysisOptions = {}
 ): UseGasAnalysisReturn {
@@ -69,18 +69,18 @@ export function useGasAnalysis(
 
   // Initialize analyzer when editor is available
   useEffect(() => {
-    if (!editor) {
+    if (!editorInstance) {
       return;
     }
 
     try {
-      const newAnalyzer = new GasOptimizationAnalyzer(editor);
+      const newAnalyzer = new GasOptimizationAnalyzer(editorInstance);
       setAnalyzer(newAnalyzer);
       analyzerRef.current = newAnalyzer;
 
       // Setup auto-analysis if enabled
       if (options.autoAnalyze) {
-        const model = editor.getModel();
+        const model = editorInstance.getModel();
         if (model) {
           const disposable = model.onDidChangeContent(() => {
             scheduleAnalysis();
@@ -102,7 +102,7 @@ export function useGasAnalysis(
       console.error('Failed to initialize gas analyzer:', error);
       setLastError(error instanceof Error ? error : new Error('Analyzer initialization failed'));
     }
-  }, [editor, options.autoAnalyze]);
+  }, [editorInstance, options.autoAnalyze]);
 
   // Schedule analysis with debouncing
   const scheduleAnalysis = useCallback(() => {
@@ -170,8 +170,8 @@ export function useGasAnalysis(
         // Clear heatmap decorations
         analyzerRef.current.dispose();
         // Reinitialize without heatmap
-        if (editor) {
-          const newAnalyzer = new GasOptimizationAnalyzer(editor);
+        if (editorInstance) {
+          const newAnalyzer = new GasOptimizationAnalyzer(editorInstance);
           setAnalyzer(newAnalyzer);
           analyzerRef.current = newAnalyzer;
         }
@@ -186,18 +186,18 @@ export function useGasAnalysis(
     }
 
     try {
-      const model = editor.getModel();
+      const model = editorInstance.getModel();
       if (!model) return false;
 
       // Apply the optimization
-      const range = new monaco.Range(
+      const range = new Range(
         optimization.line,
         optimization.column,
         optimization.endLine,
         optimization.endColumn
       );
 
-      editor.executeEdits('gas-optimization', [{
+      editorInstance.executeEdits('gas-optimization', [{
         range,
         text: optimization.afterCode,
         forceMoveMarkers: true
@@ -213,22 +213,22 @@ export function useGasAnalysis(
       console.error('Failed to apply optimization:', error);
       return false;
     }
-  }, [editor, performAnalysis]);
+  }, [editorInstance, performAnalysis]);
 
   // Jump to optimization location in editor
   const jumpToOptimization = useCallback((optimization: GasOptimization) => {
-    if (!editor) return;
+    if (!editorInstance) return;
 
-    const range = new monaco.Range(
+    const range = new Range(
       optimization.line,
       optimization.column,
       optimization.endLine,
       optimization.endColumn
     );
 
-    editor.setSelection(range);
-    editor.revealRangeInCenter(range);
-    editor.focus();
+    editorInstance.setSelection(range);
+    editorInstance.revealRangeInCenter(range);
+    editorInstance.focus();
   }, [editor]);
 
   // Calculate gas metrics

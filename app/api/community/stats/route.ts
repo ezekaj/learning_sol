@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
@@ -162,7 +163,7 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json({ stats });
   } catch (error) {
-    console.error('Error fetching community stats:', error);
+    logger.error('Error fetching community stats', error as Error);
     
     // Return fallback stats in case of error
     const fallbackStats = {
@@ -182,7 +183,7 @@ export async function GET(_request: NextRequest) {
   }
 }
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -246,7 +247,7 @@ export async function POST(_request: NextRequest) {
       case 'find_mentor':
         // Create a mentorship request or match with available mentor
         // TODO: Implement mentorship matching system
-        console.log(`User ${session.user.id} requested mentorship`);
+        logger.info(`User ${session.user.id} requested mentorship`);
 
         return NextResponse.json({ 
           success: true, 
@@ -279,7 +280,7 @@ export async function POST(_request: NextRequest) {
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Error processing community action:', error);
+    logger.error('Error processing community action', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

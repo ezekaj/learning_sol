@@ -8,11 +8,6 @@ import {
   Search, 
   Grid, 
   List,
-  TrendingUp,
-  Target,
-  Clock,
-  Trophy,
-  Star,
   ChevronDown
 } from 'lucide-react';
 import { Module, Lesson, CurriculumFilter, UserCurriculumProgress } from '@/lib/curriculum/types';
@@ -54,7 +49,7 @@ export function CurriculumDashboard({
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'modules' | 'lessons'>('modules');
   const [showFilters, setShowFilters] = useState(false);
-  const [expandedModule, setExpandedModule] = useState<string | null>(null);
+  const [_expandedModule, _setExpandedModule] = useState<string | null>(null);
 
   // Calculate overall statistics
   const stats = useMemo(() => {

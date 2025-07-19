@@ -1,4 +1,5 @@
 import solc from 'solc';
+import { SecurityIssue } from '../../types/security';
 
 export interface CompilationResult {
   success: boolean;
@@ -9,15 +10,6 @@ export interface CompilationResult {
   gasEstimate?: number;
   securityIssues?: SecurityIssue[];
   optimizationSuggestions?: string[];
-}
-
-export interface SecurityIssue {
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  title: string;
-  description: string;
-  line?: number;
-  column?: number;
-  suggestion?: string;
 }
 
 export class SolidityCompiler {

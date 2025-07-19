@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   XMarkIcon, 
   ChevronLeftIcon, 
@@ -25,7 +25,7 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
   isActive,
   onComplete,
   onSkip,
-  title,
+  title: _title,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [highlightedElement, setHighlightedElement] = useState<HTMLElement | null>(null);
@@ -133,12 +133,13 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
     }
   };
 
-  const handleElementClick = () => {
-    if (currentStepData.action === 'click') {
-      // Simulate the expected action
-      setTimeout(handleNext, 500);
-    }
-  };
+  // Element click handling is done inline in the overlay
+  // const _handleElementClick = () => {
+  //   if (currentStepData.action === 'click') {
+  //     // Simulate the expected action
+  //     setTimeout(handleNext, 500);
+  //   }
+  // };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Escape') {

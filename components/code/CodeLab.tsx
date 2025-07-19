@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import type { ContractABI } from '../types/abi';
+// import type { editor } from 'monaco-editor';
 import { motion } from 'framer-motion';
 import { Editor } from '@monaco-editor/react';
 import {
@@ -55,11 +57,16 @@ contract SimpleStorage {
 interface CompilationResult {
   success: boolean;
   bytecode?: string;
-  abi?: any[];
+  abi?: ContractABI;
   errors?: string[];
   warnings?: string[];
   gasEstimate?: number;
-  securityIssues?: any[];
+  securityIssues?: Array<{
+    severity: 'critical' | 'high' | 'medium' | 'low';
+    message: string;
+    line?: number;
+    column?: number;
+  }>;
   optimizationSuggestions?: string[];
 }
 
@@ -78,7 +85,7 @@ function DynamicCodeLab() {
   const [compilationResult, setCompilationResult] = useState<CompilationResult | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Use toast hook
@@ -397,7 +404,7 @@ function DynamicCodeLab() {
                               'bg-blue-500/10 border-blue-500/30'
                             }`}>
                               <div className="flex items-center justify-between mb-1">
-                                <span className="font-medium text-white">{issue.title}</span>
+                                <span className="font-medium text-white">{issue.message}</span>
                                 <span className={`text-xs px-2 py-1 rounded ${
                                   issue.severity === 'critical' ? 'bg-red-500 text-white' :
                                   issue.severity === 'high' ? 'bg-orange-500 text-white' :
@@ -407,9 +414,8 @@ function DynamicCodeLab() {
                                   {issue.severity}
                                 </span>
                               </div>
-                              <p className="text-sm text-gray-300 mb-2">{issue.description}</p>
-                              {issue.suggestion && (
-                                <p className="text-xs text-gray-400">💡 {issue.suggestion}</p>
+                              {issue.line && (
+                                <p className="text-sm text-gray-300 mb-2">Line: {issue.line}</p>
                               )}
                             </div>
                           ))}

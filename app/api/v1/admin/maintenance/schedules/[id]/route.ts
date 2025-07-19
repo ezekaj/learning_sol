@@ -2,9 +2,10 @@ import { NextRequest } from 'next/server';
 import { adminEndpoint } from '@/lib/api/middleware';
 import { ApiResponseBuilder } from '@/lib/api/response';
 import { validateBody, IdSchema } from '@/lib/api/validation';
-import { MiddlewareContext } from '@/lib/api/types';
-import { maintenanceScheduler } from '@/lib/database/maintenance';
+import { MiddlewareContext } from '@/lib/api/middleware';
+import { maintenanceScheduler, MaintenanceSchedule } from '@/lib/database/maintenance';
 import { z } from 'zod';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Validation schemas
 const ScheduleUpdateSchema = z.object({
@@ -36,7 +37,7 @@ const ScheduleUpdateSchema = z.object({
 });
 
 // GET /api/v1/admin/maintenance/schedules/[id] - Get maintenance schedule
-export const GET = adminEndpoint(async (request: NextRequest, context: MiddlewareContext) => {
+export const GET = adminEndpoint(async (request: NextRequest, _context: MiddlewareContext) => {
   try {
     const url = new URL(request.url);
     const scheduleId = url.pathname.split('/').pop();
@@ -59,13 +60,13 @@ export const GET = adminEndpoint(async (request: NextRequest, context: Middlewar
 
     return ApiResponseBuilder.success(schedule);
   } catch (error) {
-    console.error('Get maintenance schedule error:', error);
+    logger.error('Get maintenance schedule error', error as Error);
     return ApiResponseBuilder.internalServerError('Failed to get maintenance schedule');
   }
 });
 
 // PUT /api/v1/admin/maintenance/schedules/[id] - Update maintenance schedule
-export const PUT = adminEndpoint(async (request: NextRequest, context: MiddlewareContext) => {
+export const PUT = adminEndpoint(async (request: NextRequest, _context: MiddlewareContext) => {
   try {
     const url = new URL(request.url);
     const scheduleId = url.pathname.split('/').pop();
@@ -88,12 +89,12 @@ export const PUT = adminEndpoint(async (request: NextRequest, context: Middlewar
 
     const body = await validateBody(ScheduleUpdateSchema, request);
 
-    await maintenanceScheduler.updateSchedule(scheduleId, body);
+    await maintenanceScheduler.updateSchedule(scheduleId, body as Partial<MaintenanceSchedule>);
 
     const updatedSchedule = maintenanceScheduler.getSchedule(scheduleId);
     return ApiResponseBuilder.success(updatedSchedule);
   } catch (error) {
-    console.error('Update maintenance schedule error:', error);
+    logger.error('Update maintenance schedule error', error as Error);
     
     if (error instanceof Error) {
       return ApiResponseBuilder.validationError(error.message, []);
@@ -104,7 +105,7 @@ export const PUT = adminEndpoint(async (request: NextRequest, context: Middlewar
 });
 
 // DELETE /api/v1/admin/maintenance/schedules/[id] - Delete maintenance schedule
-export const DELETE = adminEndpoint(async (request: NextRequest, context: MiddlewareContext) => {
+export const DELETE = adminEndpoint(async (request: NextRequest, _context: MiddlewareContext) => {
   try {
     const url = new URL(request.url);
     const scheduleId = url.pathname.split('/').pop();
@@ -129,13 +130,13 @@ export const DELETE = adminEndpoint(async (request: NextRequest, context: Middle
 
     return ApiResponseBuilder.noContent();
   } catch (error) {
-    console.error('Delete maintenance schedule error:', error);
+    logger.error('Delete maintenance schedule error', error as Error);
     return ApiResponseBuilder.internalServerError('Failed to delete maintenance schedule');
   }
 });
 
 // POST /api/v1/admin/maintenance/schedules/[id]/run - Run maintenance schedule immediately
-export const POST = adminEndpoint(async (request: NextRequest, context: MiddlewareContext) => {
+export const POST = adminEndpoint(async (request: NextRequest, _context: MiddlewareContext) => {
   try {
     const url = new URL(request.url);
     const pathParts = url.pathname.split('/');
@@ -165,7 +166,7 @@ export const POST = adminEndpoint(async (request: NextRequest, context: Middlewa
       result
     });
   } catch (error) {
-    console.error('Run maintenance schedule error:', error);
+    logger.error('Run maintenance schedule error', error as Error);
     
     if (error instanceof Error) {
       return ApiResponseBuilder.validationError(error.message, []);

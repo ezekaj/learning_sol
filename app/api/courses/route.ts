@@ -1,16 +1,6 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { 
-  successResponse, 
-  errorResponse, 
-  validationErrorResponse,
-  withErrorHandling,
-  generateRequestId,
-  parsePaginationParams,
-  createPaginationMeta,
-  validateMethod,
-  methodNotAllowedResponse
-} from '@/lib/api/utils';
+import { successResponse, errorResponse, validationErrorResponse, withErrorHandling, generateRequestId, createPaginationMeta } from '@/lib/api/utils';
 import { ApiErrorCode, HttpStatus, ApiCourse, DifficultyLevel, CourseStatus } from '@/lib/api/types';
 import { logger } from '@/lib/api/logger';
 
@@ -30,7 +20,7 @@ const createCourseSchema = z.object({
   currency: z.string().length(3, 'Currency must be 3 characters').optional()
 });
 
-const updateCourseSchema = createCourseSchema.partial();
+// const updateCourseSchema = createCourseSchema.partial();
 
 const querySchema = z.object({
   page: z.string().optional().transform(val => val ? parseInt(val, 10) : 1),
@@ -272,6 +262,7 @@ async function createCourseHandler(request: NextRequest) {
     const newCourse: ApiCourse = {
       id: (mockCourses.length + 1).toString(),
       ...courseData,
+      difficulty: courseData.difficulty as DifficultyLevel,
       totalLessons: 0,
       totalXp: 0,
       instructorId,
@@ -291,7 +282,8 @@ async function createCourseHandler(request: NextRequest) {
       averageRating: 0,
       ratingCount: 0,
       price: courseData.price || 0,
-      currency: courseData.currency || 'USD'
+      currency: courseData.currency || 'USD',
+      tags: courseData.tags || []
     };
     
     // Add to mock database

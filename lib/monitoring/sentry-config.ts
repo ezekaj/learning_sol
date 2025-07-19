@@ -7,7 +7,7 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { env, monitoringConfig, isProduction } from '@/lib/config/environment';
-import { logger } from './logger';
+import { logger } from './simple-logger';
 
 /**
  * Enhanced Sentry configuration with production optimizations

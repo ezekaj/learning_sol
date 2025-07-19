@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
@@ -14,7 +15,7 @@ export async function DELETE(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { messageId, sessionId } = await request.json();
+    const { messageId, sessionId } = await _request.json();
 
     if (!messageId || !sessionId) {
       return NextResponse.json({ error: 'Message ID and session ID are required' }, { status: 400 });
@@ -38,7 +39,7 @@ export async function DELETE(_request: NextRequest) {
 
     // TODO: Implement actual message deletion
     // In a real implementation, you'd have a Message model
-    console.log(`User ${session.user.id} deleted message ${messageId} in session ${sessionId}`);
+    logger.info(`User ${session.user.id} deleted message ${messageId} in session ${sessionId}`);
 
     // const message = await prisma.message.findUnique({
     //   where: { id: messageId },
@@ -79,7 +80,7 @@ export async function DELETE(_request: NextRequest) {
       message: 'Message deleted successfully' 
     });
   } catch (error) {
-    console.error('Error deleting message:', error);
+    logger.error('Error deleting message', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

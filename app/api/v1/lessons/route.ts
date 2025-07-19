@@ -2,9 +2,15 @@ import { NextRequest } from 'next/server';
 import { protectedEndpoint } from '@/lib/api/middleware';
 import { ApiResponseBuilder } from '@/lib/api/response';
 import { validateQuery, validateBody, PaginationSchema, SearchSchema, CreateLessonSchema } from '@/lib/api/validation';
-import { ApiLesson, LessonType, DifficultyLevel, LessonStatus, UserRole, MiddlewareContext } from '@/lib/api/types';
+import { ApiLesson, LessonType, DifficultyLevel, LessonStatus, UserRole } from '@/lib/api/types';
+import { MiddlewareContext } from '@/lib/api/middleware';
 import { createPaginationMeta } from '@/lib/api/response';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from '@/lib/monitoring/simple-logger';
+import { z } from 'zod';
+
+// Type for search filters
+type SearchFilters = z.infer<typeof SearchSchema>;
 
 // Mock lessons database
 const mockLessons: ApiLesson[] = [
@@ -102,7 +108,7 @@ for (let i = 4; i <= 25; i++) {
   });
 }
 
-function filterLessons(lessons: ApiLesson[], filters: any): ApiLesson[] {
+function filterLessons(lessons: ApiLesson[], filters: SearchFilters): ApiLesson[] {
   let filtered = [...lessons];
 
   // Only show published lessons to students
@@ -198,23 +204,25 @@ export const GET = protectedEndpoint(async (request: NextRequest, context: Middl
     }
 
     // Sort lessons
-    const sortedLessons = sortLessons(filteredLessons, pagination.sortBy || 'publishedAt', pagination.sortOrder);
+    const sortedLessons = sortLessons(filteredLessons, pagination.sortBy || 'publishedAt', pagination.sortOrder || 'asc');
 
     // Apply pagination
-    const startIndex = (pagination.page - 1) * pagination.limit;
-    const endIndex = startIndex + pagination.limit;
+    const page = pagination.page || 1;
+    const limit = pagination.limit || 20;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
     const paginatedLessons = sortedLessons.slice(startIndex, endIndex);
 
     // Create pagination metadata
     const paginationMeta = createPaginationMeta(
-      pagination.page,
-      pagination.limit,
+      page,
+      limit,
       filteredLessons.length
     );
 
     return ApiResponseBuilder.paginated(paginatedLessons, paginationMeta);
   } catch (error) {
-    console.error('Get lessons error:', error);
+    logger.error('Get lessons error', error as Error);
     return ApiResponseBuilder.internalServerError('Failed to fetch lessons');
   }
 });
@@ -241,8 +249,8 @@ export const POST = protectedEndpoint(
         difficulty: body.difficulty,
         estimatedDuration: body.estimatedDuration,
         xpReward: body.xpReward,
-        prerequisites: body.prerequisites,
-        tags: body.tags,
+        prerequisites: body.prerequisites || [],
+        tags: body.tags || [],
         courseId: body.courseId,
         instructorId: context.user!.id,
         status: LessonStatus.DRAFT,
@@ -258,7 +266,7 @@ export const POST = protectedEndpoint(
 
       return ApiResponseBuilder.created(newLesson);
     } catch (error) {
-      console.error('Create lesson error:', error);
+      logger.error('Create lesson error', error as Error);
       
       if (error instanceof Error) {
         return ApiResponseBuilder.validationError(error.message, []);

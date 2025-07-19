@@ -8,14 +8,13 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import * as monaco from 'monaco-editor';
+import { editor } from 'monaco-editor';
 import { SecurityScanner, SecurityScanResult, SecurityIssue } from '@/lib/security/SecurityScanner';
 
 interface UseSecurityAnalysisOptions {
   enableRealtime?: boolean;
   enableAIAnalysis?: boolean;
   enablePatternMatching?: boolean;
-  debounceMs?: number;
   severityThreshold?: 'low' | 'medium' | 'high' | 'critical';
   maxCodeLength?: number;
   enableAutoFix?: boolean;
@@ -34,7 +33,7 @@ interface UseSecurityAnalysisReturn {
 }
 
 export function useSecurityAnalysis(
-  editor: monaco.editor.IStandaloneCodeEditor | null,
+  editorInstance: editor.IStandaloneCodeEditor | null,
   userId: string,
   options: UseSecurityAnalysisOptions = {}
 ): UseSecurityAnalysisReturn {
@@ -51,18 +50,17 @@ export function useSecurityAnalysis(
     optionsRef.current = options;
   }, [options]);
 
-  // Initialize scanner when editor is available
+  // Initialize scanner when editorInstance is available
   useEffect(() => {
-    if (!editor || !userId) {
+    if (!editorInstance || !userId) {
       return;
     }
 
     try {
-      const newScanner = new SecurityScanner(editor, userId, {
+      const newScanner = new SecurityScanner(editorInstance, userId, {
         enableRealtime: options.enableRealtime ?? true,
         enableAIAnalysis: options.enableAIAnalysis ?? true,
         enablePatternMatching: options.enablePatternMatching ?? true,
-        debounceMs: options.debounceMs ?? 2000,
         severityThreshold: options.severityThreshold ?? 'low',
         maxCodeLength: options.maxCodeLength ?? 10000,
         enableAutoFix: options.enableAutoFix ?? true,
@@ -79,19 +77,9 @@ export function useSecurityAnalysis(
 
       newScanner.addListener(handleScanResult);
 
-      // Listen for scanning state changes
-      const originalPerformAnalysis = newScanner.performAnalysis.bind(newScanner);
-      newScanner.performAnalysis = async () => {
-        setIsScanning(true);
-        setLastError(null);
-        try {
-          return await originalPerformAnalysis();
-        } catch (error) {
-          setLastError(error instanceof Error ? error : new Error('Analysis failed'));
-          setIsScanning(false);
-          throw error;
-        }
-      };
+      // The SecurityScanner performs automatic analysis on content changes
+      // Set initial scanning state
+      setIsScanning(false);
 
       setScanner(newScanner);
       scannerRef.current = newScanner;
@@ -105,7 +93,7 @@ export function useSecurityAnalysis(
       console.error('Failed to initialize security scanner:', error);
       setLastError(error instanceof Error ? error : new Error('Scanner initialization failed'));
     }
-  }, [editor, userId]);
+  }, [editorInstance, userId]);
 
   // Perform manual analysis
   const performAnalysis = useCallback(async () => {
@@ -116,7 +104,14 @@ export function useSecurityAnalysis(
     try {
       setIsScanning(true);
       setLastError(null);
-      await scannerRef.current.performAnalysis();
+      // SecurityScanner automatically analyzes on content changes
+      // Force trigger by simulating a minor content change
+      if (editorInstance && editorInstance.getModel()) {
+        const model = editorInstance.getModel();
+        const value = model.getValue();
+        // Trigger analysis by updating the model
+        model.setValue(value);
+      }
     } catch (error) {
       const errorObj = error instanceof Error ? error : new Error('Analysis failed');
       setLastError(errorObj);
@@ -139,7 +134,6 @@ export function useSecurityAnalysis(
         enableRealtime: newConfig.enableRealtime,
         enableAIAnalysis: newConfig.enableAIAnalysis,
         enablePatternMatching: newConfig.enablePatternMatching,
-        debounceMs: newConfig.debounceMs,
         severityThreshold: newConfig.severityThreshold,
         maxCodeLength: newConfig.maxCodeLength,
         enableAutoFix: newConfig.enableAutoFix
@@ -150,12 +144,12 @@ export function useSecurityAnalysis(
 
   // Auto-fix an issue
   const autoFixIssue = useCallback(async (issue: SecurityIssue): Promise<boolean> => {
-    if (!editor || !issue.autoFixAvailable) {
+    if (!editorInstance || !issue.autoFixAvailable) {
       return false;
     }
 
     try {
-      const model = editor.getModel();
+      const model = editorInstance.getModel();
       if (!model) return false;
 
       // Generate auto-fix based on issue type
@@ -170,7 +164,7 @@ export function useSecurityAnalysis(
         issue.endColumn
       );
 
-      editor.executeEdits('security-autofix', [{
+      editorInstance.executeEdits('security-autofix', [{
         range,
         text: fix,
         forceMoveMarkers: true
@@ -186,11 +180,11 @@ export function useSecurityAnalysis(
       console.error('Auto-fix failed:', error);
       return false;
     }
-  }, [editor, performAnalysis]);
+  }, [editorInstance, performAnalysis]);
 
-  // Jump to issue location in editor
+  // Jump to issue location in editorInstance
   const jumpToIssue = useCallback((issue: SecurityIssue) => {
-    if (!editor) return;
+    if (!editorInstance) return;
 
     const range = new monaco.Range(
       issue.line,
@@ -199,10 +193,10 @@ export function useSecurityAnalysis(
       issue.endColumn
     );
 
-    editor.setSelection(range);
-    editor.revealRangeInCenter(range);
-    editor.focus();
-  }, [editor]);
+    editorInstance.setSelection(range);
+    editorInstance.revealRangeInCenter(range);
+    editorInstance.focus();
+  }, [editorInstance]);
 
   return {
     scanResult,

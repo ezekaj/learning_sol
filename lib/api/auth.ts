@@ -143,6 +143,17 @@ export class AuthService {
         'profile:read',
         'profile:write'
       ],
+      [UserRole.MENTOR]: [
+        'lessons:read',
+        'courses:read',
+        'progress:read',
+        'achievements:read',
+        'community:read',
+        'community:moderate',
+        'profile:read',
+        'profile:write',
+        'analytics:read'
+      ],
       [UserRole.INSTRUCTOR]: [
         'lessons:read',
         'lessons:write',
@@ -178,9 +189,6 @@ export class AuthService {
         'analytics:read',
         'system:read',
         'system:write'
-      ],
-      [UserRole.SUPER_ADMIN]: [
-        '*' // All permissions
       ]
     };
 
@@ -199,7 +207,7 @@ export class AuthService {
     }
 
     // Check for wildcard permissions (e.g., 'lessons:*' matches 'lessons:read')
-    const [resource, action] = requiredPermission.split(':');
+    const [resource, _action] = requiredPermission.split(':');
     const wildcardPermission = `${resource}:*`;
     
     return userPermissions.includes(wildcardPermission);

@@ -13,35 +13,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import {
-  Activity,
-  AlertTriangle,
-  BarChart3,
-  CheckCircle,
-  Clock,
-  Database,
-  Download,
-  Eye,
-  Filter,
-  Globe,
-  HardDrive,
-  Monitor,
-  RefreshCw,
-  Server,
-  Settings,
-  TrendingUp,
-  TrendingDown,
-  Users,
-  Wifi,
-  Zap,
-  Shield,
-  Package,
-  GitBranch,
-  Calendar,
-  Search,
-  ExternalLink
-} from 'lucide-react';
+import { Activity, AlertTriangle, BarChart3, Clock, Database, Download, Monitor, RefreshCw, Settings, TrendingUp, TrendingDown, Zap, Shield, Package, ExternalLink } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MonitoringDashboard } from './MonitoringDashboard';
@@ -49,7 +21,7 @@ import { databaseMonitor } from '@/lib/monitoring/database-monitoring';
 import { uptimeMonitor } from '@/lib/monitoring/uptime-monitoring';
 import { bundleAnalyzer } from '@/lib/monitoring/bundle-analysis';
 import { ga4 } from '@/lib/monitoring/google-analytics';
-import { sentryUtils } from '@/lib/monitoring/sentry-config';
+;
 import { logger } from '@/lib/monitoring/simple-logger';
 import { cn } from '@/lib/utils';
 
@@ -106,10 +78,10 @@ export function ComprehensiveMonitoringDashboard() {
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
   const [alertSummary, setAlertSummary] = useState<AlertSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [refreshInterval, setRefreshInterval] = useState(30000); // 30 seconds
+  const [refreshInterval] = useState(30000); // 30 seconds
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [searchFilter, setSearchFilter] = useState('');
-  const [selectedTimeRange, setSelectedTimeRange] = useState('1h');
+  const [_searchFilter] = useState('');
+  const [_selectedTimeRange] = useState('1h');
 
   /**
    * Initialize dashboard data
@@ -138,7 +110,7 @@ export function ComprehensiveMonitoringDashboard() {
       
       logger.info('Comprehensive monitoring dashboard initialized');
     } catch (error) {
-      logger.error('Failed to initialize monitoring dashboard', { error });
+      logger.error('Failed to initialize monitoring dashboard', error as Error);
     } finally {
       setIsLoading(false);
     }
@@ -191,7 +163,7 @@ export function ComprehensiveMonitoringDashboard() {
 
       setSystemHealth(health);
     } catch (error) {
-      logger.error('Failed to load system health', { error });
+      logger.error('Failed to load system health', error as Error);
     }
   };
 
@@ -214,7 +186,7 @@ export function ComprehensiveMonitoringDashboard() {
 
       setAlertSummary(summary);
     } catch (error) {
-      logger.error('Failed to load alert summary', { error });
+      logger.error('Failed to load alert summary', error as Error);
     }
   };
 
@@ -230,7 +202,7 @@ export function ComprehensiveMonitoringDashboard() {
         // Bundle analysis data would be loaded from latest build
       ]);
     } catch (error) {
-      logger.error('Failed to load monitoring data', { error });
+      logger.error('Failed to load monitoring data', error as Error);
     }
   };
 

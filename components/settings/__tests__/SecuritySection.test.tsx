@@ -1,4 +1,4 @@
-import React from 'react';
+;
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SecuritySection } from '../SecuritySection';
 import { SecuritySettings, ActiveSession } from '@/types/settings';

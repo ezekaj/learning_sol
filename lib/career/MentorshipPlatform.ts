@@ -4,7 +4,7 @@
  */
 
 import { adaptiveLearningEngine } from '@/lib/learning/AdaptiveLearningEngine';
-import { enhancedTutor } from '@/lib/ai/EnhancedTutorSystem';
+;
 
 export interface Mentor {
   id: string;
@@ -466,6 +466,220 @@ export class MentorshipPlatform {
     );
     
     return Math.round((matches.length / learningNeeds.length) * 100);
+  }
+
+  // Check if mentor is available
+  private isMentorAvailable(mentor: Mentor): boolean {
+    // Check if mentor has capacity
+    if (mentor.currentMentees.length >= mentor.maxMentees) {
+      return false;
+    }
+    
+    // Check if mentor is active
+    return mentor.isActive;
+  }
+
+  // Check if mentor matches preferences
+  private matchesPreferences(mentor: Mentor, preferences: MentorPreferences): boolean {
+    // Check experience level
+    if (preferences.experienceLevel && mentor.experienceLevel !== preferences.experienceLevel) {
+      return false;
+    }
+    
+    // Check specializations
+    if (preferences.specializations?.length) {
+      const hasSpecialization = preferences.specializations.some(spec => 
+        mentor.specializations.includes(spec)
+      );
+      if (!hasSpecialization) return false;
+    }
+    
+    // Check availability
+    if (preferences.availability && mentor.availability < preferences.availability) {
+      return false;
+    }
+    
+    // Check communication style
+    if (preferences.communicationStyle && mentor.communicationStyle !== preferences.communicationStyle) {
+      return false;
+    }
+    
+    return true;
+  }
+
+  // Calculate availability match score
+  private calculateAvailabilityMatch(
+    mentorAvailability: number,
+    menteeNeeds: any
+  ): number {
+    // Higher score if mentor availability matches mentee needs
+    const neededHours = menteeNeeds.estimatedHoursPerWeek || 2;
+    
+    if (mentorAvailability >= neededHours) {
+      return 100;
+    }
+    
+    return Math.round((mentorAvailability / neededHours) * 100);
+  }
+
+  // Generate match reason
+  private generateMatchReason(
+    mentor: Mentor,
+    profile: LearningProfile,
+    matchScore: number
+  ): string {
+    const reasons = [];
+    
+    if (matchScore >= 90) {
+      reasons.push('Excellent skill alignment');
+    }
+    
+    if (mentor.specializations.some(spec => profile.weaknessPatterns.includes(spec))) {
+      reasons.push('Specializes in your growth areas');
+    }
+    
+    if (mentor.rating >= 4.5) {
+      reasons.push('Highly rated mentor');
+    }
+    
+    return reasons.join(', ') || 'Good overall match';
+  }
+
+  // Calculate success match probability
+  private calculateSuccessMatch(
+    mentorshipGoals: any[],
+    mentorExperience: any
+  ): number {
+    // Calculate based on mentor's past success with similar goals
+    const relevantExperience = mentorExperience.successfulMentorships || 0;
+    const totalExperience = mentorExperience.totalMentorships || 1;
+    
+    const successRate = relevantExperience / totalExperience;
+    return Math.round(successRate * 100);
+  }
+
+  // Recommend meeting frequency
+  private recommendMeetingFrequency(
+    goals: any[],
+    menteeLevel: string
+  ): 'weekly' | 'biweekly' | 'monthly' {
+    // More frequent meetings for beginners or intensive goals
+    if (menteeLevel === 'beginner' || goals.length > 3) {
+      return 'weekly';
+    }
+    
+    if (menteeLevel === 'intermediate') {
+      return 'biweekly';
+    }
+    
+    return 'monthly';
+  }
+
+  // Recommend mentorship duration
+  private recommendDuration(goals: any[]): number {
+    // Estimate weeks based on goal complexity
+    const baseWeeks = 12; // 3 months base
+    const additionalWeeks = goals.length * 2;
+    
+    return Math.min(52, baseWeeks + additionalWeeks); // Max 1 year
+  }
+
+  // Generate learning goals
+  private async generateLearningGoals(
+    profile: LearningProfile,
+    careerGoals: any
+  ): Promise<LearningGoal[]> {
+    const goals: LearningGoal[] = [];
+    
+    // Generate goals based on weaknesses
+    profile.weaknessPatterns.forEach((weakness, index) => {
+      goals.push({
+        id: `goal-${index}`,
+        title: `Improve ${weakness}`,
+        description: `Focus on strengthening ${weakness} skills`,
+        targetDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        milestones: [],
+        progress: 0,
+        status: 'not_started'
+      });
+    });
+    
+    // Add career-specific goals
+    if (careerGoals.targetRole) {
+      goals.push({
+        id: `goal-career`,
+        title: `Prepare for ${careerGoals.targetRole}`,
+        description: `Build skills needed for ${careerGoals.targetRole} position`,
+        targetDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days
+        milestones: [],
+        progress: 0,
+        status: 'not_started'
+      });
+    }
+    
+    return goals;
+  }
+
+  // Generate milestones for goals
+  private generateMilestones(
+    goal: LearningGoal,
+    duration: number
+  ): Milestone[] {
+    const milestones: Milestone[] = [];
+    const milestonesCount = Math.min(4, Math.floor(duration / 2)); // Max 4 milestones
+    
+    for (let i = 0; i < milestonesCount; i++) {
+      milestones.push({
+        id: `milestone-${i}`,
+        goalId: goal.id,
+        title: `${goal.title} - Phase ${i + 1}`,
+        dueDate: new Date(Date.now() + (i + 1) * 14 * 24 * 60 * 60 * 1000), // Every 2 weeks
+        completed: false,
+        completedDate: undefined
+      });
+    }
+    
+    return milestones;
+  }
+
+  // Update goal progress
+  private async updateGoalProgress(
+    relationshipId: string,
+    goalId: string,
+    progress: number
+  ): Promise<void> {
+    const relationship = this.relationships.get(relationshipId);
+    if (!relationship) return;
+    
+    const goal = relationship.goals.find(g => g.id === goalId);
+    if (goal) {
+      goal.progress = Math.min(100, Math.max(0, progress));
+      
+      if (goal.progress >= 100) {
+        goal.status = 'completed';
+      } else if (goal.progress > 0) {
+        goal.status = 'in_progress';
+      }
+      
+      this.relationships.set(relationshipId, relationship);
+    }
+  }
+
+  // Identify focus areas based on profile
+  private identifyFocusAreas(profile: LearningProfile): string[] {
+    const focusAreas: string[] = [];
+    
+    // Add weaknesses as focus areas
+    focusAreas.push(...profile.weaknessPatterns.slice(0, 3));
+    
+    // Add areas with low skill levels
+    Object.entries(profile.skillLevels).forEach(([skill, level]) => {
+      if (level < 40 && !focusAreas.includes(skill)) {
+        focusAreas.push(skill);
+      }
+    });
+    
+    return focusAreas.slice(0, 5); // Top 5 focus areas
   }
 }
 

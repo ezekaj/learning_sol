@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { EnhancedButton } from '@/components/ui/EnhancedButton';
 import { Accessibility } from '@/components/ui/Accessibility';

@@ -47,7 +47,7 @@ export function useSolidityVersionControl(options: UseVCSOptions) {
 
   const { data: session } = useSession();
   const vcsRef = useRef<SolidityVersionControl | null>(null);
-  const { showSuccess, showError, showInfo, showWarning } = useNotifications();
+  const { showSuccess, showError, showInfo, showWarning: _showWarning } = useNotifications();
 
   const [state, setState] = useState<VCSState>({
     isInitialized: false,
@@ -100,7 +100,7 @@ export function useSolidityVersionControl(options: UseVCSOptions) {
           onBranchCreated?.(branch);
         });
 
-        vcs.on('branch-switched', ({ branchName, commitId }) => {
+        vcs.on('branch-switched', ({ branchName, commitId: _commitId }) => {
           setState(prev => ({
             ...prev,
             currentBranch: branchName
@@ -108,7 +108,7 @@ export function useSolidityVersionControl(options: UseVCSOptions) {
           showInfo('Branch Switched', `Switched to: ${branchName}`);
         });
 
-        vcs.on('branches-merged', ({ sourceBranch, targetBranch, mergeCommitId }) => {
+        vcs.on('branches-merged', ({ sourceBranch, targetBranch, mergeCommitId: _mergeCommitId }) => {
           showSuccess('Branches Merged', `Merged ${sourceBranch} into ${targetBranch}`);
           refreshState();
         });

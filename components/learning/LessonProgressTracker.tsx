@@ -2,20 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CheckCircle, 
-  Circle, 
-  Star, 
-  Trophy, 
-  Target, 
-  Clock,
-  Zap,
-  Award,
-  TrendingUp,
-  BookOpen
-} from 'lucide-react';
+import { CheckCircle, Circle, Star, Trophy, Target, Clock, BookOpen } from 'lucide-react';
 import { Card } from '../ui/card';
 import { useLearning } from '@/lib/context/LearningContext';
+import { logger } from '@/lib/api/logger';
 import { cn } from '@/lib/utils';
 
 interface LessonStep {
@@ -43,17 +33,17 @@ export function LessonProgressTracker({
   lessonId,
   steps,
   currentStepId,
-  onStepComplete,
-  onLessonComplete,
+  // onStepComplete,
+  // onLessonComplete,
   className,
   compact = false
 }: LessonProgressTrackerProps) {
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [currentStep, setCurrentStep] = useState<string | null>(currentStepId || null);
   const [totalXpEarned, setTotalXpEarned] = useState(0);
-  const [showCelebration, setShowCelebration] = useState(false);
+  const [showCelebration] = useState(false);
   
-  const { addXP, completeLesson, state } = useLearning();
+  const { state: _state } = useLearning();
 
   // Calculate progress metrics
   const completedCount = completedSteps.size;
@@ -73,13 +63,13 @@ export function LessonProgressTracker({
         setTotalXpEarned(xp);
         setCurrentStep(savedCurrentStep);
       } catch (error) {
-        console.error('Failed to load lesson progress:', error);
+        logger.error('Failed to load lesson progress:', {}, error as Error);
       }
     }
   }, [lessonId]);
 
   // Save progress to localStorage
-  const saveProgress = (completed: Set<string>, xp: number, currentStepId: string | null) => {
+  const _saveProgress = (completed: Set<string>, xp: number, currentStepId: string | null) => {
     try {
       const progressData = {
         completed: Array.from(completed),
@@ -89,44 +79,45 @@ export function LessonProgressTracker({
       };
       localStorage.setItem(`lesson_progress_${lessonId}`, JSON.stringify(progressData));
     } catch (error) {
-      console.error('Failed to save lesson progress:', error);
+      logger.error('Failed to save lesson progress:', {}, error as Error);
     }
   };
 
-  const completeStep = async (stepId: string) => {
-    const step = steps.find(s => s.id === stepId);
-    if (!step || completedSteps.has(stepId)) return;
+  // Step completion is handled by parent component
+  // const _completeStep = async (stepId: string) => {
+  //   const step = steps.find(s => s.id === stepId);
+  //   if (!step || completedSteps.has(stepId)) return;
+  //
+  //   const newCompletedSteps = new Set(completedSteps);
+  //   newCompletedSteps.add(stepId);
+  //   setCompletedSteps(newCompletedSteps);
+  //
+  //   const newTotalXp = totalXpEarned + step.xpReward;
+  //   setTotalXpEarned(newTotalXp);
+  //
+  //   // Add XP to learning context
+  //   addXP(step.xpReward);
 
-    const newCompletedSteps = new Set(completedSteps);
-    newCompletedSteps.add(stepId);
-    setCompletedSteps(newCompletedSteps);
-
-    const newTotalXp = totalXpEarned + step.xpReward;
-    setTotalXpEarned(newTotalXp);
-
-    // Add XP to learning context
-    addXP(step.xpReward);
-
-    // Find next step
-    const currentIndex = steps.findIndex(s => s.id === stepId);
-    const nextStep = steps[currentIndex + 1];
-    setCurrentStep(nextStep?.id || null);
-
-    // Save progress
-    saveProgress(newCompletedSteps, newTotalXp, nextStep?.id || null);
-
-    // Trigger callbacks
-    onStepComplete?.(stepId, step.xpReward);
-
-    // Check if lesson is complete
-    if (newCompletedSteps.size === totalSteps) {
-      setShowCelebration(true);
-      setTimeout(() => setShowCelebration(false), 3000);
-      
-      await completeLesson(lessonId, totalPossibleXp);
-      onLessonComplete?.(lessonId, newTotalXp);
-    }
-  };
+  //   // Find next step
+  //   const currentIndex = steps.findIndex(s => s.id === stepId);
+  //   const nextStep = steps[currentIndex + 1];
+  //   setCurrentStep(nextStep?.id || null);
+  //
+  //   // Save progress
+  //   saveProgress(newCompletedSteps, newTotalXp, nextStep?.id || null);
+  //
+  //   // Trigger callbacks
+  //   onStepComplete?.(stepId, step.xpReward);
+  //
+  //   // Check if lesson is complete
+  //   if (newCompletedSteps.size === totalSteps) {
+  //     setShowCelebration(true);
+  //     setTimeout(() => setShowCelebration(false), 3000);
+  //     
+  //     await completeLesson(lessonId, totalPossibleXp);
+  //     onLessonComplete?.(lessonId, newTotalXp);
+  //   }
+  // };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {

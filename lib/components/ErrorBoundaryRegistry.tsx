@@ -22,11 +22,19 @@ import {
 /**
  * Route-based error boundary configuration
  */
-interface RouteErrorBoundaryConfig extends ErrorBoundaryConfig {
+interface RouteErrorBoundaryConfig {
   /** Route pattern to match (regex or string) */
   pattern: string | RegExp;
   /** Type of error boundary to apply */
   type: 'page' | 'feature' | 'component' | 'code-editor' | 'learning-module' | 'auth' | 'async';
+  /** Component/page name */
+  name?: string;
+  /** Enable retry functionality */
+  enableRetry?: boolean;
+  /** Maximum number of retries */
+  maxRetries?: number;
+  /** Show error details to user */
+  showErrorDetails?: boolean;
   /** Additional configuration */
   config?: ErrorBoundaryConfig & {
     moduleId?: string;
@@ -181,26 +189,26 @@ export class ErrorBoundaryRegistry {
       return withPageErrorBoundary(Component, {
         name: Component.displayName || Component.name,
         ...customConfig
-      });
+      }) as ComponentType<P>;
     }
     
     const finalConfig = { ...config, ...customConfig };
     
     switch (config.type) {
       case 'auth':
-        return withAuthErrorBoundary(Component, finalConfig);
+        return withAuthErrorBoundary(Component, finalConfig) as ComponentType<P>;
       case 'code-editor':
-        return withCodeEditorErrorBoundary(Component, finalConfig);
+        return withCodeEditorErrorBoundary(Component, finalConfig) as ComponentType<P>;
       case 'learning-module':
-        return withLearningModuleErrorBoundary(Component, finalConfig);
+        return withLearningModuleErrorBoundary(Component, finalConfig) as ComponentType<P>;
       case 'async':
-        return withAsyncErrorBoundary(Component, finalConfig);
+        return withAsyncErrorBoundary(Component, finalConfig) as ComponentType<P>;
       case 'feature':
-        return withFeatureErrorBoundary(Component, finalConfig);
+        return withFeatureErrorBoundary(Component, finalConfig) as ComponentType<P>;
       case 'component':
-        return withComponentErrorBoundary(Component, finalConfig);
+        return withComponentErrorBoundary(Component, finalConfig) as ComponentType<P>;
       default:
-        return withPageErrorBoundary(Component, finalConfig);
+        return withPageErrorBoundary(Component, finalConfig) as ComponentType<P>;
     }
   }
   
@@ -218,26 +226,26 @@ export class ErrorBoundaryRegistry {
       return withComponentErrorBoundary(Component, {
         name: Component.displayName || Component.name,
         ...customConfig
-      });
+      }) as ComponentType<P>;
     }
     
     const finalConfig = { ...config, ...customConfig };
     
     switch (config.type) {
       case 'auth':
-        return withAuthErrorBoundary(Component, finalConfig);
+        return withAuthErrorBoundary(Component, finalConfig) as ComponentType<P>;
       case 'code-editor':
-        return withCodeEditorErrorBoundary(Component, finalConfig);
+        return withCodeEditorErrorBoundary(Component, finalConfig) as ComponentType<P>;
       case 'learning-module':
-        return withLearningModuleErrorBoundary(Component, finalConfig);
+        return withLearningModuleErrorBoundary(Component, finalConfig) as ComponentType<P>;
       case 'async':
-        return withAsyncErrorBoundary(Component, finalConfig);
+        return withAsyncErrorBoundary(Component, finalConfig) as ComponentType<P>;
       case 'feature':
-        return withFeatureErrorBoundary(Component, finalConfig);
+        return withFeatureErrorBoundary(Component, finalConfig) as ComponentType<P>;
       case 'component':
-        return withComponentErrorBoundary(Component, finalConfig);
+        return withComponentErrorBoundary(Component, finalConfig) as ComponentType<P>;
       default:
-        return withComponentErrorBoundary(Component, finalConfig);
+        return withComponentErrorBoundary(Component, finalConfig) as ComponentType<P>;
     }
   }
   

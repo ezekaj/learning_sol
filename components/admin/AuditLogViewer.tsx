@@ -2,27 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Eye,
-  Search,
-  Filter,
-  Download,
-  RefreshCw,
-  Calendar,
-  User,
-  Shield,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Clock,
-  FileText,
-  Database,
-  Settings,
-  Activity,
-  ChevronDown,
-  ChevronRight,
-  ExternalLink
-} from 'lucide-react';
+import { Eye, Search, Download, RefreshCw, User, Shield, CheckCircle, XCircle, FileText, Settings, Activity } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
@@ -214,8 +194,8 @@ export function AuditLogViewer({ className }: AuditLogViewerProps) {
     total: 0,
     totalPages: 0
   });
-  const [sortBy, setSortBy] = useState<'timestamp' | 'severity' | 'action'>('timestamp');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortBy] = useState<'timestamp' | 'severity' | 'action'>('timestamp');
+  const [sortOrder] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
     loadLogs();

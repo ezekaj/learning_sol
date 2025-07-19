@@ -18,7 +18,7 @@ export const useDebounce = <T>(value: T, delay: number): T => {
 };
 
 // Throttle Hook
-export const useThrottle = <T extends (...args: any[]) => any>(
+export const useThrottle = <T extends (...args: unknown[]) => unknown>(
   callback: T,
   delay: number
 ): T => {

@@ -22,7 +22,7 @@ export async function POST(_request: NextRequest) {
   
   try {
     // Parse request body
-    const body = await request.json();
+    const body = await _request.json();
     
     // Validate input
     const validationResult = contactFormSchema.safeParse(body);

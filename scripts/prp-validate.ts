@@ -8,11 +8,11 @@
  *   npm run prp:validate --commands "npm test" "npm run lint"
  */
 
-import { runProjectValidation, checkCommand, PRPValidator } from '../lib/prp';
+import { runProjectValidation, PRPValidator } from '../lib/prp';
 import { parseArgs } from 'util';
 
 async function main() {
-  const { values, positionals } = parseArgs({
+  const { values } = parseArgs({
     args: process.argv.slice(2),
     options: {
       'commands': {

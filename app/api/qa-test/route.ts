@@ -10,7 +10,7 @@ interface QATest {
 interface QATestResult {
   passed: boolean;
   message: string;
-  details?: any;
+  details?: Record<string, unknown>;
   metrics?: Record<string, number>;
 }
 
@@ -190,12 +190,18 @@ async function runQATests(category: string): Promise<QAReport> {
   }
 
   // Generate report
-  const summary = {
+  const summary: {
+    total: number;
+    passed: number;
+    failed: number;
+    passRate: number;
+    overallStatus: 'excellent' | 'good' | 'needs-improvement' | 'critical';
+  } = {
     total: results.length,
     passed: results.filter(r => r.passed).length,
     failed: results.filter(r => !r.passed).length,
     passRate: 0,
-    overallStatus: 'critical' as const
+    overallStatus: 'critical'
   };
 
   summary.passRate = Math.round((summary.passed / summary.total) * 100);
@@ -278,13 +284,13 @@ async function testAIResponseTime(): Promise<QATestResult> {
       message: isLocalLLMAvailable ? 
         `Local LLM response time: ${responseTime}ms` : 
         'Local LLM unavailable, using fallback (acceptable)',
-      metrics: { responseTime, target: 2000, localLLMAvailable: isLocalLLMAvailable }
+      metrics: { responseTime, target: 2000, localLLMAvailable: isLocalLLMAvailable ? 1 : 0 }
     };
   } catch (error) {
     return {
       passed: true, // Fallback is acceptable
       message: 'Local LLM unavailable, using fallback system',
-      metrics: { responseTime: -1, target: 2000, localLLMAvailable: false }
+      metrics: { responseTime: -1, target: 2000, localLLMAvailable: 0 }
     };
   }
 }

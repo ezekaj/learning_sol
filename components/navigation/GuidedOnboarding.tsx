@@ -3,23 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ArrowRight, 
-  ArrowLeft, 
-  CheckCircle, 
-  Circle,
-  User,
-  BookOpen,
-  Code,
-  Trophy,
-  Users,
-  Settings,
-  Sparkles,
-  Target,
-  Zap,
-  X,
-  HelpCircle
-} from 'lucide-react';
+import { ArrowRight, ArrowLeft, CheckCircle, User, BookOpen, Code, Trophy, Users, Settings, Sparkles, Target, X, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useSettings } from '@/lib/hooks/useSettings';
@@ -62,7 +46,7 @@ export function GuidedOnboarding({
   const { user } = useAuth();
   const { settings } = useSettings();
   const router = useRouter();
-  const shouldAnimate = !settings?.accessibility?.reduceMotion;
+  const shouldAnimate = !settings?.accessibility?.reducedMotion;
 
   const [currentFlow, setCurrentFlow] = useState<OnboardingFlow | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -358,7 +342,7 @@ export function GuidedOnboarding({
           transition={{ duration: shouldAnimate ? 0.3 : 0 }}
           className={cn("relative max-w-2xl w-full", className)}
         >
-          <GlassContainer intensity="high" className="p-8">
+          <GlassContainer intensity="heavy" className="p-8">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div>

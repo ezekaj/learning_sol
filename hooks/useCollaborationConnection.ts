@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { CollaborationClient, ConnectionStatus } from '@/lib/collaboration/CollaborationClient';
 import { ConnectionManager } from '@/lib/collaboration/ConnectionManager';
 import { TextOperation } from '@/lib/collaboration/OperationalTransform';
+import { CollaborationUser } from '@/types/collaboration';
 
 interface ConnectionState {
   status: ConnectionStatus;
@@ -16,7 +17,7 @@ interface ConnectionState {
   recoveryProgress?: {
     current: number;
     total: number;
-    stage: string;
+    stage: 'connecting' | 'syncing' | 'resolving' | 'complete';
     message: string;
   };
 }
@@ -31,9 +32,9 @@ interface CollaborationConnectionOptions {
   enableOfflineMode?: boolean;
   onConnectionChange?: (state: ConnectionState) => void;
   onOperationReceived?: (operation: TextOperation) => void;
-  onUserPresenceUpdate?: (users: any[]) => void;
-  onChatMessage?: (message: any) => void;
-  onCompilationResult?: (result: any) => void;
+  onUserPresenceUpdate?: (users: CollaborationUser[]) => void;
+  onChatMessage?: (message: { id: string; userId: string; content: string; timestamp: Date; type: 'text' | 'code' }) => void;
+  onCompilationResult?: (result: { success: boolean; errors: string[]; warnings: string[]; bytecode?: string; gasEstimate?: number }) => void;
   onError?: (error: Error) => void;
 }
 
@@ -221,7 +222,7 @@ export function useCollaborationConnection(options: CollaborationConnectionOptio
   }, [options.enableOfflineMode]);
 
   // Send cursor update
-  const sendCursorUpdate = useCallback((cursor: any) => {
+  const sendCursorUpdate = useCallback((cursor: { line: number; column: number; selection?: { start: { line: number; column: number }; end: { line: number; column: number } } }) => {
     clientRef.current?.sendCursorUpdate(cursor);
   }, []);
 

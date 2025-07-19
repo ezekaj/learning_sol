@@ -13,6 +13,7 @@ import { ApiResponseBuilder, PaginationHelper, TimingHelper } from '@/lib/api/re
 import { withErrorHandler, ErrorHelpers } from '@/lib/api/errorHandler';
 import { SkillLevel, CourseStatus } from '@/lib/api/types';
 import { logger } from '@/lib/api/logger';
+import { CourseData } from '@/app/api/types';
 
 // Validation schemas
 const createCourseSchema = z.object({
@@ -29,7 +30,7 @@ const createCourseSchema = z.object({
 });
 
 // Mock database (replace with actual Prisma calls)
-const mockCourses: any[] = [];
+const mockCourses: CourseData[] = [];
 
 /**
  * GET /api/courses - List courses with pagination
@@ -137,23 +138,13 @@ async function createCourse(request: NextRequest) {
   }
   
   // Create new course
-  const newCourse = {
+  const newCourse: CourseData = {
     id: crypto.randomUUID(),
     ...validatedData,
     status: CourseStatus.DRAFT,
     isPublished: false,
-    instructor: {
-      id: session.user.id,
-      name: session.user.name || 'Unknown Instructor',
-      email: session.user.email!,
-      avatar: session.user.image,
-    },
-    enrollmentCount: 0,
-    completionCount: 0,
-    averageRating: 0,
-    ratingCount: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
   
   // Save to database (mock)

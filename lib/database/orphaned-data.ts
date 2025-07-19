@@ -16,7 +16,7 @@ interface DatabaseConnection {
 
 // Mock database connection
 const db: DatabaseConnection = {
-  async query<T>(sql: string, params?: any[]): Promise<T[]> {
+  async query<T>(sql: string, _params?: any[]): Promise<T[]> {
     // Simulate database query
     await new Promise(resolve => setTimeout(resolve, 100));
     
@@ -45,7 +45,7 @@ const db: DatabaseConnection = {
     return [] as T[];
   },
 
-  async execute(sql: string, params?: any[]): Promise<{ affectedRows: number }> {
+  async execute(sql: string, _params?: any[]): Promise<{ affectedRows: number }> {
     // Simulate database execution
     await new Promise(resolve => setTimeout(resolve, 50));
     

@@ -1,6 +1,6 @@
 'use client';
 
-import { WebSocketMessage, RealTimeUpdate, CommunityError } from './types';
+import { WebSocketMessage, CommunityError } from './types';
 
 export class CommunityWebSocket {
   private static instance: CommunityWebSocket;
@@ -107,7 +107,7 @@ export class CommunityWebSocket {
     }
   }
 
-  private handlePong(message: WebSocketMessage): void {
+  private handlePong(_message: WebSocketMessage): void {
     if (this.lastPingTime > 0) {
       this.latency = Date.now() - this.lastPingTime;
       this.notifySubscribers('latency', { latency: this.latency });
@@ -373,7 +373,7 @@ export class RealTimeManager {
 
   private switchToPolling(): void {
     // Re-subscribe all channels to polling
-    this.subscriptions.forEach((unsubscribe, channel) => {
+    this.subscriptions.forEach((unsubscribe, _channel) => {
       unsubscribe();
       // Note: We'd need to store the original callbacks to re-subscribe
       // This is a simplified implementation
@@ -382,7 +382,7 @@ export class RealTimeManager {
 
   private switchFromPolling(): void {
     // Re-subscribe all channels to WebSocket
-    this.subscriptions.forEach((unsubscribe, channel) => {
+    this.subscriptions.forEach((unsubscribe, _channel) => {
       unsubscribe();
       // Note: We'd need to store the original callbacks to re-subscribe
       // This is a simplified implementation

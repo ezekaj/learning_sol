@@ -1,7 +1,9 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { publicEndpoint } from '@/lib/api/middleware';
 import { ApiResponseBuilder } from '@/lib/api/response';
-import { HealthCheck, ServiceHealth, MiddlewareContext } from '@/lib/api/types';
+import { HealthCheck, ServiceHealth } from '@/lib/api/types';
+import { MiddlewareContext } from '@/lib/api/middleware';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Health check service
 class HealthCheckService {
@@ -149,7 +151,7 @@ class HealthCheckService {
 }
 
 // GET /api/v1/health - Health check endpoint
-export const GET = publicEndpoint(async (request: NextRequest, context: MiddlewareContext) => {
+export const GET = publicEndpoint(async (_request: NextRequest, context: MiddlewareContext): Promise<NextResponse> => {
   try {
     const healthCheck = await HealthCheckService.performHealthCheck();
     
@@ -161,20 +163,17 @@ export const GET = publicEndpoint(async (request: NextRequest, context: Middlewa
       return ApiResponseBuilder.success(healthCheck);
     } else {
       // Return 503 for unhealthy status
-      return new Response(JSON.stringify({
+      return NextResponse.json({
         success: false,
         data: healthCheck,
         timestamp: new Date().toISOString(),
         requestId: context.requestId
-      }), {
-        status: 503,
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      }, {
+        status: 503
       });
     }
   } catch (error) {
-    console.error('Health check error:', error);
+    logger.error('Health check error', error as Error);
     
     const errorHealthCheck: HealthCheck = {
       status: 'unhealthy',
@@ -191,7 +190,7 @@ export const GET = publicEndpoint(async (request: NextRequest, context: Middlewa
       }
     };
 
-    return new Response(JSON.stringify({
+    return NextResponse.json({
       success: false,
       data: errorHealthCheck,
       error: {
@@ -200,11 +199,8 @@ export const GET = publicEndpoint(async (request: NextRequest, context: Middlewa
       },
       timestamp: new Date().toISOString(),
       requestId: context.requestId
-    }), {
-      status: 503,
-      headers: {
-        'Content-Type': 'application/json'
-      }
+    }, {
+      status: 503
     });
   }
 });

@@ -1,9 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
-interface LoadingState {
+interface LoadingState<T = unknown> {
   isLoading: boolean;
   error: string | null;
-  data: any;
+  data: T | null;
 }
 
 interface UseLoadingStateOptions {
@@ -12,27 +12,27 @@ interface UseLoadingStateOptions {
   timeout?: number;
 }
 
-interface UseLoadingStateReturn {
+interface UseLoadingStateReturn<T = unknown> {
   isLoading: boolean;
   error: string | null;
-  data: any;
+  data: T | null;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  setData: (data: any) => void;
-  executeAsync: <T>(asyncFn: () => Promise<T>) => Promise<T | null>;
+  setData: (data: T | null) => void;
+  executeAsync: <U>(asyncFn: () => Promise<U>) => Promise<U | null>;
   reset: () => void;
 }
 
-export const useLoadingState = (
+export const useLoadingState = <T = unknown>(
   options: UseLoadingStateOptions = {}
-): UseLoadingStateReturn => {
+): UseLoadingStateReturn<T> => {
   const {
     initialLoading = false,
     minLoadingTime = 0,
     timeout = 0,
   } = options;
 
-  const [state, setState] = useState<LoadingState>({
+  const [state, setState] = useState<LoadingState<T>>({
     isLoading: initialLoading,
     error: null,
     data: null,
@@ -52,7 +52,7 @@ export const useLoadingState = (
     setState(prev => ({ ...prev, error, isLoading: false }));
   }, []);
 
-  const setData = useCallback((data: any) => {
+  const setData = useCallback((data: T | null) => {
     setState(prev => ({ ...prev, data, error: null }));
   }, []);
 

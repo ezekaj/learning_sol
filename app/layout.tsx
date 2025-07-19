@@ -118,8 +118,8 @@ export default function RootLayout({
         <MainProviders>
           <SimpleErrorBoundary>
             {/* Skip Links for Accessibility */}
-            <SkipLink href="#main-content">Skip to main content</SkipLink>
-            <SkipLink href="#navigation">Skip to navigation</SkipLink>
+            <SkipLink targetId="main-content">Skip to main content</SkipLink>
+            <SkipLink targetId="navigation">Skip to navigation</SkipLink>
 
             <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
               {/* Navigation */}

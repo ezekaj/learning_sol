@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { LearningAssistant } from '@/lib/ai/LearningAssistant';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 export async function POST(_request: NextRequest) {
   try {
@@ -21,7 +22,7 @@ export async function POST(_request: NextRequest) {
       currentSkills,
       goals,
       timeAvailable 
-    } = await request.json();
+    } = await _request.json();
 
     if (!type) {
       return NextResponse.json({ error: 'Request type is required' }, { status: 400 });
@@ -132,7 +133,7 @@ export async function POST(_request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('AI Assistant error:', error);
+    logger.error('AI Assistant error', error as Error);
     return NextResponse.json({ 
       error: 'AI Assistant temporarily unavailable',
       message: 'Please try again later or contact support if the issue persists.'
@@ -140,7 +141,7 @@ export async function POST(_request: NextRequest) {
   }
 }
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     
@@ -153,7 +154,7 @@ export async function GET(_request: NextRequest) {
       where: {
         userId: session.user.id,
         metadata: {
-          path: ['aiInteraction'],
+          path: 'aiInteraction',
           equals: true,
         },
       },
@@ -172,7 +173,7 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json({ interactions });
 
   } catch (error) {
-    console.error('Error fetching AI interactions:', error);
+    logger.error('Error fetching AI interactions', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

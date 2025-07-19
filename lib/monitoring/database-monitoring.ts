@@ -5,9 +5,9 @@
  * and Redis cache performance with real-time metrics and alerting.
  */
 
-import { PrismaClient } from '@prisma/client';
-import { env, redisConfig } from '@/lib/config/environment';
-import { logger } from './logger';
+;
+import { redisConfig } from '@/lib/config/environment';
+import { logger } from './simple-logger';
 import { sentryUtils } from './sentry-config';
 
 /**
@@ -169,10 +169,9 @@ class DatabaseMonitor {
   private async setupRedisConnection(): Promise<void> {
     try {
       // Dynamically import Redis
-      const { createClient } = await import('redis');
+      const Redis = await import('ioredis');
       
-      this.redis = createClient({
-        url: redisConfig.url,
+      this.redis = new Redis.default(redisConfig.url, {
         password: redisConfig.password,
         database: redisConfig.db,
       });

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CommunityStats, StatsFilters } from '@/lib/community/types';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Mock data generation for demonstration
-function generateMockStats(filters?: StatsFilters): CommunityStats {
+function generateMockStats(_filters?: StatsFilters): CommunityStats {
   const now = new Date();
   const baseUsers = 1247;
   const baseActiveToday = Math.floor(baseUsers * 0.15); // 15% daily active
@@ -149,7 +150,7 @@ function generateMockStats(filters?: StatsFilters): CommunityStats {
   };
 }
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { filters } = body;
@@ -165,7 +166,7 @@ export async function POST(_request: NextRequest) {
 
     return NextResponse.json(stats);
   } catch (error) {
-    console.error('Error fetching community stats:', error);
+    logger.error('Error fetching community stats', error as Error);
     return NextResponse.json(
       { error: 'Failed to fetch community statistics' },
       { status: 500 }
@@ -179,7 +180,7 @@ export async function GET() {
     const stats = generateMockStats();
     return NextResponse.json(stats);
   } catch (error) {
-    console.error('Error fetching community stats:', error);
+    logger.error('Error fetching community stats', error as Error);
     return NextResponse.json(
       { error: 'Failed to fetch community statistics' },
       { status: 500 }

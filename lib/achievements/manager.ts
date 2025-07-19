@@ -436,12 +436,12 @@ export class AchievementManager implements IAchievementManager {
   }
 
   // Placeholder methods for leaderboards (would be implemented with backend)
-  async getLeaderboard(type: any, limit?: number): Promise<any> {
+  async getLeaderboard(type: any, _limit?: number): Promise<any> {
     // Placeholder implementation
     return { type, entries: [], lastUpdated: new Date() };
   }
 
-  async getUserRank(userId: string, type: any): Promise<number> {
+  async getUserRank(_userId: string, _type: any): Promise<number> {
     // Placeholder implementation
     return 1;
   }

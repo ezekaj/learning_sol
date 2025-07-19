@@ -282,19 +282,19 @@ export default function AuthTestPage() {
             </h2>
             
             <div className="space-y-4">
-              <ProtectedRoute requireAuth={true}>
+              <ProtectedRoute permission={{ requireAuth: true }}>
                 <div className="p-4 bg-green-500/20 border border-green-500/30 rounded-lg">
                   <p className="text-green-300">✅ This content is only visible to authenticated users!</p>
                 </div>
               </ProtectedRoute>
 
-              <ProtectedRoute requireAuth={true} requiredRole="INSTRUCTOR">
+              <ProtectedRoute permission={{ requireAuth: true, roles: ['INSTRUCTOR'] }}>
                 <div className="p-4 bg-purple-500/20 border border-purple-500/30 rounded-lg">
                   <p className="text-purple-300">✅ This content is only visible to Instructors and Admins!</p>
                 </div>
               </ProtectedRoute>
 
-              <ProtectedRoute requireAuth={true} requiredRole="ADMIN">
+              <ProtectedRoute permission={{ requireAuth: true, roles: ['ADMIN'] }}>
                 <div className="p-4 bg-red-500/20 border border-red-500/30 rounded-lg">
                   <p className="text-red-300">✅ This content is only visible to Admins!</p>
                 </div>

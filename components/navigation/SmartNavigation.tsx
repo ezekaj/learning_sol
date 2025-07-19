@@ -1,27 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ArrowLeft,
-  Home,
-  ChevronRight,
-  BookOpen,
-  Code,
-  Users,
-  Trophy,
-  Settings,
-  User,
-  Search,
-  ExternalLink,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Zap,
-  Briefcase,
-  Award
-} from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Home, ChevronRight, BookOpen, Code, Users, Trophy, Settings, User, ExternalLink, AlertCircle, CheckCircle, Clock, Zap, Briefcase, Award } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSettings } from '@/lib/hooks/useSettings';
 import { useAuth } from '@/lib/hooks/useAuth';

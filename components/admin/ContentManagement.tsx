@@ -1,36 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  FileText,
-  Search,
-  Filter,
-  MoreVertical,
-  Edit,
-  Trash2,
-  Eye,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Plus,
-  Download,
-  Upload,
-  Archive,
-  Star,
-  Users,
-  BarChart3,
-  Calendar,
-  Tag,
-  BookOpen,
-  PlayCircle,
-  FileQuestion,
-  Layers
-} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { FileText, Search, MoreVertical, Edit, Trash2, Eye, CheckCircle, Clock, Plus, Download, Upload, Archive, Star, Calendar, BookOpen, PlayCircle, FileQuestion, Layers } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
-import { AdminContent, ContentVersion } from '@/lib/admin/types';
+import { AdminContent } from '@/lib/admin/types';
 import { adminAuth, ADMIN_PERMISSIONS } from '@/lib/admin/auth';
 
 interface ContentManagementProps {

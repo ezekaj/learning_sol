@@ -2,31 +2,7 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Code,
-  FileText,
-  GitBranch,
-  Bug,
-  Settings,
-  Search,
-  Terminal,
-  Layers,
-  Sidebar,
-  SplitSquareHorizontal,
-  SplitSquareVertical,
-  Maximize2,
-  Minimize2,
-  Eye,
-  EyeOff,
-  Palette,
-  Accessibility,
-  Monitor,
-  Sun,
-  Moon,
-  Zap,
-  Command,
-  AlertTriangle
-} from 'lucide-react';
+import { Code, FileText, GitBranch, Bug, Search, Terminal, Layers, Sidebar, SplitSquareHorizontal, SplitSquareVertical, Accessibility, Sun, Moon, Zap, Command, AlertTriangle } from 'lucide-react';
 import { AdvancedCollaborativeMonacoEditor } from './AdvancedCollaborativeMonacoEditor';
 import { SolidityDebuggerInterface } from '../debugging/SolidityDebuggerInterface';
 import { VersionControlInterface } from '../vcs/VersionControlInterface';
@@ -113,7 +89,7 @@ export function AdvancedIDEInterface({
   className
 }: AdvancedIDEInterfaceProps) {
   const [layout, setLayout] = useState<IDELayout>(defaultLayout);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [_isFullscreen, _setIsFullscreen] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [commandQuery, setCommandQuery] = useState('');
   const [editorContent, setEditorContent] = useState(initialContent);
@@ -141,14 +117,15 @@ export function AdvancedIDEInterface({
     });
   }, [layout.leftSidebar, updateLayout]);
 
-  const toggleRightSidebar = useCallback(() => {
-    updateLayout({
-      rightSidebar: {
-        ...layout.rightSidebar,
-        visible: !layout.rightSidebar.visible
-      }
-    });
-  }, [layout.rightSidebar, updateLayout]);
+  // Right sidebar toggle functionality is handled by the layout system
+  // const _toggleRightSidebar = useCallback(() => {
+  //   updateLayout({
+  //     rightSidebar: {
+  //       ...layout.rightSidebar,
+  //       visible: !layout.rightSidebar.visible
+  //     }
+  //   });
+  // }, [layout.rightSidebar, updateLayout]);
 
   const toggleBottomPanel = useCallback(() => {
     updateLayout({
@@ -274,7 +251,7 @@ export function AdvancedIDEInterface({
     >
       {/* Top Menu Bar */}
       <GlassContainer
-        intensity="low"
+        intensity="light"
         tint="neutral"
         border
         className="flex items-center justify-between px-4 py-2 border-b border-gray-700"
@@ -740,8 +717,8 @@ function RightSidebarContent({
 function BottomPanelContent({
   activeTab,
   onTabChange,
-  repositoryId,
-  repositoryName
+  repositoryId: _repositoryId,
+  repositoryName: _repositoryName
 }: {
   activeTab: IDELayout['bottomPanel']['activeTab'];
   onTabChange: (tab: IDELayout['bottomPanel']['activeTab']) => void;

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { LeaderboardCategory } from '@/lib/community/types';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 const categories: LeaderboardCategory[] = [
   {
@@ -85,7 +86,7 @@ export async function GET() {
     
     return NextResponse.json(categories);
   } catch (error) {
-    console.error('Error fetching leaderboard categories:', error);
+    logger.error('Error fetching leaderboard categories', error as Error);
     return NextResponse.json(
       { error: 'Failed to fetch leaderboard categories' },
       { status: 500 }

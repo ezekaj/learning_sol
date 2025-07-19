@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { 
   successResponse,
   errorResponse,
-  validationErrorResponse,
   withErrorHandling,
   generateRequestId
 } from '@/lib/api/utils';
 import { ApiErrorCode, HttpStatus } from '@/lib/api/types';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
@@ -209,7 +209,7 @@ async function getCertificatesHandler(request: NextRequest) {
     return successResponse(response, undefined, HttpStatus.OK, requestId);
     
   } catch (error) {
-    console.error('Get certificates error:', error);
+    logger.error('Get certificates error', error as Error);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to fetch certificates',
@@ -220,7 +220,7 @@ async function getCertificatesHandler(request: NextRequest) {
   }
 }
 
-async function createCertificateHandler(request: NextRequest) {
+async function createCertificateHandler(_request: NextRequest) {
   const requestId = generateRequestId();
   
   try {
@@ -291,7 +291,7 @@ async function createCertificateHandler(request: NextRequest) {
     */
     
   } catch (error) {
-    console.error('Create certificate error:', error);
+    logger.error('Create certificate error', error as Error);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to create certificate',

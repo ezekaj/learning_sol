@@ -2,15 +2,8 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { 
-  AdvancedCollaborativeEditor, 
-  CollaboratorInfo, 
-  DocumentState, 
-  ChangeEvent, 
-  CursorEvent, 
-  ConflictEvent 
-} from '../collaboration/AdvancedCollaborativeEditor';
-import { TextOperation, CursorPosition, SelectionRange } from '../collaboration/OperationalTransform';
+import { AdvancedCollaborativeEditor, CollaboratorInfo, ChangeEvent, CursorEvent, ConflictEvent } from '../collaboration/AdvancedCollaborativeEditor';
+import { CursorPosition, SelectionRange } from '../collaboration/OperationalTransform';
 import { useNotificationSocket } from './useNotificationSocket';
 import { useNotifications } from '@/components/ui/NotificationSystem';
 
@@ -40,7 +33,7 @@ export interface CollaborativeEditorState {
 export function useAdvancedCollaborativeEditor(options: UseAdvancedCollaborativeEditorOptions) {
   const { data: session } = useSession();
   const { 
-    sendNotificationToRoom, 
+    sendNotificationToRoom: _sendNotificationToRoom, 
     joinRoom, 
     leaveRoom, 
     sendCollaborationEvent,

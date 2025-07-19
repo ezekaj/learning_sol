@@ -21,6 +21,7 @@ import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
 import { Badge } from '../ui/badge';
+import { logger } from '@/lib/api/logger';
 
 interface Lesson {
   id: string;
@@ -158,7 +159,7 @@ export const StructuredCurriculum: React.FC<StructuredCurriculumProps> = ({
 
   const handleQuickAction = (moduleId: string, action: 'bookmark' | 'share' | 'notes') => {
     // Track module-specific actions using moduleId
-    console.log(`Quick action ${action} for module ${moduleId}`);
+    logger.info(`Quick action performed`, { moduleId, action });
     // In a real app, this would save to user preferences/analytics
   };
 
@@ -232,7 +233,7 @@ export const StructuredCurriculum: React.FC<StructuredCurriculumProps> = ({
             <Button
               size="sm"
               variant="outline"
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent) => {
                 e.stopPropagation();
                 handleQuickAction(moduleId, 'bookmark');
               }}
@@ -245,7 +246,7 @@ export const StructuredCurriculum: React.FC<StructuredCurriculumProps> = ({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={(e) => {
+                onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   earnSecurityBadge(moduleId);
                 }}

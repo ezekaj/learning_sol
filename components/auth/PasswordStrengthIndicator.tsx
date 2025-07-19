@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+;
 import { motion } from 'framer-motion';
 import { Check, X, AlertTriangle, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -36,7 +36,7 @@ export function PasswordStrengthIndicator({
 }: PasswordStrengthIndicatorProps) {
   const strength = calculatePasswordStrength(password, minLength);
 
-  const strengthColors = {
+  const strengthColors: Record<number, string> = {
     0: 'bg-gray-300',
     1: 'bg-red-500',
     2: 'bg-orange-500',
@@ -44,7 +44,7 @@ export function PasswordStrengthIndicator({
     4: 'bg-green-500'
   };
 
-  const strengthLabels = {
+  const strengthLabels: Record<number, string> = {
     0: 'No password',
     1: 'Very weak',
     2: 'Weak',
@@ -52,7 +52,7 @@ export function PasswordStrengthIndicator({
     4: 'Strong'
   };
 
-  const strengthTextColors = {
+  const strengthTextColors: Record<number, string> = {
     0: 'text-gray-500',
     1: 'text-red-500',
     2: 'text-orange-500',

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 export async function POST(_request: NextRequest) {
   try {
@@ -18,7 +19,7 @@ export async function POST(_request: NextRequest) {
       bytecode, 
       abi, 
       constructorArgs: _constructorArgs
-    } = await request.json();
+    } = await _request.json();
 
     if (!contractName || !address || !chainId || !transactionHash) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -51,7 +52,7 @@ export async function POST(_request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error saving deployment:', error);
+    logger.error('Error saving deployment', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -69,7 +70,7 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json({ deployments: [] });
 
   } catch (error) {
-    console.error('Error fetching deployments:', error);
+    logger.error('Error fetching deployments', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { performanceOptimizer } from '@/lib/performance/PerformanceOptimizer';
+;
 
 interface PerformanceTest {
   name: string;
@@ -156,7 +156,7 @@ async function runPerformanceTests(testType: string): Promise<any[]> {
   return results;
 }
 
-async function simulateAIResponse(prompt: string): Promise<string> {
+async function simulateAIResponse(_prompt: string): Promise<string> {
   // Check if local LLM is available
   try {
     const response = await fetch('http://localhost:1234/v1/models', {

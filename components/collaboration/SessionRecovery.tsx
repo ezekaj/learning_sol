@@ -1,22 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  RefreshCw,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Wifi,
-  WifiOff,
-  Download,
-  Upload,
-  Database,
-  Shield,
-  X,
-  Play,
-  Pause
-} from 'lucide-react';
+import { RefreshCw, AlertTriangle, CheckCircle, Clock, Wifi, WifiOff, Download, Upload, Database, Shield, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';

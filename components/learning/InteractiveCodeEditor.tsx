@@ -1,13 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
+import * as monaco from 'monaco-editor';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Play, Save, Download, Upload, Settings, CheckCircle, XCircle, AlertTriangle,
-  Users, Share2, Bug, Code2, Zap, FileText, Copy, Eye, EyeOff, Maximize2,
-  Minimize2, RotateCcw, GitBranch, TestTube, Layers, Send, RotateCw,
-  ChevronUp, ChevronDown, Info, ZoomIn, ZoomOut, Contrast, Volume2,
-  Keyboard, HelpCircle
-} from 'lucide-react';
+import { Play, Save, Download, Upload, Settings, CheckCircle, XCircle, AlertTriangle, Users, Share2, Bug, Code2, Zap, FileText, Copy, Eye, EyeOff, Maximize2, Minimize2, RotateCcw, GitBranch, TestTube, Layers, ChevronUp, ChevronDown, ZoomIn, ZoomOut, Contrast, Keyboard } from 'lucide-react';
 import { Button } from '../ui/button';
 import { AsyncSaveButton, EnhancedButton, AsyncSubmitButton } from '../ui/EnhancedButton';
 import { Card } from '../ui/card';
@@ -33,6 +28,7 @@ import { CollaborationChat } from '@/components/collaboration/CollaborationChat'
 import { ConnectionStatusIndicator } from '@/components/collaboration/ConnectionStatusIndicator';
 import { SessionRecovery } from '@/components/collaboration/SessionRecovery';
 import { FileSharing } from '@/components/collaboration/FileSharing';
+import { logger } from '@/lib/api/logger';
 
 interface CompilationResult {
   success: boolean;
@@ -92,7 +88,6 @@ interface InteractiveCodeEditorProps {
   enableProgressTracking?: boolean;
   enableAdvancedFeatures?: boolean;
   enableAccessibility?: boolean;
-  enableCollaboration?: boolean;
   collaborationSessionId?: string;
   collaborationUsers?: CollaborationUser[];
   lessonId?: string;
@@ -303,7 +298,6 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
   enableProgressTracking = true,
   enableAdvancedFeatures = true,
   enableAccessibility = true,
-  enableCollaboration = false,
   collaborationSessionId,
   collaborationUsers = [],
   lessonId,
@@ -315,7 +309,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
   className = ''
 }) => {
   const [code, setCode] = useState(initialCode);
-  const [isCompiling, setIsCompiling] = useState(false);
+  const [_isCompiling, setIsCompiling] = useState(false);
   const [compilationResult, setCompilationResult] = useState<CompilationResult | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
@@ -335,10 +329,10 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
   const [codeVersions, setCodeVersions] = useState<Array<{id: string, timestamp: Date, code: string, message: string}>>([]);
   const [showCodePreview, setShowCodePreview] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [_isSubmitting, setIsSubmitting] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [syntaxErrors, setSyntaxErrors] = useState<EditorError[]>([]);
-  const [syntaxWarnings, setSyntaxWarnings] = useState<EditorError[]>([]);
+  const [_syntaxErrors, setSyntaxErrors] = useState<EditorError[]>([]);
+  const [_syntaxWarnings, setSyntaxWarnings] = useState<EditorError[]>([]);
   const [realTimeErrors, setRealTimeErrors] = useState<{ errors: number; warnings: number; info: number }>({ errors: 0, warnings: 0, info: 0 });
   const [showCollaborationPanel, setShowCollaborationPanel] = useState(false);
   const [collaborativeEditor, setCollaborativeEditor] = useState<CollaborativeEditor | null>(null);
@@ -371,7 +365,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
 
   // Error handling and learning context
   const { showApiError, showFormError } = useError();
-  const { completeLesson, addXP } = useLearning();
+  const { completeLesson, addXP: _addXP } = useLearning();
 
   // Git integration for automatic commits
   const git = useAutoGit({
@@ -395,7 +389,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
       // Monitor editor performance
       const summary = performanceMonitor.getPerformanceSummary();
       if (summary.currentFPS < 30) {
-        console.warn('Editor performance degraded:', summary);
+        logger.warn('Editor performance degraded:', { summary });
       }
     }, 1000);
 
@@ -455,7 +449,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
             showToastMessage(`${user.name} joined the session`, 'success');
           });
 
-          collaborativeEditorInstance.onUserLeave((userId) => {
+          collaborativeEditorInstance.onUserLeave((_userId) => {
             showToastMessage('User left the session', 'warning');
           });
 
@@ -470,7 +464,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
           });
 
         } catch (error) {
-          console.error('Failed to initialize collaboration:', error);
+          logger.error('Failed to initialize collaboration:', {}, error as Error);
           showToastMessage('Failed to start collaboration session', 'error');
         }
       };
@@ -507,11 +501,11 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
     setTimeout(() => setShowToast(false), 3000);
   }, []);
 
-  const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor, monaco: typeof import('monaco-editor')) => {
+  const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor, monacoInstance: any) => {
     editorRef.current = editor;
 
     // Initialize error highlighting and syntax checking
-    errorHighlightingRef.current = new ErrorHighlightingManager(editor, monaco);
+    errorHighlightingRef.current = new ErrorHighlightingManager(editor, monacoInstance);
     syntaxCheckerRef.current = new RealTimeSyntaxChecker((result) => {
       const allErrors = [...result.errors, ...result.warnings, ...result.suggestions];
       setSyntaxErrors(result.errors);
@@ -529,7 +523,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
 
     // Initialize advanced editor configuration
     if (enableAdvancedFeatures) {
-      advancedConfigRef.current = new AdvancedEditorConfig(monaco, editor);
+      advancedConfigRef.current = new AdvancedEditorConfig(monacoInstance, editor);
       advancedConfigRef.current.configureSolidityLanguage();
       advancedConfigRef.current.configureThemes();
       advancedConfigRef.current.configureKeyboardShortcuts();
@@ -538,7 +532,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
 
     // Initialize accessibility manager
     if (enableAccessibility) {
-      accessibilityManagerRef.current = new EditorAccessibilityManager(editor, monaco, {
+      accessibilityManagerRef.current = new EditorAccessibilityManager(editor, monacoInstance, {
         announceChanges: true,
         keyboardNavigation: true,
         screenReaderSupport: true,
@@ -549,11 +543,11 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
 
     // Configure Solidity language support (fallback if advanced features disabled)
     if (!enableAdvancedFeatures) {
-      monaco.languages.register({ id: 'solidity' });
+      monacoInstance.languages.register({ id: 'solidity' });
     }
     
     // Set up Solidity syntax highlighting
-    monaco.languages.setMonarchTokensProvider('solidity', {
+    monacoInstance.languages.setMonarchTokensProvider('solidity', {
       tokenizer: {
         root: [
           [/pragma\s+solidity/, 'keyword'],
@@ -576,26 +570,26 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
     });
 
     // Set up auto-completion
-    monaco.languages.registerCompletionItemProvider('solidity', {
+    monacoInstance.languages.registerCompletionItemProvider('solidity', {
       provideCompletionItems: () => ({
         suggestions: [
           {
             label: 'contract',
-            kind: monaco.languages.CompletionItemKind.Keyword,
+            kind: monacoInstance.languages.CompletionItemKind.Keyword,
             insertText: 'contract ${1:ContractName} {\n\t$0\n}',
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            insertTextRules: monacoInstance.languages.CompletionItemInsertTextRule.InsertAsSnippet,
           },
           {
             label: 'function',
-            kind: monaco.languages.CompletionItemKind.Keyword,
+            kind: monacoInstance.languages.CompletionItemKind.Keyword,
             insertText: 'function ${1:functionName}(${2:parameters}) ${3:public} ${4:returns (${5:returnType})} {\n\t$0\n}',
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            insertTextRules: monacoInstance.languages.CompletionItemInsertTextRule.InsertAsSnippet,
           },
           {
             label: 'require',
-            kind: monaco.languages.CompletionItemKind.Function,
+            kind: monacoInstance.languages.CompletionItemKind.Function,
             insertText: 'require(${1:condition}, "${2:error message}");',
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            insertTextRules: monacoInstance.languages.CompletionItemInsertTextRule.InsertAsSnippet,
           },
         ]
       })
@@ -872,7 +866,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
           await commitManager.commitLessonCompletion(lessonId, code);
           showToastMessage('Solution committed to git repository', 'success');
         } catch (gitError) {
-          console.warn('Git commit failed:', gitError);
+          logger.warn('Git commit failed:', {}, gitError as Error);
           // Don't fail the submission if git fails
         }
       }
@@ -900,7 +894,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
         await commitManager.commitCodeSave(sessionId, `Save code version: ${newVersion.message}`);
         showToastMessage('Code version saved and committed', 'success');
       } catch (gitError) {
-        console.warn('Git commit failed:', gitError);
+        logger.warn('Git commit failed:', {}, gitError as Error);
         showToastMessage('Code version saved (git commit failed)', 'warning');
       }
     } else {
@@ -969,7 +963,11 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
       {enableProgressTracking && lessonSteps.length > 0 && lessonId && (
         <LessonProgressTracker
           lessonId={lessonId}
-          steps={lessonSteps}
+          steps={lessonSteps.map(step => ({
+            ...step,
+            isCompleted: false,
+            isActive: step.id === currentStepId
+          }))}
           currentStepId={currentStepId || lessonProgress.getCurrentStep(lessonSteps)?.id}
           onStepComplete={async (stepId, xpEarned) => {
             await lessonProgress.completeStep(stepId, lessonSteps);
@@ -1015,7 +1013,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
                 onSuccess: () => {
                   showToastMessage('Compilation successful!', 'success');
                 },
-                onError: (error) => {
+                onError: (_error) => {
                   showToastMessage('Compilation failed', 'error');
                 }
               }}
@@ -1049,9 +1047,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
                   showToastMessage('Version saved successfully', 'success');
                 }
               }}
-            >
-              Save Version
-            </AsyncSaveButton>
+            />
 
             <Button
               onClick={saveCode}
@@ -1103,7 +1099,6 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0"
-                  tooltip="Go to previous error"
                 >
                   <ChevronUp className="w-4 h-4" />
                 </Button>
@@ -1112,7 +1107,6 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0"
-                  tooltip="Go to next error"
                 >
                   <ChevronDown className="w-4 h-4" />
                 </Button>
@@ -1174,14 +1168,11 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
                   onSuccess: () => {
                     showToastMessage('Solution submitted successfully!', 'success');
                   },
-                  onError: (error) => {
+                  onError: (_error: Error) => {
                     showToastMessage('Submission failed', 'error');
                   }
                 }}
-              >
-                <Send className="w-4 h-4 mr-2" />
-                Submit Solution
-              </AsyncSubmitButton>
+              />
             )}
 
             <EnhancedButton
@@ -1895,7 +1886,7 @@ export const InteractiveCodeEditor: React.FC<InteractiveCodeEditorProps> = ({
             isRecovering={collaboration.state.isRecovering}
             progress={collaboration.state.recoveryProgress}
             offlineQueueSize={collaboration.state.offlineQueueSize}
-            lastSyncTime={collaboration.state.lastSyncTime}
+            lastSyncTime={collaboration.state.lastSyncTime || undefined}
             connectionQuality={collaboration.state.connectionQuality}
             onReconnect={collaboration.actions.reconnect}
             onForceSync={collaboration.actions.forceSync}

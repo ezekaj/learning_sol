@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { AchievementManager } from '@/lib/achievements/manager';
-import { Achievement, AchievementProgress, AchievementEvent, AchievementNotification } from '@/lib/achievements/types';
+import { Achievement, AchievementEvent } from '@/lib/achievements/types';
 import { ACHIEVEMENTS } from '@/lib/achievements/data';
 
 // Mock external dependencies

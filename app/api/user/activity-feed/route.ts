@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
+import { ActivityItem } from '@/lib/api/types';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -18,7 +20,7 @@ export async function GET(_request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
 
     // Get user's recent activity from various sources
-    const activities: any[] = [];
+    const activities: ActivityItem[] = [];
 
     // Recent lesson completions
     const recentLessons = await prisma.userProgress.findMany({
@@ -75,18 +77,18 @@ export async function GET(_request: NextRequest) {
         },
       },
       orderBy: {
-        completedAt: 'desc',
+        unlockedAt: 'desc',
       },
       take: 5,
     });
 
     recentAchievements.forEach((userAchievement: any) => {
-      if (userAchievement.completedAt) {
+      if (userAchievement.unlockedAt) {
         activities.push({
           id: `achievement-${userAchievement.id}`,
           type: 'achievement',
           description: `Earned "${userAchievement.achievement.title}" achievement`,
-          timestamp: userAchievement.completedAt,
+          timestamp: userAchievement.unlockedAt,
           metadata: {
             achievementId: userAchievement.achievementId,
             xpReward: userAchievement.achievement.xpReward,
@@ -128,17 +130,17 @@ export async function GET(_request: NextRequest) {
 
     // Sort all activities by timestamp and limit
     const sortedActivities = activities
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .sort((a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime())
       .slice(0, limit);
 
     return NextResponse.json({ activities: sortedActivities });
   } catch (error) {
-    console.error('Error fetching activity feed:', error);
+    logger.error('Error fetching activity feed', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -153,7 +155,7 @@ export async function POST(_request: NextRequest) {
         const { activityId } = data;
         
         // TODO: Implement activity read tracking
-        console.log(`User ${session.user.id} marked activity ${activityId} as read`);
+        logger.info(`User ${session.user.id} marked activity ${activityId} as read`);
 
         return NextResponse.json({ 
           success: true, 
@@ -164,7 +166,7 @@ export async function POST(_request: NextRequest) {
         const { hideActivityId } = data;
         
         // TODO: Implement activity hiding
-        console.log(`User ${session.user.id} hid activity ${hideActivityId}`);
+        logger.info(`User ${session.user.id} hid activity ${hideActivityId}`);
 
         return NextResponse.json({ 
           success: true, 
@@ -175,7 +177,7 @@ export async function POST(_request: NextRequest) {
         const { shareActivityId, platform } = data;
         
         // TODO: Implement activity sharing
-        console.log(`User ${session.user.id} shared activity ${shareActivityId} on ${platform}`);
+        logger.info(`User ${session.user.id} shared activity ${shareActivityId} on ${platform}`);
 
         return NextResponse.json({ 
           success: true, 
@@ -186,7 +188,7 @@ export async function POST(_request: NextRequest) {
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Error processing activity feed action:', error);
+    logger.error('Error processing activity feed action', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

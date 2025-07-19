@@ -142,7 +142,7 @@ export class SolidityCodeAnalyzer {
    */
   private initializeSecurityRules(): void {
     // Reentrancy detection
-    this.securityRules.set('reentrancy', (code, lines) => {
+    this.securityRules.set('reentrancy', (_code, lines) => {
       const vulnerabilities: SecurityVulnerability[] = [];
       
       lines.forEach((line, index) => {
@@ -176,7 +176,7 @@ export class SolidityCodeAnalyzer {
     });
 
     // tx.origin usage
-    this.securityRules.set('tx-origin', (code, lines) => {
+    this.securityRules.set('tx-origin', (_code, lines) => {
       const vulnerabilities: SecurityVulnerability[] = [];
       
       lines.forEach((line, index) => {
@@ -202,7 +202,7 @@ export class SolidityCodeAnalyzer {
     });
 
     // Timestamp dependence
-    this.securityRules.set('timestamp-dependence', (code, lines) => {
+    this.securityRules.set('timestamp-dependence', (_code, lines) => {
       const vulnerabilities: SecurityVulnerability[] = [];
       
       lines.forEach((line, index) => {
@@ -232,7 +232,7 @@ export class SolidityCodeAnalyzer {
     });
 
     // Unchecked external calls
-    this.securityRules.set('unchecked-calls', (code, lines) => {
+    this.securityRules.set('unchecked-calls', (_code, lines) => {
       const vulnerabilities: SecurityVulnerability[] = [];
       
       lines.forEach((line, index) => {
@@ -267,7 +267,7 @@ export class SolidityCodeAnalyzer {
    */
   private initializeGasOptimizationRules(): void {
     // Storage vs memory optimization
-    this.gasOptimizationRules.set('storage-memory', (code, lines) => {
+    this.gasOptimizationRules.set('storage-memory', (_code, lines) => {
       const optimizations: OptimizationSuggestion[] = [];
       
       lines.forEach((line, index) => {
@@ -298,7 +298,7 @@ export class SolidityCodeAnalyzer {
     });
 
     // Loop optimization
-    this.gasOptimizationRules.set('loop-optimization', (code, lines) => {
+    this.gasOptimizationRules.set('loop-optimization', (_code, lines) => {
       const optimizations: OptimizationSuggestion[] = [];
       
       lines.forEach((line, index) => {
@@ -323,7 +323,7 @@ export class SolidityCodeAnalyzer {
     });
 
     // Unnecessary computations
-    this.gasOptimizationRules.set('computation-optimization', (code, lines) => {
+    this.gasOptimizationRules.set('computation-optimization', (_code, lines) => {
       const optimizations: OptimizationSuggestion[] = [];
       
       lines.forEach((line, index) => {
@@ -353,7 +353,7 @@ export class SolidityCodeAnalyzer {
     });
 
     // String concatenation optimization
-    this.gasOptimizationRules.set('string-optimization', (code, lines) => {
+    this.gasOptimizationRules.set('string-optimization', (_code, lines) => {
       const optimizations: OptimizationSuggestion[] = [];
       
       lines.forEach((line, index) => {
@@ -383,7 +383,7 @@ export class SolidityCodeAnalyzer {
    */
   private initializeStyleRules(): void {
     // Naming conventions
-    this.styleRules.set('naming-conventions', (code, lines) => {
+    this.styleRules.set('naming-conventions', (_code, lines) => {
       const issues: AnalysisIssue[] = [];
       
       lines.forEach((line, index) => {
@@ -430,7 +430,7 @@ export class SolidityCodeAnalyzer {
     });
 
     // Missing visibility specifiers
-    this.styleRules.set('visibility-specifiers', (code, lines) => {
+    this.styleRules.set('visibility-specifiers', (_code, lines) => {
       const issues: AnalysisIssue[] = [];
       
       lines.forEach((line, index) => {
@@ -457,7 +457,7 @@ export class SolidityCodeAnalyzer {
   /**
    * Calculate gas estimate
    */
-  private calculateGasEstimate(code: string, lines: string[]): AnalysisResult['gasEstimate'] {
+  private calculateGasEstimate(_code: string, lines: string[]): AnalysisResult['gasEstimate'] {
     let deploymentGas = 200000; // Base deployment cost
     const functionGas: Record<string, number> = {};
     
@@ -483,7 +483,7 @@ export class SolidityCodeAnalyzer {
   /**
    * Calculate code complexity
    */
-  private calculateComplexity(code: string, lines: string[]): AnalysisResult['complexity'] {
+  private calculateComplexity(_code: string, lines: string[]): AnalysisResult['complexity'] {
     let cyclomatic = 1; // Base complexity
     let cognitive = 0;
     
@@ -509,7 +509,7 @@ export class SolidityCodeAnalyzer {
    * Calculate code quality score
    */
   private calculateQuality(
-    code: string, 
+    _code: string, 
     lines: string[], 
     issues: AnalysisIssue[], 
     vulnerabilities: SecurityVulnerability[]

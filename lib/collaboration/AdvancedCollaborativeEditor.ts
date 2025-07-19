@@ -57,7 +57,8 @@ export class AdvancedCollaborativeEditor extends EventEmitter {
   private documentState: DocumentState;
   private pendingOperations: Map<string, TextOperation[]> = new Map();
   private operationQueue: TextOperation[] = [];
-  private isProcessing = false;
+  // Processing flag kept for future concurrent operation handling
+  // private isProcessing = false;
   private maxHistorySize = 1000;
   private conflictResolutionStrategy: 'auto' | 'manual' = 'auto';
 
@@ -389,7 +390,7 @@ export class AdvancedCollaborativeEditor extends EventEmitter {
     const now = Date.now();
     const inactiveThreshold = 300000; // 5 minutes
 
-    for (const [id, collaborator] of this.documentState.collaborators) {
+    for (const [_id, collaborator] of this.documentState.collaborators) {
       if ((now - collaborator.lastSeen) > inactiveThreshold) {
         collaborator.isActive = false;
         this.emit('collaborator-inactive', collaborator);

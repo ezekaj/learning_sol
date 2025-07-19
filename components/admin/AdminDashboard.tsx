@@ -1,25 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import {
-  Users,
-  FileText,
-  TrendingUp,
-  Activity,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Eye,
-  Download,
-  Upload,
-  Server,
-  Database,
-  Cpu,
-  HardDrive,
-  Wifi,
-  Shield
-} from 'lucide-react';
+import { Users, FileText, TrendingUp, Activity, AlertTriangle, CheckCircle, Eye, Download, Upload, Server, Database, Cpu, HardDrive, Wifi, Shield } from 'lucide-react';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';

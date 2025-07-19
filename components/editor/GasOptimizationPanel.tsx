@@ -8,7 +8,7 @@
 'use client';
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { GasAnalysisResult, GasOptimization, GasEstimate } from '@/lib/gas/GasOptimizationAnalyzer';
+import { GasAnalysisResult, GasOptimization } from '@/lib/gas/GasOptimizationAnalyzer';
 
 interface GasOptimizationPanelProps {
   analysisResult: GasAnalysisResult | null;

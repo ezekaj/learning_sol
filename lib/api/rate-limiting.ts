@@ -9,7 +9,7 @@ import {
   getClientIP, 
   generateRequestId 
 } from './utils';
-import { ApiErrorCode, HttpStatus } from './types';
+;
 
 // Rate limit configuration
 export interface RateLimitConfig {

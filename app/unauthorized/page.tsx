@@ -1,32 +1,14 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { 
-  AlertTriangle, 
-  Shield, 
-  ArrowLeft, 
-  Mail, 
-  User, 
-  Crown,
-  Lock,
-  RefreshCw
-} from 'lucide-react';
+import { AlertTriangle, Shield, ArrowLeft, Mail, User, Crown, Lock } from 'lucide-react';
 import { GlassCard } from '@/components/ui/Glassmorphism';
 import { EnhancedButton } from '@/components/ui/EnhancedButton';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { AuthErrorBoundary } from '@/components/errors/SpecializedErrorBoundaries';
 import { cn } from '@/lib/utils';
-
-interface UnauthorizedPageProps {
-  searchParams?: {
-    reason?: string;
-    required?: string;
-    current?: string;
-    returnUrl?: string;
-  };
-}
 
 export default function UnauthorizedPage() {
   const router = useRouter();

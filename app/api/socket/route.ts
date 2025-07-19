@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Server as NetServer } from 'http';
 import { Server as ServerIO } from 'socket.io';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
@@ -9,7 +10,7 @@ let io: ServerIO | null = null;
 
 export async function GET(_request: NextRequest) {
   if (!io) {
-    console.log('Initializing Socket.io server...');
+    logger.info('Initializing Socket.io server...');
     
     // Create HTTP server for Socket.io
     const httpServer = new NetServer();
@@ -27,7 +28,7 @@ export async function GET(_request: NextRequest) {
 
     // Set up Socket.io event handlers
     io.on('connection', (socket) => {
-      console.log('User connected:', socket.id);
+      logger.info(`User connected: ${socket.id}`);
 
       socket.on('join_room', (room: string) => {
         socket.join(room);
@@ -65,14 +66,14 @@ export async function GET(_request: NextRequest) {
       });
 
       socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
+        logger.info(`User disconnected: ${socket.id}`);
       });
     });
 
     // Start the server on a different port for Socket.io
     const port = process.env.SOCKET_PORT || 3001;
     httpServer.listen(port, () => {
-      console.log(`Socket.io server running on port ${port}`);
+      logger.info(`Socket.io server running on port ${port}`);
     });
   }
 
@@ -83,7 +84,7 @@ export async function GET(_request: NextRequest) {
   });
 }
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const { action, data } = await request.json();
 
@@ -113,7 +114,7 @@ export async function POST(_request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Socket.io API error:', error);
+    logger.error('Socket.io API error', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

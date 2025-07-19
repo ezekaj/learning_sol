@@ -10,7 +10,6 @@ import {
   Grid, 
   List,
   Trophy,
-  Star,
   Target,
   Lock
 } from 'lucide-react';
@@ -125,9 +124,9 @@ export function AchievementGrid({
     return { total, unlocked, inProgress, locked, completion: (unlocked / total) * 100 };
   }, [achievements, userAchievements]);
 
-  const toggleFilter = (type: keyof AchievementFilter, value: any) => {
+  const toggleFilter = (type: keyof AchievementFilter, value: AchievementStatus | AchievementCategory | AchievementRarity | string) => {
     setFilter(prev => {
-      const currentValues = prev[type] as any[] || [];
+      const currentValues = prev[type] as (AchievementStatus | AchievementCategory | AchievementRarity | string)[] || [];
       const newValues = currentValues.includes(value)
         ? currentValues.filter(v => v !== value)
         : [...currentValues, value];
@@ -219,7 +218,7 @@ export function AchievementGrid({
           <div className="flex items-center space-x-2">
             <select
               value={filter.sortBy}
-              onChange={(e) => setFilter(prev => ({ ...prev, sortBy: e.target.value as any }))}
+              onChange={(e) => setFilter(prev => ({ ...prev, sortBy: e.target.value as 'title' | 'rarity' | 'progress' | 'unlocked_date' | 'category' }))}
               className="bg-black/20 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
               <option value="rarity">Rarity</option>

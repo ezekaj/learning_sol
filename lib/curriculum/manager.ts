@@ -1,16 +1,6 @@
 'use client';
 
-import { 
-  Module, 
-  Lesson, 
-  UserCurriculumProgress, 
-  LessonProgress, 
-  ModuleProgress,
-  Prerequisite,
-  CurriculumRecommendation,
-  LearningAnalytics,
-  CurriculumFilter
-} from './types';
+import { Module, Lesson, UserCurriculumProgress, LessonProgress, ModuleProgress, Prerequisite, CurriculumRecommendation } from './types';
 import { 
   SOLIDITY_MODULES, 
   SOLIDITY_LESSONS, 

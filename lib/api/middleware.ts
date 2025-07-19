@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from './auth';
 import { getRateLimitManager } from './rateLimit';
 import { ApiResponseBuilder, addSecurityHeaders, addCorsHeaders, addRateLimitHeaders } from './response';
-import { ApiErrorCode, HttpStatus } from './types';
+;
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from './logger';
+import { UserRole } from './types';
 
 // Middleware Types
 export interface MiddlewareContext {
@@ -13,7 +14,7 @@ export interface MiddlewareContext {
   user?: {
     id: string;
     email: string;
-    role: string;
+    role: UserRole;
     permissions: string[];
   };
   rateLimitInfo?: {
@@ -125,7 +126,7 @@ export async function authMiddleware(
 
       // Check required roles
       if (options.requiredRoles) {
-        if (!AuthService.hasRole(payload.role, options.requiredRoles as any)) {
+        if (!AuthService.hasRole(payload.role, options.requiredRoles as UserRole[])) {
           throw new Error(`Missing role: ${options.requiredRoles.join(' or ')}`);
         }
       }
@@ -322,7 +323,7 @@ export const adminEndpoint = (
   handler: (request: NextRequest, context: MiddlewareContext) => Promise<NextResponse>
 ) => withMiddleware(handler, {
   requireAuth: true,
-  requiredRoles: ['ADMIN', 'SUPER_ADMIN'],
+  requiredRoles: ['ADMIN'],
   cors: true,
   logging: true
 });
@@ -361,3 +362,9 @@ export function errorHandler(error: Error, request: NextRequest): NextResponse {
       : 'An unexpected error occurred'
   );
 }
+
+// Re-export commonly used middleware functions from other modules
+export { withErrorHandling } from './utils';
+export { withSecurity } from './security';
+export { withRateLimit } from './rate-limiting';
+export { createValidationMiddleware } from './validation';

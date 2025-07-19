@@ -11,6 +11,7 @@ interface GlassContainerProps {
   shadow?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
   rounded?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
   animated?: boolean;
+  onClick?: () => void;
 }
 
 const GlassContainer: React.FC<GlassContainerProps> = ({
@@ -22,6 +23,7 @@ const GlassContainer: React.FC<GlassContainerProps> = ({
   shadow = 'md',
   rounded = 'lg',
   animated = true,
+  onClick,
 }) => {
   // Backdrop blur intensities
   const blurIntensities = {
@@ -76,7 +78,7 @@ const GlassContainer: React.FC<GlassContainerProps> = ({
   } : {};
 
   return (
-    <Component className={glassClasses} {...motionProps}>
+    <Component className={glassClasses} onClick={onClick} {...motionProps}>
       {/* Glass shine effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-50" />
       
@@ -94,6 +96,7 @@ interface GlassCardProps extends GlassContainerProps {
   footer?: React.ReactNode;
   padding?: 'none' | 'sm' | 'md' | 'lg';
   hover?: boolean;
+  onClick?: () => void;
 }
 
 const GlassCard: React.FC<GlassCardProps> = ({
@@ -102,6 +105,7 @@ const GlassCard: React.FC<GlassCardProps> = ({
   footer,
   padding = 'md',
   hover = true,
+  onClick,
   className = '',
   ...glassProps
 }) => {

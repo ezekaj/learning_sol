@@ -2,7 +2,7 @@
 // Integrates local CodeLlama 34B with smart fallback to Gemini
 // Provides context-aware, adaptive learning experiences
 
-import axios from 'axios';
+;
 import { sendMessageToGeminiChat, initializeChatForModule } from '../../services/geminiService';
 import { prisma } from '@/lib/prisma';
 import { MultiLLMManager } from './MultiLLMManager';
@@ -307,6 +307,8 @@ export class EnhancedTutorSystem {
   }
 
   // Local LLM response with CodeLlama optimization
+  // NOTE: This method is kept for legacy compatibility but is no longer used directly
+  // The smart router now handles all LLM routing
   private async getLocalLLMResponse(
     prompt: string,
     context: UserContext,
@@ -339,10 +341,12 @@ export class EnhancedTutorSystem {
   }
 
   // Gemini response for complex explanations
+  // NOTE: This method is kept for legacy compatibility but is no longer used directly
+  // The smart router now handles all LLM routing
   private async getGeminiResponse(
     prompt: string,
     context: UserContext,
-    requestType: string
+    _requestType: string
   ): Promise<AIResponse> {
     const startTime = Date.now();
     
@@ -496,8 +500,8 @@ Preferred learning style: ${context.preferredLearningStyle}.`;
 
     try {
       // Fetch from database using Prisma
-      const [aiContext, userProfile, userProgress] = await Promise.all([
-        prisma.aILearningContext.findUnique({
+      const [aiContext, userProfile, _userProgress] = await Promise.all([
+        prisma.aiLearningContext.findUnique({
           where: { userId }
         }),
         prisma.userProfile.findUnique({
@@ -1297,7 +1301,7 @@ contract Challenge {
     return 'Review and apply appropriate security measures';
   }
 
-  private extractCodeExample(content: string, description: string): string | undefined {
+  private extractCodeExample(content: string, _description: string): string | undefined {
     // Look for code blocks near the description
     const codeBlocks = content.match(/```[\s\S]*?```/g);
     if (codeBlocks && codeBlocks.length > 0) {
@@ -1312,12 +1316,12 @@ contract Challenge {
     return 'low';
   }
 
-  private extractBeforeCode(content: string, description: string): string {
+  private extractBeforeCode(content: string, _description: string): string {
     const beforeMatch = content.match(/before[\s\S]*?```[\w]*\n([\s\S]*?)```/i);
     return beforeMatch ? beforeMatch[1].trim() : '// Original implementation';
   }
 
-  private extractAfterCode(content: string, description: string): string {
+  private extractAfterCode(content: string, _description: string): string {
     const afterMatch = content.match(/after[\s\S]*?```[\w]*\n([\s\S]*?)```/i);
     return afterMatch ? afterMatch[1].trim() : '// Optimized implementation';
   }
@@ -1462,7 +1466,7 @@ contract Challenge {
   }
 
   // Voice-activated learning support
-  async processVoiceCommand(audioData: string, userId: string): Promise<{
+  async processVoiceCommand(_audioData: string, userId: string): Promise<{
     command: string;
     response: AIResponse;
     action?: string;
@@ -1471,7 +1475,8 @@ contract Challenge {
     // For now, simulate voice command processing
     const command = 'explain smart contracts'; // Simulated transcription
 
-    const context = await this.getUserContext(userId);
+    // Voice context could be used for enhanced processing
+    // const context = await this.getUserContext(userId);
     const response = await this.explainConcept(command.replace('explain ', ''), userId);
 
     return {
@@ -1489,7 +1494,8 @@ contract Challenge {
     codeExample?: string;
     audioNarration?: string;
   }> {
-    const context = await this.getUserContext(userId);
+    // Multi-modal context could enhance explanation quality
+    // const context = await this.getUserContext(userId);
 
     const response = await this.explainConcept(concept, userId);
 
@@ -1554,7 +1560,7 @@ contract Challenge {
 
     // Save to database
     try {
-      await prisma.aIInteraction.create({
+      await prisma.aiInteraction.create({
         data: {
           userId,
           type: category,
@@ -1630,7 +1636,7 @@ contract Challenge {
   // Create initial AI learning context for new users
   private async createInitialAIContext(userId: string, context: UserContext): Promise<void> {
     try {
-      await prisma.aILearningContext.create({
+      await prisma.aiLearningContext.create({
         data: {
           userId,
           currentLevel: context.currentLevel,
@@ -1658,7 +1664,7 @@ contract Challenge {
   private async saveUserContext(context: UserContext): Promise<void> {
     try {
       // Update AI Learning Context
-      await prisma.aILearningContext.upsert({
+      await prisma.aiLearningContext.upsert({
         where: { userId: context.userId },
         update: {
           currentLevel: context.currentLevel,
@@ -1727,6 +1733,86 @@ contract Challenge {
       totalRequests: 100,
       fallbackRate: 0.05 // 5% fallback rate
     };
+  }
+
+  // Health check for service monitoring
+  async checkServiceHealth(): Promise<{
+    status: string;
+    localLLM: boolean;
+    responseTime: number;
+    timestamp: Date;
+    services: {
+      name: string;
+      status: string;
+      uptime: number;
+      responseTime: number;
+    }[];
+  }> {
+    const startTime = Date.now();
+    
+    try {
+      // Test local LLM health
+      const localLLMTest = await this.testLocalLLMHealth();
+      
+      // Test database connection
+      const dbTest = await this.testDatabaseConnection();
+      
+      const responseTime = Date.now() - startTime;
+      
+      return {
+        status: localLLMTest && dbTest ? 'healthy' : 'degraded',
+        localLLM: localLLMTest,
+        responseTime,
+        timestamp: new Date(),
+        services: [
+          {
+            name: 'Local LLM',
+            status: localLLMTest ? 'healthy' : 'unhealthy',
+            uptime: this.isLocalLLMHealthy ? 99.9 : 0,
+            responseTime: responseTime / 2
+          },
+          {
+            name: 'Database',
+            status: dbTest ? 'healthy' : 'unhealthy',
+            uptime: 99.8,
+            responseTime: responseTime / 2
+          }
+        ]
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        localLLM: false,
+        responseTime: Date.now() - startTime,
+        timestamp: new Date(),
+        services: []
+      };
+    }
+  }
+
+  private async testLocalLLMHealth(): Promise<boolean> {
+    try {
+      // Simple test prompt
+      const response = await this.getAIResponse('Test', { 
+        userId: 'health-check', 
+        skillLevel: 'beginner', 
+        currentLevel: 1,
+        adaptiveDifficulty: { currentLevel: 1, adjustmentHistory: [] }
+      }, 'general');
+      return response.content.length > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  private async testDatabaseConnection(): Promise<boolean> {
+    try {
+      // Test if we can query user contexts
+      await this.getUserContext('health-check');
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
 

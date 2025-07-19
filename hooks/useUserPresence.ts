@@ -15,7 +15,7 @@ interface PresenceHookReturn extends PresenceState {
   updateUserStatus: (userId: string, status: 'online' | 'idle' | 'offline') => void;
   addUser: (user: CollaborationUser) => void;
   removeUser: (userId: string) => void;
-  updateUserCursor: (userId: string, cursor: any) => void;
+  updateUserCursor: (userId: string, cursor: { line: number; column: number; selection?: { start: { line: number; column: number }; end: { line: number; column: number } } }) => void;
   setTyping: (userId: string, isTyping: boolean) => void;
   updateUserRole: (userId: string, role: 'instructor' | 'student' | 'observer') => void;
   getUserById: (userId: string) => CollaborationUser | undefined;
@@ -170,7 +170,7 @@ export function useUserPresence({
     setTypingUsers(prev => prev.filter(id => id !== userId));
   }, [onUserLeft]);
 
-  const updateUserCursor = useCallback((userId: string, cursor: any) => {
+  const updateUserCursor = useCallback((userId: string, cursor: { line: number; column: number; selection?: { start: { line: number; column: number }; end: { line: number; column: number } } }) => {
     setUsers(prev => prev.map(user => 
       user.id === userId 
         ? { ...user, cursor, lastActivity: new Date() }

@@ -554,7 +554,7 @@ components:
 
     UserRole:
       type: string
-      enum: [STUDENT, INSTRUCTOR, ADMIN, SUPER_ADMIN]
+      enum: [STUDENT, MENTOR, INSTRUCTOR, ADMIN]
 
     UserStatus:
       type: string

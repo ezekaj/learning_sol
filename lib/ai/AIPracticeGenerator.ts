@@ -119,17 +119,18 @@ export interface ProgressMetrics {
 }
 
 export class AIPracticeGenerator {
-  private securityScanner: SecurityScanner;
-  private gasAnalyzer: GasOptimizationAnalyzer;
-  private problemTemplates: Map<string, any> = new Map();
-  private userSolutions: Map<string, ProblemSolution[]> = new Map();
+  // These will be used for advanced problem generation
+  // private securityScanner: SecurityScanner;
+  // private gasAnalyzer: GasOptimizationAnalyzer;
+  // private problemTemplates: Map<string, any> = new Map();
+  // private userSolutions: Map<string, ProblemSolution[]> = new Map();
 
   constructor(
-    securityScanner: SecurityScanner,
-    gasAnalyzer: GasOptimizationAnalyzer
+    _securityScanner: SecurityScanner,
+    _gasAnalyzer: GasOptimizationAnalyzer
   ) {
-    this.securityScanner = securityScanner;
-    this.gasAnalyzer = gasAnalyzer;
+    // this.securityScanner = securityScanner;
+    // this.gasAnalyzer = gasAnalyzer;
     this.initializeProblemTemplates();
   }
 
@@ -144,7 +145,8 @@ export class AIPracticeGenerator {
     try {
       // Get user's learning profile and analysis history
       const profile = await adaptiveLearningEngine.analyzeUserPerformance(userId);
-      const analysisHistory = await this.getUserAnalysisHistory(userId);
+      // Analysis history could be used for more advanced problem generation
+      // const analysisHistory = await this.getUserAnalysisHistory(userId);
       
       // Determine target weakness and difficulty
       const weakness = targetWeakness || this.selectPriorityWeakness(profile.weaknessPatterns);
@@ -290,7 +292,7 @@ export class AIPracticeGenerator {
   // Generate follow-up problems based on performance
   async generateFollowUpProblems(
     userId: string,
-    completedProblemId: string,
+    _completedProblemId: string,
     performance: ProblemSolution
   ): Promise<PracticeProblem[]> {
     const followUps: PracticeProblem[] = [];
@@ -419,7 +421,7 @@ export class AIPracticeGenerator {
     };
   }
 
-  private async runTestCases(code: string, testCases: TestCase[]): Promise<TestResult[]> {
+  private async runTestCases(_code: string, testCases: TestCase[]): Promise<TestResult[]> {
     const results: TestResult[] = [];
     
     for (const testCase of testCases) {
@@ -476,6 +478,384 @@ export class AIPracticeGenerator {
   private initializeProblemTemplates(): void {
     console.log('🔄 Initializing practice problem templates...');
     // Initialize predefined problem templates for different concepts
+  }
+
+  // Generate test cases for a problem
+  private async generateTestCases(problem: PracticeProblem): Promise<TestCase[]> {
+    const testCases: TestCase[] = [];
+    
+    // Add basic functionality tests
+    testCases.push({
+      id: `test-${problem.id}-1`,
+      name: 'Basic functionality',
+      description: 'Test basic expected behavior',
+      inputs: [],
+      expectedOutput: true,
+      isHidden: false,
+      weight: 1,
+      category: 'functionality'
+    });
+
+    // Add edge case tests
+    testCases.push({
+      id: `test-${problem.id}-2`,
+      name: 'Edge case handling',
+      description: 'Test edge cases and boundary conditions',
+      inputs: [],
+      expectedOutput: true,
+      isHidden: true,
+      weight: 1.5,
+      category: 'edge-case'
+    });
+
+    // Add security tests if applicable
+    if (problem.category === 'security') {
+      testCases.push({
+        id: `test-${problem.id}-3`,
+        name: 'Security vulnerability check',
+        description: 'Test for common security issues',
+        inputs: [],
+        expectedOutput: true,
+        isHidden: true,
+        weight: 2,
+        category: 'security'
+      });
+    }
+
+    return testCases;
+  }
+
+  // Generate progressive hints for a problem
+  private async generateProgressiveHints(problem: PracticeProblem, profile: LearningProfile): Promise<ProblemHint[]> {
+    const hints: ProblemHint[] = [];
+    
+    // Level 1: Conceptual hint
+    hints.push({
+      level: 1,
+      content: `Consider the main concept: ${problem.targetConcepts[0]}`,
+      type: 'conceptual',
+      unlockCondition: 'time'
+    });
+
+    // Level 2: Implementation hint
+    hints.push({
+      level: 2,
+      content: `Think about how to structure your solution using ${problem.category} best practices`,
+      type: 'implementation',
+      unlockCondition: 'attempts'
+    });
+
+    // Level 3: Debugging hint with code snippet
+    if (profile.skillLevels[problem.targetConcepts[0] as keyof typeof profile.skillLevels] < 50) {
+      hints.push({
+        level: 3,
+        content: 'Here\'s a starting point for your solution',
+        type: 'debugging',
+        unlockCondition: 'request',
+        codeSnippet: problem.starterCode
+      });
+    }
+
+    return hints;
+  }
+
+  // Calculate progressive difficulty for problem sets
+  private calculateProgressiveDifficulty(
+    index: number,
+    total: number,
+    profile: LearningProfile
+  ): 'beginner' | 'intermediate' | 'advanced' {
+    const progression = index / total;
+    const baseSkill = Object.values(profile.skillLevels).reduce((a, b) => a + b, 0) / 
+                      Object.values(profile.skillLevels).length;
+    
+    if (progression < 0.3 || baseSkill < 30) return 'beginner';
+    if (progression < 0.7 || baseSkill < 60) return 'intermediate';
+    return 'advanced';
+  }
+
+  // Get problem by ID
+  private async getProblem(problemId: string): Promise<PracticeProblem> {
+    // In a real implementation, this would fetch from a database
+    // For now, return a mock problem
+    return {
+      id: problemId,
+      title: 'Mock Problem',
+      description: 'Mock problem description',
+      difficulty: 'intermediate',
+      category: 'syntax',
+      targetConcepts: ['functions'],
+      weaknessesAddressed: [],
+      estimatedTime: 20,
+      problemStatement: 'Implement a function...',
+      expectedSolution: '// Solution code',
+      testCases: [],
+      hints: [],
+      learningObjectives: [],
+      realWorldContext: 'This pattern is commonly used in smart contracts',
+      prerequisites: [],
+      followUpProblems: [],
+      adaptiveParameters: {
+        difficultyScore: 50,
+        conceptComplexity: 50,
+        cognitiveLoad: 50,
+        prerequisiteDepth: 1,
+        scaffoldingLevel: 3,
+        personalizedElements: []
+      }
+    };
+  }
+
+  // Analyze submitted code
+  private async analyzeSubmittedCode(code: string, userId: string): Promise<any> {
+    // Basic code analysis
+    return {
+      userId,
+      codeLength: code.length,
+      hasComments: code.includes('//') || code.includes('/*'),
+      usesRequire: code.includes('require'),
+      usesAssert: code.includes('assert'),
+      hasModifiers: code.includes('modifier'),
+      complexity: this.estimateCodeComplexity(code)
+    };
+  }
+
+  // Generate solution feedback
+  private async generateSolutionFeedback(
+    problem: PracticeProblem,
+    submittedCode: string,
+    testResults: TestResult[],
+    codeAnalysis: any
+  ): Promise<SolutionFeedback> {
+    const passedTests = testResults.filter(t => t.passed).length;
+    const totalTests = testResults.length;
+    const passRate = passedTests / totalTests;
+
+    return {
+      overall: passRate === 1 ? 'Excellent work!' : 'Good effort, but there are some issues to address.',
+      strengths: [
+        ...(codeAnalysis.hasComments ? ['Good code documentation'] : []),
+        ...(passRate > 0.5 ? ['Correct implementation of core logic'] : [])
+      ],
+      improvements: [
+        ...(passRate < 1 ? ['Some test cases are failing'] : []),
+        ...(!codeAnalysis.hasComments ? ['Add comments to explain your code'] : [])
+      ],
+      conceptualUnderstanding: Math.round(passRate * 80 + (codeAnalysis.hasComments ? 20 : 0)),
+      implementationQuality: Math.round(passRate * 70 + (codeAnalysis.complexity < 10 ? 30 : 15)),
+      codeStyle: codeAnalysis.hasComments ? 80 : 60,
+      efficiency: 70,
+      nextSteps: [
+        'Review the failed test cases',
+        'Consider edge cases',
+        'Optimize your solution'
+      ]
+    };
+  }
+
+  // Assess concept mastery
+  private async assessConceptMastery(
+    userId: string,
+    problem: PracticeProblem,
+    testResults: TestResult[],
+    score: number
+  ): Promise<string[]> {
+    const masteredConcepts: string[] = [];
+    
+    if (score >= 80) {
+      // High score indicates mastery of target concepts
+      masteredConcepts.push(...problem.targetConcepts);
+    } else if (score >= 60) {
+      // Partial mastery
+      masteredConcepts.push(problem.targetConcepts[0]);
+    }
+
+    return masteredConcepts;
+  }
+
+  // Generate next recommendations
+  private async generateNextRecommendations(
+    userId: string,
+    problem: PracticeProblem,
+    feedback: SolutionFeedback,
+    conceptsMastered: string[]
+  ): Promise<string[]> {
+    const recommendations: string[] = [];
+
+    if (feedback.conceptualUnderstanding < 70) {
+      recommendations.push(`Review the concept of ${problem.targetConcepts[0]}`);
+    }
+
+    if (feedback.implementationQuality < 60) {
+      recommendations.push('Practice more problems in this category');
+    }
+
+    if (conceptsMastered.length === problem.targetConcepts.length) {
+      recommendations.push('Move on to more advanced topics');
+    }
+
+    return recommendations;
+  }
+
+  // Identify improvement areas
+  private identifyImprovementAreas(
+    feedback: SolutionFeedback,
+    testResults: TestResult[]
+  ): string[] {
+    const areas: string[] = [];
+
+    if (feedback.conceptualUnderstanding < 70) {
+      areas.push('Conceptual understanding');
+    }
+
+    if (feedback.codeStyle < 70) {
+      areas.push('Code style and documentation');
+    }
+
+    const failedTests = testResults.filter(t => !t.passed);
+    if (failedTests.length > 0) {
+      const categories = [...new Set(failedTests.map(t => t.testCaseId.split('-')[0]))];
+      areas.push(...categories.map(c => `${c} handling`));
+    }
+
+    return areas;
+  }
+
+  // Save solution to storage
+  private async saveSolution(solution: ProblemSolution): Promise<void> {
+    // In a real implementation, this would save to a database
+    console.log(`💾 Saving solution for problem ${solution.problemId}`);
+  }
+
+  // Update user progress
+  private async updateUserProgress(userId: string, solution: ProblemSolution): Promise<void> {
+    // Update user's learning profile based on solution performance
+    console.log(`📊 Updating progress for user ${userId}`);
+  }
+
+  // Get next difficulty level
+  private getNextDifficultyLevel(problemId: string): 'beginner' | 'intermediate' | 'advanced' {
+    // Simple progression logic
+    if (problemId.includes('beginner')) return 'intermediate';
+    if (problemId.includes('intermediate')) return 'advanced';
+    return 'advanced';
+  }
+
+  // Generate reinforcement problem
+  private async generateReinforcementProblem(
+    userId: string,
+    areasForImprovement: string[]
+  ): Promise<PracticeProblem> {
+    // Generate a problem that reinforces weak areas
+    return this.generatePersonalizedProblem(
+      userId,
+      areasForImprovement[0],
+      'beginner'
+    );
+  }
+
+  // Parse problem from AI response
+  private parseProblemFromAI(
+    content: string,
+    weakness: string,
+    difficulty: 'beginner' | 'intermediate' | 'advanced'
+  ): PracticeProblem {
+    // Parse AI response into structured problem format
+    return {
+      id: `problem-${Date.now()}`,
+      title: `Practice Problem: ${weakness}`,
+      description: content.split('\n')[0] || 'Practice problem',
+      difficulty,
+      category: 'syntax',
+      targetConcepts: [weakness],
+      weaknessesAddressed: [weakness],
+      estimatedTime: difficulty === 'beginner' ? 15 : difficulty === 'intermediate' ? 25 : 40,
+      problemStatement: content,
+      starterCode: '// Your code here',
+      expectedSolution: '// Expected solution',
+      testCases: [],
+      hints: [],
+      learningObjectives: [`Master ${weakness}`],
+      realWorldContext: 'This concept is used in production smart contracts',
+      prerequisites: [],
+      followUpProblems: [],
+      adaptiveParameters: {
+        difficultyScore: 50,
+        conceptComplexity: 50,
+        cognitiveLoad: 50,
+        prerequisiteDepth: 1,
+        scaffoldingLevel: 3,
+        personalizedElements: []
+      }
+    };
+  }
+
+  // Get concept complexity
+  private getConceptComplexity(concept: string): number {
+    const complexityMap: Record<string, number> = {
+      'variables': 20,
+      'functions': 30,
+      'modifiers': 50,
+      'inheritance': 70,
+      'assembly': 90,
+      'security': 80,
+      'gas-optimization': 75
+    };
+    return complexityMap[concept.toLowerCase()] || 50;
+  }
+
+  // Calculate cognitive load
+  private calculateCognitiveLoad(profile: LearningProfile, weakness: string): number {
+    const baseLoad = 50;
+    const skillLevel = profile.skillLevels[weakness as keyof typeof profile.skillLevels] || 0;
+    const velocityAdjustment = (1 - profile.learningVelocity) * 20;
+    
+    return Math.round(baseLoad + velocityAdjustment - (skillLevel / 2));
+  }
+
+  // Get prerequisite depth
+  private getPrerequisiteDepth(concept: string): number {
+    const depthMap: Record<string, number> = {
+      'variables': 0,
+      'functions': 1,
+      'modifiers': 2,
+      'inheritance': 3,
+      'assembly': 4
+    };
+    return depthMap[concept.toLowerCase()] || 1;
+  }
+
+  // Get personalized elements
+  private getPersonalizedElements(profile: LearningProfile, weakness: string): string[] {
+    const elements: string[] = [];
+    
+    if (profile.learningVelocity < 0.5) {
+      elements.push('extra-scaffolding');
+    }
+    
+    if (profile.skillLevels[weakness as keyof typeof profile.skillLevels] < 30) {
+      elements.push('detailed-examples');
+    }
+    
+    elements.push('contextual-hints');
+    
+    return elements;
+  }
+
+  // Estimate code complexity
+  private estimateCodeComplexity(code: string): number {
+    let complexity = 1;
+    
+    // Count control structures
+    const controlStructures = ['if', 'for', 'while', 'require', 'assert'];
+    controlStructures.forEach(structure => {
+      complexity += (code.match(new RegExp(`\\b${structure}\\b`, 'g')) || []).length;
+    });
+    
+    // Count functions
+    complexity += (code.match(/function\s+\w+/g) || []).length;
+    
+    return complexity;
   }
 }
 

@@ -1,6 +1,7 @@
 // API endpoint to test multi-LLM setup
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/api/logger';
+import { LLMModelsResponse } from '@/lib/api/types';
 
 export async function GET() {
   try {
@@ -21,11 +22,11 @@ export async function GET() {
           });
 
           if (response.ok) {
-            const models = await response.json();
+            const models: LLMModelsResponse = await response.json();
             return {
               ...server,
               status: 'online',
-              models: models.data?.map((m: any) => m.id) || []
+              models: models.data?.map((m) => m.id) || []
             };
           } else {
             throw new Error(`HTTP ${response.status}`);
@@ -86,7 +87,7 @@ interface TestRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    const { prompt, type = 'auto', service = 'auto' }: TestRequest = await request.json();
+    const { prompt, type: _type = 'code', service = 'auto' }: TestRequest = await request.json();
 
     if (!prompt) {
       return NextResponse.json(

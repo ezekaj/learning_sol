@@ -4,6 +4,7 @@ import { ApiResponseBuilder } from '@/lib/api/response';
 import { validateBody, LoginSchema } from '@/lib/api/validation';
 import { AuthService } from '@/lib/api/auth';
 import { ApiUser, UserRole, UserStatus } from '@/lib/api/types';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Mock user database - in production, this would be a real database
 const mockUsers: Array<ApiUser & { passwordHash: string }> = [
@@ -160,7 +161,7 @@ export const POST = authEndpoint(async (request: NextRequest) => {
 
     return ApiResponseBuilder.success(responseData);
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error('Login error', error as Error);
     
     if (error instanceof Error) {
       return ApiResponseBuilder.unauthorized(error.message);

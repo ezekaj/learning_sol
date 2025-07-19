@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { AlertTriangle, RefreshCw, Home, Bug, Send } from 'lucide-react';
 import { EnhancedButton } from '@/components/ui/EnhancedButton';
 import { Card } from '@/components/ui/card';
-import { ErrorFactory } from '@/lib/errors/types';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -106,7 +105,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               level: this.props.level,
               name: this.props.name
             });
-            window.Sentry.captureException(error);
+            window.Sentry?.captureException(error);
           });
         }
 
@@ -219,9 +218,7 @@ Additional context:
   }
 
   private renderErrorUI = () => {
-    const { level, name, showErrorDetails = process.env.NODE_ENV === 'development' } = this.props;
-    const { error, errorInfo, errorId, retryCount } = this.state;
-    const maxRetries = this.props.maxRetries || 3;
+    const { level } = this.props;
 
     switch (level) {
       case 'page':

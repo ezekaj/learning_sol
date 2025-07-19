@@ -17,7 +17,7 @@ export function useErrorNotifications() {
     const latestError = errorState.errors[errorState.errors.length - 1];
     
     if (latestError && !latestError.notified) {
-      const { severity, userMessage, message, code, component } = latestError;
+      const { severity, userMessage, message, code: _code, component } = latestError;
       
       switch (severity) {
         case 'critical':
@@ -82,7 +82,7 @@ export function useErrorNotifications() {
  * Hook for integrating notifications with authentication system
  */
 export function useAuthNotifications() {
-  const { showSuccess, showError, showWarning, showInfo } = useNotifications();
+  const { showSuccess, showError: _showError, showWarning, showInfo: _showInfo } = useNotifications();
   const { data: session, status } = useSession();
 
   useEffect(() => {
@@ -354,7 +354,7 @@ export function useAITutoringNotifications() {
  * Hook for integrating notifications with system events
  */
 export function useSystemNotifications() {
-  const { showInfo, showWarning, showError, showBanner } = useNotifications();
+  const { showInfo, showWarning: _showWarning, showError, showBanner } = useNotifications();
 
   const notifyMaintenance = useCallback((
     startTime: Date,

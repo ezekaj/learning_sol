@@ -303,7 +303,7 @@ class EnhancedAIMigration {
       const testUser = await prisma.user.findFirst();
       if (testUser) {
         // Try to create AI learning context
-        await prisma.aILearningContext.upsert({
+        await prisma.aiLearningContext.upsert({
           where: { userId: testUser.id },
           update: {},
           create: {

@@ -2,7 +2,7 @@
  * Comprehensive UX testing utilities and scenarios
  */
 
-import { Page, Browser, BrowserContext } from '@playwright/test';
+import { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
 // UX Testing Scenarios

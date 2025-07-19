@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { SolidityCompiler } from '@/lib/compiler/SolidityCompiler';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
@@ -21,7 +22,7 @@ export async function POST(_request: NextRequest) {
       version = '0.8.21',
       optimize = true,
       lessonId 
-    } = await request.json();
+    } = await _request.json();
 
     if (!code) {
       return NextResponse.json({ error: 'Code is required' }, { status: 400 });
@@ -45,13 +46,13 @@ export async function POST(_request: NextRequest) {
           score: result.success ? 100 : 0,
           feedback: result.errors?.join('\n') || null,
           gasUsed: result.gasEstimate?.toString(),
-          testResults: {
+          testResults: JSON.parse(JSON.stringify({
             compiled: result.success,
             errors: result.errors || [],
             warnings: result.warnings || [],
             securityIssues: result.securityIssues || [],
             optimizationSuggestions: result.optimizationSuggestions || [],
-          },
+          })),
         },
       });
     }
@@ -69,7 +70,7 @@ export async function POST(_request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Compilation error:', error);
+    logger.error('Compilation error', error as Error);
     return NextResponse.json({ 
       success: false,
       error: 'Compilation failed',
@@ -86,7 +87,7 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(_request.url);
     const lessonId = searchParams.get('lessonId');
 
     if (!lessonId) {
@@ -108,7 +109,7 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json({ submissions });
 
   } catch (error) {
-    console.error('Error fetching submissions:', error);
+    logger.error('Error fetching submissions', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

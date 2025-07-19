@@ -2,28 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  GitBranch,
-  Clock,
-  User,
-  Eye,
-  RotateCcw,
-  Download,
-  FileText,
-  CheckCircle,
-  AlertTriangle,
-  ArrowRight,
-  Calendar,
-  Edit,
-  Save,
-  X,
-  Plus,
-  History
-} from 'lucide-react';
+import { GitBranch, User, Eye, RotateCcw, Download, Calendar, Save, X, Plus } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
-import { ContentVersion, AdminContent } from '@/lib/admin/types';
+import { ContentVersion } from '@/lib/admin/types';
 
 interface ContentVersionControlProps {
   contentId: string;

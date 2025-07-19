@@ -18,7 +18,7 @@ export const dynamic = 'force-dynamic';
  * GET /ping - Simple ping endpoint
  * Returns a basic response to indicate server is alive
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const timestamp = new Date().toISOString();
   const uptime = process.uptime();
   
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
  * HEAD /ping - Lightweight ping check
  * Returns only headers without body for minimal overhead
  */
-export async function HEAD(request: NextRequest) {
+export async function HEAD(_request: NextRequest) {
   const timestamp = new Date().toISOString();
   
   return new NextResponse(null, {

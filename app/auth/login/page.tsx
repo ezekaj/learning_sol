@@ -6,19 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, getSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { 
-  Mail, 
-  Lock, 
-  Eye, 
-  EyeOff, 
-  Github, 
-  Chrome, 
-  ArrowRight,
-  Shield,
-  AlertCircle,
-  CheckCircle,
-  Loader2
-} from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Github, Chrome, ArrowRight, Shield, Loader2 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/Glassmorphism';
 import { AsyncSubmitButton } from '@/components/ui/EnhancedButton';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
@@ -196,9 +184,16 @@ function LoginPage() {
               >
                 <ErrorMessage
                   error={{
+                    id: 'auth-error',
+                    code: 'AUTH_ERROR',
                     message: authError,
-                    type: 'AUTH_ERROR',
-                    userMessage: authError
+                    severity: 'critical',
+                    category: 'auth',
+                    context: 'inline',
+                    timestamp: new Date(),
+                    userMessage: authError,
+                    actionable: false,
+                    retryable: false
                   }}
                   className="bg-red-500/10 border-red-500/20 text-red-400"
                 />

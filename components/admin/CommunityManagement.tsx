@@ -2,37 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  AlertTriangle,
-  Shield,
-  Flag,
-  Eye,
-  MessageSquare,
-  Users,
-  Ban,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Search,
-  Filter,
-  MoreVertical,
-  FileText,
-  Image,
-  Video,
-  Link,
-  User,
-  Calendar,
-  Star,
-  ThumbsUp,
-  ThumbsDown,
-  Hash,
-  Zap
-} from 'lucide-react';
+import { AlertTriangle, Shield, Flag, Eye, MessageSquare, Ban, CheckCircle, XCircle, Clock, Search, MoreVertical, FileText, User, Calendar, Star, Hash } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
-import { CommunityReport, ModerationAction } from '@/lib/admin/types';
-import { adminAuth, ADMIN_PERMISSIONS } from '@/lib/admin/auth';
+import { CommunityReport } from '@/lib/admin/types';
+;
 
 interface CommunityManagementProps {
   className?: string;
@@ -180,7 +155,7 @@ function ReportDetailModal({ report, isOpen, onClose, onAction }: ReportDetailMo
               <Card className="bg-white/5 border-white/10 p-4 lg:col-span-2">
                 <h3 className="font-medium text-white mb-4">Evidence</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {report.evidence.map((evidence, index) => (
+                  {report.evidence.map((_, index) => (
                     <div key={index} className="bg-black/20 rounded p-3 text-center">
                       <FileText className="w-8 h-8 text-blue-400 mx-auto mb-2" />
                       <p className="text-xs text-gray-400">Evidence {index + 1}</p>

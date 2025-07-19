@@ -7,23 +7,8 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
+import { SecurityIssue, GasOptimization } from '../../types/security';
 
-interface SecurityIssue {
-  severity: 'critical' | 'high' | 'medium' | 'low';
-  type: string;
-  description: string;
-  line?: number;
-  suggestion: string;
-}
-
-interface GasOptimization {
-  type: string;
-  description: string;
-  currentCost: number;
-  optimizedCost: number;
-  savings: number;
-  line?: number;
-}
 
 interface CodeQuality {
   score: number;
@@ -86,6 +71,8 @@ export const AICodeAnalyzer: React.FC<AICodeAnalyzerProps> = ({
           {
             severity: 'high',
             type: 'Reentrancy',
+            title: 'Reentrancy Vulnerability',
+            message: 'Potential reentrancy vulnerability detected in withdraw function',
             description: 'Potential reentrancy vulnerability in withdraw function',
             line: 45,
             suggestion: 'Use the checks-effects-interactions pattern or ReentrancyGuard'
@@ -93,6 +80,8 @@ export const AICodeAnalyzer: React.FC<AICodeAnalyzerProps> = ({
           {
             severity: 'medium',
             type: 'Integer Overflow',
+            title: 'Integer Overflow Risk',
+            message: 'Potential integer overflow detected in arithmetic operations',
             description: 'Potential integer overflow in arithmetic operations',
             line: 23,
             suggestion: 'Use SafeMath library or Solidity 0.8+ built-in overflow protection'
@@ -100,6 +89,8 @@ export const AICodeAnalyzer: React.FC<AICodeAnalyzerProps> = ({
           {
             severity: 'low',
             type: 'Visibility',
+            title: 'Visibility Declaration Missing',
+            message: 'Function visibility should be explicitly declared',
             description: 'Function visibility not explicitly declared',
             line: 12,
             suggestion: 'Explicitly declare function visibility (public, private, internal, external)'
@@ -112,7 +103,8 @@ export const AICodeAnalyzer: React.FC<AICodeAnalyzerProps> = ({
             currentCost: 20000,
             optimizedCost: 15000,
             savings: 5000,
-            line: 8
+            line: 8,
+            suggestion: 'Reorder struct variables to pack them more efficiently and reduce storage slots'
           },
           {
             type: 'Loop Optimization',
@@ -120,7 +112,8 @@ export const AICodeAnalyzer: React.FC<AICodeAnalyzerProps> = ({
             currentCost: 3000,
             optimizedCost: 2100,
             savings: 900,
-            line: 34
+            line: 34,
+            suggestion: 'Cache array length in a variable before the loop to save gas'
           },
           {
             type: 'Function Modifier',
@@ -128,7 +121,8 @@ export const AICodeAnalyzer: React.FC<AICodeAnalyzerProps> = ({
             currentCost: 1500,
             optimizedCost: 1200,
             savings: 300,
-            line: 56
+            line: 56,
+            suggestion: 'Create reusable function modifiers to replace repetitive require statements'
           }
         ],
         codeQuality: {
@@ -233,7 +227,7 @@ export const AICodeAnalyzer: React.FC<AICodeAnalyzerProps> = ({
               
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-400">
-                  {analysisResult.gasOptimizations.reduce((sum, opt) => sum + opt.savings, 0)}
+                  {analysisResult.gasOptimizations.reduce((sum, opt) => sum + (opt.savings || 0), 0)}
                 </div>
                 <div className="text-sm text-gray-400">Gas Savings</div>
               </div>
@@ -320,7 +314,7 @@ export const AICodeAnalyzer: React.FC<AICodeAnalyzerProps> = ({
                       <span className="font-medium text-green-400">Total Potential Savings</span>
                     </div>
                     <div className="text-2xl font-bold text-green-400">
-                      {analysisResult.gasOptimizations.reduce((sum, opt) => sum + opt.savings, 0)} gas
+                      {analysisResult.gasOptimizations.reduce((sum, opt) => sum + (opt.savings || 0), 0)} gas
                     </div>
                   </div>
 

@@ -12,11 +12,10 @@ import {
   Zap,
   Calendar,
   BarChart3,
-  PieChart,
   Activity,
   Award
 } from 'lucide-react';
-import { UserCurriculumProgress, LearningAnalytics } from '@/lib/curriculum/types';
+import type { UserCurriculumProgress, LearningAnalytics } from '@/lib/curriculum/types';
 import { GlassCard } from '@/components/ui/Glassmorphism';
 import { ProgressBar } from '@/components/xp/ProgressBar';
 import { EnhancedButton } from '@/components/ui/EnhancedButton';
@@ -32,7 +31,7 @@ interface LearningAnalyticsProps {
 
 export function LearningAnalytics({
   userProgress,
-  analytics,
+  analytics: _analytics,
   timeframe = 'weekly',
   onTimeframeChange,
   className

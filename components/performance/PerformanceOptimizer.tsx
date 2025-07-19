@@ -140,7 +140,8 @@ function preloadNextPageResources(currentPage: string): void {
 
 // Critical CSS component for server-side rendering
 export const CriticalCSS: React.FC<{ page?: string }> = ({ page = 'homepage' }) => {
-  const pageSelectors = getPageSelectors(page);
+  // Page selectors would be used for more specific critical CSS extraction
+  // const pageSelectors = getPageSelectors(page);
   
   // This would be generated at build time in a real implementation
   const criticalCSS = `
@@ -231,7 +232,7 @@ export const ResourceHints: React.FC<{ page?: string }> = ({ page = 'homepage' }
   );
 };
 
-function getResourceHints(page: string) {
+function getResourceHints(_page: string) {
   return {
     preconnect: [
       'https://fonts.googleapis.com',
@@ -260,10 +261,12 @@ export const PerformanceMonitor: React.FC = () => {
           console.log('LCP:', entry.startTime);
         }
         if (entry.entryType === 'first-input') {
-          console.log('FID:', entry.processingStart - entry.startTime);
+          const fidEntry = entry as any; // PerformanceEventTiming
+          console.log('FID:', fidEntry.processingStart - fidEntry.startTime);
         }
         if (entry.entryType === 'layout-shift') {
-          console.log('CLS:', entry.value);
+          const clsEntry = entry as any; // LayoutShift
+          console.log('CLS:', clsEntry.value);
         }
       });
     });

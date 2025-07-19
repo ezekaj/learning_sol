@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
@@ -61,12 +62,12 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json({ stats });
   } catch (error) {
-    console.error('Error fetching community stats:', error);
+    logger.error('Error fetching community stats', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -85,7 +86,7 @@ export async function POST(_request: NextRequest) {
         }
 
         // TODO: Implement user following system
-        console.log(`User ${session.user.id} followed user ${targetUserId}`);
+        logger.info(`User ${session.user.id} followed user ${targetUserId}`);
 
         return NextResponse.json({ 
           success: true, 
@@ -100,7 +101,7 @@ export async function POST(_request: NextRequest) {
         }
 
         // TODO: Implement user unfollowing
-        console.log(`User ${session.user.id} unfollowed user ${unfollowUserId}`);
+        logger.info(`User ${session.user.id} unfollowed user ${unfollowUserId}`);
 
         return NextResponse.json({ 
           success: true, 
@@ -111,7 +112,7 @@ export async function POST(_request: NextRequest) {
         const { contentId, contentType } = data;
         
         // TODO: Implement voting system
-        console.log(`User ${session.user.id} voted helpful on ${contentType} ${contentId}`);
+        logger.info(`User ${session.user.id} voted helpful on ${contentType} ${contentId}`);
 
         return NextResponse.json({ 
           success: true, 
@@ -122,7 +123,10 @@ export async function POST(_request: NextRequest) {
         const { questionId, answer } = data;
 
         // TODO: Implement Q&A system
-        console.log(`User ${session.user.id} answered question ${questionId} with answer:`, answer);
+        logger.info(`User ${session.user.id} answered question ${questionId}`, { 
+          userId: session.user.id,
+          metadata: { answer, questionId }
+        });
 
         return NextResponse.json({ 
           success: true, 
@@ -133,7 +137,7 @@ export async function POST(_request: NextRequest) {
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Error processing community stats action:', error);
+    logger.error('Error processing community stats action', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

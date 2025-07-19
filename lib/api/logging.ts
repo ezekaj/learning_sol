@@ -3,10 +3,10 @@
  */
 
 import { NextRequest } from 'next/server';
-import { ApiError, ErrorContext, createErrorContext, getErrorSeverity } from './errors';
-import { ApiResponse, ApiLog } from './types';
+import { ApiError, ErrorContext, createErrorContext } from './errors';
+;
 import { errorTracker } from '@/lib/monitoring/error-tracking';
-import { sanitizeData, parseUserAgent, getClientIP } from './utils';
+import { sanitizeData, getClientIP } from './utils';
 
 // Log levels
 export enum LogLevel {
@@ -313,7 +313,7 @@ class ApiLogger {
     }
   }
 
-  private writeToFile(logEntry: LogEntry) {
+  private writeToFile(_logEntry: LogEntry) {
     // In a real implementation, you would write to a log file
     // For now, we'll just store in memory
     // Example: fs.appendFileSync('api.log', JSON.stringify(logEntry) + '\n');

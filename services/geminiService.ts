@@ -1,10 +1,10 @@
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 
 // Real Google Generative AI implementation
 class RealGoogleGenAI {
   private genAI: GoogleGenerativeAI;
-  private model: any;
+  private model: GenerativeModel;
 
   constructor(config: { apiKey: string }) {
     if (!config.apiKey) {
@@ -17,7 +17,7 @@ class RealGoogleGenAI {
   }
 
   chats = {
-    create: (config: any) => {
+    create: (config: { model?: string; systemInstruction?: string; safetySettings?: any[]; history?: any[]; temperature?: number; maxTokens?: number; [key: string]: any }) => {
       // Enhanced config processing with logging and validation
       const processedConfig = {
         model: config?.model || 'gemini-pro',
@@ -51,7 +51,7 @@ class RealGoogleGenAI {
       }
 
       return {
-        sendMessage: async (message: any) => {
+        sendMessage: async (message: string | { message?: string; content?: string; [key: string]: any }) => {
           try {
             const prompt = typeof message === 'string' ? message : message.message || message.content;
             const result = await this.model.generateContent(prompt);
@@ -71,7 +71,7 @@ class RealGoogleGenAI {
   };
 
   models = {
-    generateContent: async (config: any) => {
+    generateContent: async (config: { contents?: string; prompt?: string; [key: string]: any } | string) => {
       try {
         const prompt = config.contents || config.prompt || config;
         const result = await this.model.generateContent(prompt);
@@ -88,7 +88,7 @@ class RealGoogleGenAI {
         };
       }
     },
-    generateContentStream: async function* (config: any): AsyncGenerator<{ text: string; candidates: any[] }, void, unknown> {
+    generateContentStream: async function* (config: { contents?: string; prompt?: string; temperature?: number; maxTokens?: number; safetySettings?: any[]; [key: string]: any } | string): AsyncGenerator<{ text: string; candidates: any[] }, void, unknown> {
       try {
         // Enhanced config processing with validation and analytics
         const processedConfig = {
@@ -118,7 +118,7 @@ class RealGoogleGenAI {
           localStorage.setItem('gemini-stream-analytics', JSON.stringify(streamAnalytics.slice(-30)));
         }
 
-        const result: any = await (this as any).model.generateContentStream(processedConfig.prompt);
+        const result = await this.model.generateContentStream(processedConfig.prompt);
         let chunkCount = 0;
 
         for await (const chunk of result.stream) {
@@ -144,7 +144,7 @@ class RealGoogleGenAI {
         };
       }
     },
-    generateImages: async (config: any) => {
+    generateImages: async (config: { prompt?: string; model?: string; numberOfImages?: number; outputMimeType?: string; aspectRatio?: string; [key: string]: any } | string) => {
       // Enhanced config processing for image generation
       const processedConfig = {
         prompt: config.prompt || config,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { apiPerformanceMonitor } from '@/lib/monitoring/apiPerformance';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // GET /api/monitoring/performance - Get performance metrics
 export async function GET(request: NextRequest) {
@@ -71,7 +72,7 @@ api_slow_request_rate ${stats.slowRequestRate}
       },
     });
   } catch (error) {
-    console.error('Error getting performance metrics:', error);
+    logger.error('Error getting performance metrics', error as Error);
     return NextResponse.json(
       { error: 'Failed to get performance metrics' },
       { status: 500 }
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error recording performance metric:', error);
+    logger.error('Error recording performance metric', error as Error);
     return NextResponse.json(
       { error: 'Failed to record metric' },
       { status: 500 }
@@ -112,14 +113,14 @@ export async function POST(request: NextRequest) {
 // DELETE /api/monitoring/performance - Clear old metrics
 export async function DELETE(_request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(_request.url);
     const maxAge = parseInt(searchParams.get('maxAge') || '3600000'); // 1 hour default
 
     apiPerformanceMonitor.clearOldMetrics(maxAge);
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error clearing metrics:', error);
+    logger.error('Error clearing metrics', error as Error);
     return NextResponse.json(
       { error: 'Failed to clear metrics' },
       { status: 500 }

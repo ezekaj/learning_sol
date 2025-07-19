@@ -38,7 +38,7 @@ export function checkColorContrast(
 }
 
 // Calculate contrast ratio between two colors
-function calculateContrastRatio(color1: string, color2: string): number {
+function calculateContrastRatio(_color1: string, _color2: string): number {
   // Simplified calculation - in practice, use a proper color library
   // This is just a placeholder implementation
   return 4.5; // Default to passing ratio
@@ -216,7 +216,7 @@ export function auditAccessibility(container: HTMLElement): AccessibilityReport 
   };
   
   // Calculate score (0-100)
-  const totalIssues = summary.errors + summary.warnings + summary.info;
+  const _totalIssues = summary.errors + summary.warnings + summary.info;
   const errorWeight = 10;
   const warningWeight = 5;
   const infoWeight = 1;

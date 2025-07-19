@@ -60,13 +60,15 @@ export class CollaborationClient {
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private messageQueue: CollaborationMessage[] = [];
   private pendingOperations: TextOperation[] = [];
-  private acknowledgedOperations: TextOperation[] = [];
+  // Acknowledged operations kept for future OT implementation
+  // private acknowledgedOperations: TextOperation[] = [];
   
   // Event handlers
   private onConnectionStatusChange?: (status: ConnectionStatus) => void;
   private onOperationReceived?: (operation: TextOperation) => void;
   private onCursorUpdate?: (userId: string, cursor: any) => void;
-  private onPresenceUpdate?: (users: CollaborationUser[]) => void;
+  // Presence update handler kept for future presence features
+  // private onPresenceUpdate?: (users: CollaborationUser[]) => void;
   private onChatMessage?: (message: any) => void;
   private onCompilationResult?: (result: any) => void;
   private onError?: (error: Error) => void;
@@ -272,7 +274,7 @@ export class CollaborationClient {
     }
   }
 
-  private handleOperationAck(operationId: string): void {
+  private handleOperationAck(_operationId: string): void {
     // Remove acknowledged operation from pending list
     // This would require operations to have IDs
     this.pendingOperations.shift(); // Simplified for now

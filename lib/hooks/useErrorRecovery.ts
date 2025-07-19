@@ -53,7 +53,7 @@ export function useRetry<T>(
         maxRetries,
         baseDelay,
         maxDelay,
-        onRetry: (error, attempt) => {
+        onRetry: (_error, attempt) => {
           setRetryCount(attempt);
           onRetry?.(attempt);
         },

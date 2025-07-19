@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { FeatureSpotlight, PLATFORM_FEATURES, Feature } from './FeatureSpotlight';
+import { FeatureSpotlight, PLATFORM_FEATURES } from './FeatureSpotlight';
 
 interface DiscoveryContextType {
   // Feature spotlight

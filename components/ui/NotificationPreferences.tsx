@@ -2,18 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Settings,
-  X,
-  Volume2,
-  VolumeX,
-  Smartphone,
-  Bell,
-  BellOff,
-  RotateCcw,
-  Save,
-  Check
-} from 'lucide-react';
+import { Settings, X, RotateCcw, Save } from 'lucide-react';
 import { GlassContainer } from './Glassmorphism';
 import { useNotifications, NotificationPreferences, NotificationType } from './NotificationSystem';
 import { cn } from '@/lib/utils';

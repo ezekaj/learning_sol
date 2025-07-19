@@ -381,7 +381,7 @@ export class AdaptiveRateLimiter extends RateLimiter {
   }
 
   // Adjust rate limit based on user behavior
-  adjustForUser(userId: string, trustScore: number): void {
+  adjustForUser(_userId: string, trustScore: number): void {
     if (trustScore > 0.8) {
       this.adaptiveMultiplier = 1.5; // Increase limit by 50%
     } else if (trustScore < 0.3) {
@@ -412,7 +412,7 @@ export class RateLimitMonitor {
     topBlockedUsers: []
   };
 
-  recordRequest(blocked: boolean, ip?: string, userId?: string): void {
+  recordRequest(blocked: boolean, _ip?: string, _userId?: string): void {
     this.metrics.totalRequests++;
     
     if (blocked) {

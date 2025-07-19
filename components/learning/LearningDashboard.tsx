@@ -24,6 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GlassCard } from '@/components/ui/Glassmorphism';
 import { useLearning } from '@/lib/context/LearningContext';
+import { logger } from '@/lib/api/logger';
 import Link from 'next/link';
 
 interface Course {
@@ -82,7 +83,7 @@ function DynamicLearningDashboard() {
         }
       }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      logger.error('Error fetching dashboard data:', {}, error as Error);
     } finally {
       setIsLoading(false);
     }

@@ -4,6 +4,7 @@ import { ApiResponseBuilder, UnauthorizedException } from '@/lib/api/response';
 import { validateBody, RefreshTokenSchema } from '@/lib/api/validation';
 import { AuthService } from '@/lib/api/auth';
 import { ApiUser, UserRole, UserStatus } from '@/lib/api/types';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Mock user database - same as login
 const mockUsers: Array<ApiUser & { passwordHash: string; tokenVersion: number }> = [
@@ -44,14 +45,14 @@ async function findUserById(userId: string): Promise<(ApiUser & { tokenVersion: 
   return user ? { ...user } : null;
 }
 
-async function incrementTokenVersion(userId: string): Promise<number> {
-  const user = mockUsers.find(u => u.id === userId);
-  if (user) {
-    user.tokenVersion = (user.tokenVersion || 0) + 1;
-    return user.tokenVersion;
-  }
-  return 0;
-}
+// async function incrementTokenVersion(userId: string): Promise<number> {
+//   const user = mockUsers.find(u => u.id === userId);
+//   if (user) {
+//     user.tokenVersion = (user.tokenVersion || 0) + 1;
+//     return user.tokenVersion;
+//   }
+//   return 0;
+// }
 
 export const POST = authEndpoint(async (request: NextRequest) => {
   try {
@@ -98,7 +99,7 @@ export const POST = authEndpoint(async (request: NextRequest) => {
 
     return ApiResponseBuilder.success(responseData);
   } catch (error) {
-    console.error('Token refresh error:', error);
+    logger.error('Token refresh error', error as Error);
     
     if (error instanceof UnauthorizedException) {
       return ApiResponseBuilder.unauthorized(error.message);

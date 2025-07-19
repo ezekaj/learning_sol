@@ -4,7 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiResponse, ApiError, ApiErrorCode, HttpStatus, ResponseMeta } from './types';
+import { ApiResponse, ApiErrorCode, HttpStatus, ResponseMeta } from './types';
 
 /**
  * Generate a unique request ID

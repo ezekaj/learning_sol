@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
@@ -73,7 +74,7 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json({ schedule });
   } catch (error) {
-    console.error('Error fetching study schedule:', error);
+    logger.error('Error fetching study schedule', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -86,7 +87,7 @@ export async function POST(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { action, data } = await request.json();
+    const { action, data } = await _request.json();
 
     switch (action) {
       case 'schedule_session':
@@ -97,11 +98,14 @@ export async function POST(_request: NextRequest) {
         }
 
         // TODO: Implement study session scheduling in database
-        console.log(`User ${session.user.id} scheduled study session:`, {
-          date,
-          time,
-          topic,
-          duration: duration || 30,
+        logger.info(`User ${session.user.id} scheduled study session`, {
+          userId: session.user.id,
+          metadata: {
+            date,
+            time,
+            topic,
+            duration: _duration || 30,
+          }
         });
 
         return NextResponse.json({ 
@@ -124,7 +128,10 @@ export async function POST(_request: NextRequest) {
           };
 
           // Store in localStorage for now (in production, this would be database)
-          console.log(`User ${session.user.id} completed study session ${sessionId}:`, completedSession);
+          logger.info(`User ${session.user.id} completed study session ${sessionId}`, { 
+            userId: session.user.id,
+            metadata: { completedSession }
+          });
 
           // In a real implementation, you would save to database:
           // await db.studySession.update({
@@ -138,7 +145,7 @@ export async function POST(_request: NextRequest) {
             data: completedSession
           });
         } catch (error) {
-          console.error('Error completing study session:', error);
+          logger.error('Error completing study session', error as Error);
           return NextResponse.json({
             error: 'Failed to complete study session'
           }, { status: 500 });
@@ -164,7 +171,10 @@ export async function POST(_request: NextRequest) {
             }, { status: 400 });
           }
 
-          console.log(`User ${session.user.id} updated study preferences:`, userPreferences);
+          logger.info(`User ${session.user.id} updated study preferences`, { 
+            userId: session.user.id,
+            metadata: { userPreferences }
+          });
 
           // In a real implementation, you would save to database:
           // await db.userPreferences.upsert({
@@ -179,7 +189,7 @@ export async function POST(_request: NextRequest) {
             data: userPreferences
           });
         } catch (error) {
-          console.error('Error updating study preferences:', error);
+          logger.error('Error updating study preferences', error as Error);
           return NextResponse.json({
             error: 'Failed to update study preferences'
           }, { status: 500 });
@@ -189,7 +199,7 @@ export async function POST(_request: NextRequest) {
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Error processing study schedule action:', error);
+    logger.error('Error processing study schedule action', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -218,7 +228,7 @@ async function getRecommendedTopics(userId: string, _date: Date): Promise<string
     });
 
     // Use the progress data for future recommendation logic
-    console.log(`Found ${_recentProgress.length} recent progress entries for user ${userId}`);
+    logger.info(`Found ${_recentProgress.length} recent progress entries for user ${userId}`);
 
     // Simple recommendation logic - suggest next lessons in sequence
     const topics = [
@@ -232,7 +242,7 @@ async function getRecommendedTopics(userId: string, _date: Date): Promise<string
     // Return 2-3 recommended topics
     return topics.slice(0, Math.floor(Math.random() * 2) + 2);
   } catch (error) {
-    console.error('Error getting recommended topics:', error);
+    logger.error('Error getting recommended topics', error as Error);
     return ['Solidity Basics', 'Smart Contract Development'];
   }
 }

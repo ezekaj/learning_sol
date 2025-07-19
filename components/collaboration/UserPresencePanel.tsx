@@ -2,22 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Users,
-  Circle,
-  Crown,
-  Eye,
-  GraduationCap,
-  Clock,
-  Wifi,
-  WifiOff,
-  MessageCircle,
-  MoreVertical,
-  UserMinus,
-  UserPlus,
-  Volume2,
-  VolumeX
-} from 'lucide-react';
+import { Users, Crown, Eye, GraduationCap, Clock, Wifi, WifiOff, MessageCircle, MoreVertical, UserMinus, UserPlus, VolumeX } from 'lucide-react';
 import { CollaborationUser } from '@/lib/collaboration/CollaborationClient';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
@@ -106,16 +91,20 @@ export function UserPresencePanel({
   const otherUsers = users.filter(user => user.id !== currentUserId);
   const onlineUsers = users.filter(user => user.status === 'online');
 
-  const addTypingUser = (userId: string, userName: string) => {
+  // NOTE: Typing indicators handled by parent component
+  // These functions kept for potential future use
+  /*
+  const _addTypingUser = (userId: string, userName: string) => {
     setTypingUsers(prev => {
       const filtered = prev.filter(user => user.userId !== userId);
       return [...filtered, { userId, userName, timestamp: Date.now() }];
     });
   };
 
-  const removeTypingUser = (userId: string) => {
+  const _removeTypingUser = (userId: string) => {
     setTypingUsers(prev => prev.filter(user => user.userId !== userId));
   };
+  */
 
   const toggleUserExpanded = (userId: string) => {
     setExpandedUsers(prev => {
@@ -448,9 +437,5 @@ export function UserPresencePanel({
     </Card>
   );
 
-  // Expose methods for external control
-  React.useImperativeHandle(React.useRef(), () => ({
-    addTypingUser,
-    removeTypingUser
-  }));
+  // Note: If you need to expose methods, use forwardRef and pass ref as a prop
 }

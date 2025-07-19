@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ApiLog } from './types';
+;
 
 // Log Levels
 export enum LogLevel {

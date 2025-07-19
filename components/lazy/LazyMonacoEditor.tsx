@@ -102,7 +102,7 @@ export const LazyMonacoEditor: React.FC<LazyMonacoEditorProps> = ({
           onReset={() => window.location.reload()}
         >
           <Suspense fallback={<EditorLoadingComponent />}>
-            <MonacoCollaborativeEditor {...editorProps} />
+            <MonacoCollaborativeEditor sessionId="default-session" {...editorProps} />
           </Suspense>
         </ErrorBoundary>
       ) : (

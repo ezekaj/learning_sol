@@ -2,21 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Bell,
-  X,
-  Search,
-  Filter,
-  MoreVertical,
-  CheckCircle,
-  Trash2,
-  Settings,
-  History,
-  Pause,
-  Play,
-  Volume2,
-  VolumeX
-} from 'lucide-react';
+import { Bell, X, Search, MoreVertical, CheckCircle, Trash2, Settings, History, Pause, Play } from 'lucide-react';
 import { GlassContainer } from './Glassmorphism';
 import { useNotifications, NotificationType } from './NotificationSystem';
 import { cn } from '@/lib/utils';
@@ -35,17 +21,17 @@ export const NotificationCenter = React.memo(({
 }: NotificationCenterProps) => {
   const {
     notifications,
-    groups,
+    groups: _groups,
     unreadCount,
     markAsRead,
     markAllAsRead,
     removeNotification,
     clearAll,
-    toggleGroup,
-    dismissGroup,
+    toggleGroup: _toggleGroup,
+    dismissGroup: _dismissGroup,
     isPaused,
     togglePause,
-    preferences,
+    preferences: _preferences,
     toggleHistory,
     togglePreferences
   } = useNotifications();
@@ -145,7 +131,7 @@ export const NotificationCenter = React.memo(({
           )}
         >
           <GlassContainer
-            intensity="high"
+            intensity="heavy"
             tint="neutral"
             border
             shadow="xl"

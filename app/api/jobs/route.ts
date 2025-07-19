@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { 
@@ -9,6 +9,7 @@ import {
   generateRequestId
 } from '@/lib/api/utils';
 import { ApiErrorCode, HttpStatus } from '@/lib/api/types';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
@@ -265,7 +266,7 @@ async function getJobsHandler(request: NextRequest) {
     return successResponse(response, undefined, HttpStatus.OK, requestId);
     
   } catch (error) {
-    console.error('Get jobs error:', error);
+    logger.error('Get jobs error', error as Error);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to fetch jobs',
@@ -303,7 +304,6 @@ async function createJobHandler(request: NextRequest) {
     
     if (missingFields.length > 0) {
       return validationErrorResponse(
-        `Missing required fields: ${missingFields.join(', ')}`,
         missingFields.map(field => ({
           field,
           message: `${field} is required`,
@@ -314,7 +314,7 @@ async function createJobHandler(request: NextRequest) {
     }
 
     const newJob: Job = {
-      id: `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `job_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       title: body.title,
       company: body.company,
       location: body.location,
@@ -341,7 +341,7 @@ async function createJobHandler(request: NextRequest) {
     return successResponse(newJob, undefined, HttpStatus.CREATED, requestId);
     
   } catch (error) {
-    console.error('Create job error:', error);
+    logger.error('Create job error', error as Error);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to create job',

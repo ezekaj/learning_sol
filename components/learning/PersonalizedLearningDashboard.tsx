@@ -20,12 +20,13 @@ import {
   Lightbulb
 } from 'lucide-react';
 import { Card } from '../ui/card';
-import { Button } from '../ui/button';
+;
 import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
 import { useAuth } from '../auth/EnhancedAuthProvider';
 import { useToast } from '../ui/use-toast';
 import { adaptiveLearning, LearningProfile, PerformanceAnalysis, LearningRecommendation } from '@/lib/learning/AdaptiveLearning';
+import { logger } from '@/lib/api/logger';
 
 interface PersonalizedLearningDashboardProps {
   className?: string;
@@ -46,7 +47,7 @@ export const PersonalizedLearningDashboard: React.FC<PersonalizedLearningDashboa
 
   const [insights, setInsights] = useState<LearningInsights | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedRecommendation, setSelectedRecommendation] = useState<LearningRecommendation | null>(null);
+  const [_selectedRecommendation, setSelectedRecommendation] = useState<LearningRecommendation | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'recommendations' | 'analytics'>('overview');
 
   useEffect(() => {
@@ -58,7 +59,7 @@ export const PersonalizedLearningDashboard: React.FC<PersonalizedLearningDashboa
         const data = await adaptiveLearning.getLearningInsights(user.id);
         setInsights(data);
       } catch (error) {
-        console.error('Failed to load learning insights:', error);
+        logger.error('Failed to load learning insights:', {}, error as Error);
         toast({
           title: 'Error loading insights',
           description: 'Failed to load your personalized learning data.',

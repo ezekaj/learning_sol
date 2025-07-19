@@ -5,8 +5,8 @@
  * with real-time alerting and incident management capabilities.
  */
 
-import { env, monitoringConfig } from '@/lib/config/environment';
-import { logger } from './logger';
+import { env } from '@/lib/config/environment';
+import { logger } from './simple-logger';
 import { sentryUtils } from './sentry-config';
 
 /**

@@ -4,9 +4,9 @@ import { useSession, signIn, signOut } from 'next-auth/react';
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { SessionManager, SessionStatus } from '@/lib/auth/sessionManager';
-import { ErrorFactory } from '@/lib/errors/types';
-import { useError } from '@/lib/errors/ErrorContext';
-import { useErrorHandler } from '@/lib/hooks/useErrorRecovery';
+;
+;
+;
 
 export interface AuthUser {
   id: string;
@@ -14,6 +14,17 @@ export interface AuthUser {
   email: string;
   image?: string;
   role: 'STUDENT' | 'MENTOR' | 'INSTRUCTOR' | 'ADMIN';
+  profile?: {
+    displayName?: string;
+    bio?: string;
+    location?: string;
+    website?: string;
+    githubUsername?: string;
+    twitterUsername?: string;
+    avatar?: string;
+    learningPreferences?: any;
+    editorPreferences?: any;
+  };
 }
 
 export interface AuthState {
@@ -30,7 +41,7 @@ export interface AuthActions {
   forgotPassword: (email: string) => Promise<boolean>;
   resetPassword: (token: string, password: string) => Promise<boolean>;
   clearError: () => void;
-  refreshSession: () => Promise<void>;
+  refreshSession: () => Promise<boolean>;
   checkPermission: (permission: string) => boolean;
   updateProfile: (data: Partial<AuthUser>) => Promise<boolean>;
 }

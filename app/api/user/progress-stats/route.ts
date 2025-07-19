@@ -41,7 +41,7 @@ export async function GET(_request: NextRequest) {
         achievement: true,
       },
       orderBy: {
-        completedAt: 'desc',
+        unlockedAt: 'desc',
       },
     });
 
@@ -95,7 +95,6 @@ export async function GET(_request: NextRequest) {
           where: {
             title: {
               contains: skill.split(' ')[0], // Simple matching by first word
-              mode: 'insensitive',
             },
           },
         });
@@ -107,7 +106,6 @@ export async function GET(_request: NextRequest) {
             lesson: {
               title: {
                 contains: skill.split(' ')[0],
-                mode: 'insensitive',
               },
             },
           },
@@ -151,7 +149,7 @@ export async function GET(_request: NextRequest) {
     }
 
     // Calculate longest streak (simplified - would need streak tracking in real app)
-    const longestStreak = Math.max(currentStreak, userProfile?.longestStreak || 0);
+    const longestStreak = Math.max(currentStreak, (userProfile as any)?.longestStreak || userProfile?.streak || 0);
 
     // Calculate time spent (simplified - would need time tracking in real app)
     const timeSpent = completedLessons * 30; // Assume 30 minutes per lesson
@@ -196,7 +194,7 @@ export async function POST(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { action, data } = await request.json();
+    const { action, data } = await _request.json();
 
     switch (action) {
       case 'update_goal':

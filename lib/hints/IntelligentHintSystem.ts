@@ -6,7 +6,7 @@
  */
 
 import { enhancedTutor } from '@/lib/ai/EnhancedTutorSystem';
-import { SecurityScanner, SecurityScanResult } from '@/lib/security/SecurityScanner';
+import { SecurityScanner } from '@/lib/security/SecurityScanner';
 import { GasOptimizationAnalyzer } from '@/lib/gas/GasOptimizationAnalyzer';
 import { adaptiveLearningEngine, LearningProfile } from '@/lib/learning/AdaptiveLearningEngine';
 import * as monaco from 'monaco-editor';
@@ -415,7 +415,7 @@ export class IntelligentHintSystem {
     `;
   }
 
-  private async analyzeCodeState(code: string, userId: string): Promise<any> {
+  private async analyzeCodeState(_code: string, _userId: string): Promise<any> {
     // Analyze current code for context
     const securityResult = await this.securityScanner.getLastResult();
     const gasResult = await this.gasAnalyzer.getLastAnalysis();
@@ -471,6 +471,240 @@ export class IntelligentHintSystem {
     const userHints = this.hintHistory.get(userId) || [];
     userHints.push(hint);
     this.hintHistory.set(userId, userHints.slice(-20)); // Keep last 20 hints
+  }
+
+  // Parse Socratic questions from AI response
+  private parseSocraticQuestions(content: string, concept: string): string[] {
+    const questions: string[] = [];
+    const lines = content.split('\n');
+    
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      if (trimmed.endsWith('?') || trimmed.includes('consider') || trimmed.includes('think about')) {
+        questions.push(trimmed);
+      }
+    });
+    
+    // Ensure we have at least one question
+    if (questions.length === 0) {
+      questions.push(`What do you think happens when you ${concept}?`);
+    }
+    
+    return questions.slice(0, 3); // Return max 3 questions
+  }
+
+  // Generate interactive content based on context
+  private async generateInteractiveContent(
+    context: HintContext,
+    focusArea: string
+  ): Promise<string> {
+    const interactiveElements = [
+      `Let's explore ${focusArea} step by step:`,
+      `1. First, examine your current approach`,
+      `2. Consider what the ${focusArea} requirements are`,
+      `3. Think about how to improve your solution`
+    ];
+    
+    return interactiveElements.join('\n');
+  }
+
+  // Identify relevant code section for highlighting
+  private identifyRelevantCodeSection(
+    context: HintContext,
+    focusArea: string
+  ): CodeHighlight | undefined {
+    // Simple heuristic - in production, use AST analysis
+    const lines = context.currentCode.split('\n');
+    let startLine = 1;
+    let endLine = lines.length;
+    
+    // Find the most relevant section based on focus area
+    lines.forEach((line, index) => {
+      if (focusArea === 'security' && line.includes('transfer')) {
+        startLine = Math.max(1, index - 2);
+        endLine = Math.min(lines.length, index + 3);
+      } else if (focusArea === 'gas' && line.includes('for')) {
+        startLine = Math.max(1, index - 1);
+        endLine = Math.min(lines.length, index + 5);
+      }
+    });
+    
+    return {
+      startLine,
+      endLine,
+      message: `Focus on this section for ${focusArea} improvements`
+    };
+  }
+
+  // Generate follow-up questions
+  private async generateFollowUpQuestions(
+    context: HintContext,
+    focusArea: string
+  ): Promise<string[]> {
+    const questions = [];
+    
+    switch (focusArea) {
+      case 'security':
+        questions.push('Have you considered reentrancy attacks?');
+        questions.push('What happens if the transfer fails?');
+        break;
+      case 'gas':
+        questions.push('Can you reduce the number of storage operations?');
+        questions.push('Is there a more efficient data structure?');
+        break;
+      case 'syntax':
+        questions.push('Is your function visibility set correctly?');
+        questions.push('Are you using the right data types?');
+        break;
+      case 'logic':
+        questions.push('Does your logic handle edge cases?');
+        questions.push('What happens with zero or maximum values?');
+        break;
+    }
+    
+    return questions;
+  }
+
+  // Get related concepts based on focus area
+  private getRelatedConcepts(focusArea: string): string[] {
+    const conceptMap: Record<string, string[]> = {
+      security: ['reentrancy', 'access-control', 'overflow', 'underflow'],
+      gas: ['storage-optimization', 'loop-efficiency', 'batch-operations'],
+      syntax: ['visibility', 'modifiers', 'data-types', 'function-signatures'],
+      logic: ['require-statements', 'error-handling', 'state-management']
+    };
+    
+    return conceptMap[focusArea] || ['general-best-practices'];
+  }
+
+  // Map user level to difficulty
+  private mapUserLevelToDifficulty(
+    userLevel: 'beginner' | 'intermediate' | 'advanced'
+  ): 'beginner' | 'intermediate' | 'advanced' {
+    return userLevel;
+  }
+
+  // Calculate user relevance score
+  private calculateUserRelevance(context: HintContext, focusArea: string): number {
+    let relevance = 0.5; // Base relevance
+    
+    // Increase relevance based on error type
+    if (context.errorType === focusArea) {
+      relevance += 0.3;
+    }
+    
+    // Adjust based on user level
+    if (context.userLevel === 'beginner' && focusArea === 'syntax') {
+      relevance += 0.2;
+    } else if (context.userLevel === 'advanced' && focusArea === 'gas') {
+      relevance += 0.2;
+    }
+    
+    return Math.min(1, relevance);
+  }
+
+  // Generate sequence hint for multi-step solutions
+  private async generateSequenceHint(
+    context: HintContext,
+    targetConcept: string,
+    stepNumber: number
+  ): Promise<SequenceHint> {
+    const totalSteps = this.calculateTotalSteps(targetConcept, context.userLevel);
+    
+    return {
+      currentStep: stepNumber,
+      totalSteps,
+      stepContent: `Step ${stepNumber}: Focus on ${targetConcept}`,
+      nextStepPreview: stepNumber < totalSteps ? `Next: Continue with advanced ${targetConcept}` : undefined,
+      previousStepRecap: stepNumber > 1 ? `Previous: Basic ${targetConcept} setup` : undefined,
+      progressPercentage: (stepNumber / totalSteps) * 100
+    };
+  }
+
+  // Calculate total steps for a concept
+  private calculateTotalSteps(concept: string, userLevel: string): number {
+    const baseSteps = 3;
+    const levelMultiplier = userLevel === 'beginner' ? 2 : userLevel === 'intermediate' ? 1.5 : 1;
+    return Math.ceil(baseSteps * levelMultiplier);
+  }
+
+  // Parse hint response from AI
+  private parseHintResponse(aiResponse: any): string {
+    if (typeof aiResponse === 'string') {
+      return aiResponse;
+    }
+    return aiResponse.content || 'Consider reviewing your approach';
+  }
+
+  // Extract code from AI response
+  private extractCodeFromResponse(response: string): string | undefined {
+    const codeMatch = response.match(/```(?:solidity)?\n([\s\S]*?)```/);
+    return codeMatch ? codeMatch[1].trim() : undefined;
+  }
+
+  // Update hint strategy based on usage
+  private async updateHintStrategy(
+    userId: string,
+    feedback: HintFeedback
+  ): Promise<void> {
+    const strategies = this.userHintStrategies.get(userId) || {
+      preferredTypes: ['explanation'],
+      effectiveStrategies: [],
+      ineffectiveStrategies: []
+    };
+    
+    if (feedback.wasHelpful) {
+      strategies.effectiveStrategies.push(feedback.hintType);
+    } else {
+      strategies.ineffectiveStrategies.push(feedback.hintType);
+    }
+    
+    // Update preferred types based on effectiveness
+    const effectiveCounts = strategies.effectiveStrategies.reduce((acc, type) => {
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    strategies.preferredTypes = Object.entries(effectiveCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 3)
+      .map(([type]) => type as HintType);
+    
+    this.userHintStrategies.set(userId, strategies);
+  }
+
+  // Calculate code complexity
+  private calculateCodeComplexity(code: string): number {
+    let complexity = 1; // Base complexity
+    
+    // Count control structures
+    const controlStructures = ['if', 'for', 'while', 'require', 'assert'];
+    controlStructures.forEach(structure => {
+      complexity += (code.match(new RegExp(`\\b${structure}\\b`, 'g')) || []).length;
+    });
+    
+    // Count functions
+    complexity += (code.match(/function\s+\w+/g) || []).length;
+    
+    // Count modifiers
+    complexity += (code.match(/modifier\s+\w+/g) || []).length;
+    
+    return complexity;
+  }
+
+  // Identify concepts in code
+  private identifyConceptsInCode(code: string): string[] {
+    const concepts: string[] = [];
+    
+    // Check for common Solidity patterns
+    if (code.includes('modifier')) concepts.push('modifiers');
+    if (code.includes('mapping')) concepts.push('mappings');
+    if (code.includes('event')) concepts.push('events');
+    if (code.includes('require') || code.includes('assert')) concepts.push('error-handling');
+    if (code.includes('payable')) concepts.push('ether-handling');
+    if (code.includes('external') || code.includes('public')) concepts.push('visibility');
+    
+    return [...new Set(concepts)]; // Remove duplicates
   }
 }
 

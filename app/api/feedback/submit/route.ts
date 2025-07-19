@@ -41,7 +41,7 @@ export async function POST(_request: NextRequest) {
   const startTime = Date.now();
   
   try {
-    const body = await request.json();
+    const body = await _request.json();
     
     // Validate and sanitize input
     const validationResult = validateFeedbackSubmission(body);
@@ -360,7 +360,7 @@ async function autoAssignFeedback(feedback: any) {
     //   where: { id: feedback.id },
     //   data: { assignedTeam },
     // });
-    console.log(`Feedback ${feedback.id} assigned to team: ${assignedTeam}`);
+    logger.info(`Feedback ${feedback.id} assigned to team: ${assignedTeam}`);
   } catch (error) {
     logger.error('Failed to auto-assign feedback', error as Error, {
       metadata: { feedbackId: feedback.id },
@@ -387,7 +387,7 @@ async function updateUATSession(feedback: any) {
     //     },
     //   });
     // }
-    console.log(`Session ${feedback.sessionId} feedback count updated`);
+    logger.info(`Session ${feedback.sessionId} feedback count updated`);
   } catch (error) {
     logger.error('Failed to update UAT session', error as Error, {
       sessionId: feedback.sessionId,

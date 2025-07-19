@@ -7,7 +7,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { SecurityScanResult, SecurityIssue } from '@/lib/security/SecurityScanner';
 
 interface SecurityOverlayProps {
@@ -182,7 +182,9 @@ export const SecurityOverlay: React.FC<SecurityOverlayProps> = ({
                   <div
                     className="p-3 cursor-pointer hover:bg-opacity-80 transition-colors"
                     onClick={() => {
-                      toggleIssueExpansion(issue.id);
+                      if (issue.id) {
+                        toggleIssueExpansion(issue.id);
+                      }
                       onIssueClick?.(issue);
                     }}
                   >
@@ -216,14 +218,14 @@ export const SecurityOverlay: React.FC<SecurityOverlayProps> = ({
                           </button>
                         )}
                         <span className="text-xs">
-                          {expandedIssues.has(issue.id) ? '▼' : '▶'}
+                          {issue.id && expandedIssues.has(issue.id) ? '▼' : '▶'}
                         </span>
                       </div>
                     </div>
                   </div>
 
                   {/* Expanded details */}
-                  {expandedIssues.has(issue.id) && (
+                  {issue.id && expandedIssues.has(issue.id) && (
                     <div className="px-3 pb-3 border-t border-current border-opacity-20">
                       <div className="mt-2 space-y-2">
                         <div>

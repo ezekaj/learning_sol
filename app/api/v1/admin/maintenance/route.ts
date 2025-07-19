@@ -1,12 +1,13 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { adminEndpoint } from '@/lib/api/middleware';
 import { ApiResponseBuilder } from '@/lib/api/response';
-import { validateQuery, validateBody, PaginationSchema } from '@/lib/api/validation';
-import { MiddlewareContext } from '@/lib/api/types';
+import { validateBody } from '@/lib/api/validation';
+import { MiddlewareContext } from '@/lib/api/middleware';
 import { maintenanceScheduler } from '@/lib/database/maintenance';
 import { cleanupManager } from '@/lib/database/cleanup';
 import { migrationManager } from '@/lib/database/migrations';
 import { z } from 'zod';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Validation schemas
 const MaintenanceActionSchema = z.object({
@@ -20,36 +21,36 @@ const MaintenanceActionSchema = z.object({
   }).optional()
 });
 
-const ScheduleCreateSchema = z.object({
-  name: z.string().min(1).max(100),
-  description: z.string().min(1).max(500),
-  operations: z.array(z.string()).min(1),
-  schedule: z.object({
-    minute: z.string(),
-    hour: z.string(),
-    dayOfMonth: z.string(),
-    month: z.string(),
-    dayOfWeek: z.string(),
-    timezone: z.string().default('UTC')
-  }),
-  enabled: z.boolean().default(true),
-  options: z.object({
-    dryRun: z.boolean().default(false),
-    force: z.boolean().default(false),
-    batchSize: z.number().int().min(1).max(10000).default(1000),
-    maxExecutionTime: z.number().int().min(60).max(7200).default(1800)
-  }),
-  notifications: z.object({
-    onSuccess: z.boolean().default(false),
-    onFailure: z.boolean().default(true),
-    onWarnings: z.boolean().default(true),
-    recipients: z.array(z.string().email()),
-    channels: z.array(z.enum(['email', 'slack', 'webhook']))
-  })
-});
+// const ScheduleCreateSchema = z.object({
+//   name: z.string().min(1).max(100),
+//   description: z.string().min(1).max(500),
+//   operations: z.array(z.string()).min(1),
+//   schedule: z.object({
+//     minute: z.string(),
+//     hour: z.string(),
+//     dayOfMonth: z.string(),
+//     month: z.string(),
+//     dayOfWeek: z.string(),
+//     timezone: z.string().default('UTC')
+//   }),
+//   enabled: z.boolean().default(true),
+//   options: z.object({
+//     dryRun: z.boolean().default(false),
+//     force: z.boolean().default(false),
+//     batchSize: z.number().int().min(1).max(10000).default(1000),
+//     maxExecutionTime: z.number().int().min(60).max(7200).default(1800)
+//   }),
+//   notifications: z.object({
+//     onSuccess: z.boolean().default(false),
+//     onFailure: z.boolean().default(true),
+//     onWarnings: z.boolean().default(true),
+//     recipients: z.array(z.string().email()),
+//     channels: z.array(z.enum(['email', 'slack', 'webhook']))
+//   })
+// });
 
 // GET /api/v1/admin/maintenance - Get maintenance status and operations
-export const GET = adminEndpoint(async (request: NextRequest, context: MiddlewareContext) => {
+export const GET = adminEndpoint(async (request: NextRequest, _context: MiddlewareContext) => {
   try {
     const url = new URL(request.url);
     const action = url.searchParams.get('action');
@@ -63,11 +64,11 @@ export const GET = adminEndpoint(async (request: NextRequest, context: Middlewar
           scheduler: status,
           migrations: migrationStatus,
           timestamp: new Date().toISOString()
-        });
+        }) as NextResponse;
 
       case 'schedules':
         const schedules = maintenanceScheduler.getSchedules();
-        return ApiResponseBuilder.success(schedules);
+        return ApiResponseBuilder.success(schedules) as NextResponse;
 
       case 'operations':
         const operations = cleanupManager.getRegisteredOperations().map(op => ({
@@ -117,7 +118,7 @@ export const GET = adminEndpoint(async (request: NextRequest, context: Middlewar
         return ApiResponseBuilder.success(overview);
     }
   } catch (error) {
-    console.error('Get maintenance status error:', error);
+    logger.error('Get maintenance status error', error as Error);
     return ApiResponseBuilder.internalServerError('Failed to get maintenance status');
   }
 });
@@ -205,7 +206,7 @@ export const POST = adminEndpoint(async (request: NextRequest, context: Middlewa
         return ApiResponseBuilder.validationError('Invalid action', []);
     }
   } catch (error) {
-    console.error('Execute maintenance action error:', error);
+    logger.error('Execute maintenance action error', error as Error);
     
     if (error instanceof Error) {
       return ApiResponseBuilder.validationError(error.message, []);

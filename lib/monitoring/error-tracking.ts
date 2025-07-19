@@ -373,6 +373,26 @@ class ErrorTracker {
     if (userAgent.includes('Edge')) return 'Edge';
     return 'Unknown';
   }
+
+  /**
+   * Add breadcrumb for navigation tracking
+   */
+  addBreadcrumb(message: string, category: string = 'navigation', level: 'info' | 'warning' | 'error' = 'info', data?: any) {
+    const breadcrumb = {
+      message,
+      category,
+      level,
+      data,
+      timestamp: new Date().toISOString()
+    };
+
+    // Add to recent events for context
+    this.captureInfo(`Breadcrumb: ${message}`, {
+      component: 'breadcrumb',
+      action: category,
+      metadata: { breadcrumb, ...data }
+    });
+  }
 }
 
 // Global error tracker instance

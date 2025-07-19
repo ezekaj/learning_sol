@@ -1,11 +1,13 @@
 import { NextRequest } from 'next/server';
-import { protectedEndpoint, adminEndpoint } from '@/lib/api/middleware';
+import { adminEndpoint } from '@/lib/api/middleware';
 import { ApiResponseBuilder } from '@/lib/api/response';
 import { validateQuery, validateBody, PaginationSchema, SearchSchema, CreateUserSchema } from '@/lib/api/validation';
 import { AuthService } from '@/lib/api/auth';
-import { ApiUser, UserRole, UserStatus, MiddlewareContext } from '@/lib/api/types';
+import { ApiUser, UserRole, UserStatus } from '@/lib/api/types';
+import { MiddlewareContext } from '@/lib/api/middleware';
 import { createPaginationMeta, sanitizeForResponse } from '@/lib/api/response';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Mock users database
 const mockUsers: Array<ApiUser & { passwordHash: string }> = [
@@ -159,38 +161,40 @@ function sortUsers(users: ApiUser[], sortBy: string, sortOrder: 'asc' | 'desc'):
 }
 
 // GET /api/v1/users - List users (admin only)
-export const GET = adminEndpoint(async (request: NextRequest, context: MiddlewareContext) => {
+export const GET = adminEndpoint(async (request: NextRequest, _context: MiddlewareContext) => {
   try {
     const url = new URL(request.url);
     const pagination = validateQuery(PaginationSchema, url.searchParams);
     const filters = validateQuery(SearchSchema, url.searchParams);
 
     // Remove sensitive data and filter users
-    const safeUsers = mockUsers.map(user => sanitizeForResponse(user, ['passwordHash']));
+    const safeUsers = mockUsers.map(user => sanitizeForResponse(user, ['passwordHash'])) as ApiUser[];
     const filteredUsers = filterUsers(safeUsers, filters);
-    const sortedUsers = sortUsers(filteredUsers, pagination.sortBy || 'createdAt', pagination.sortOrder);
+    const sortedUsers = sortUsers(filteredUsers, pagination.sortBy || 'createdAt', pagination.sortOrder || 'asc');
 
     // Apply pagination
-    const startIndex = (pagination.page - 1) * pagination.limit;
-    const endIndex = startIndex + pagination.limit;
+    const page = pagination.page || 1;
+    const limit = pagination.limit || 20;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
     const paginatedUsers = sortedUsers.slice(startIndex, endIndex);
 
     // Create pagination metadata
     const paginationMeta = createPaginationMeta(
-      pagination.page,
-      pagination.limit,
+      page,
+      limit,
       filteredUsers.length
     );
 
     return ApiResponseBuilder.paginated(paginatedUsers, paginationMeta);
   } catch (error) {
-    console.error('Get users error:', error);
+    logger.error('Get users error', error as Error);
     return ApiResponseBuilder.internalServerError('Failed to fetch users');
   }
 });
 
 // POST /api/v1/users - Create user (admin only)
-export const POST = adminEndpoint(async (request: NextRequest, context: MiddlewareContext) => {
+export const POST = adminEndpoint(async (request: NextRequest, _context: MiddlewareContext) => {
   try {
     const body = await validateBody(CreateUserSchema, request);
     const { email, password, name, role } = body;
@@ -210,7 +214,7 @@ export const POST = adminEndpoint(async (request: NextRequest, context: Middlewa
       id: uuidv4(),
       email: email.toLowerCase(),
       name,
-      role,
+      role: role || UserRole.STUDENT,
       status: UserStatus.ACTIVE,
       passwordHash,
       profile: {
@@ -242,7 +246,7 @@ export const POST = adminEndpoint(async (request: NextRequest, context: Middlewa
 
     return ApiResponseBuilder.created(safeUser);
   } catch (error) {
-    console.error('Create user error:', error);
+    logger.error('Create user error', error as Error);
     
     if (error instanceof Error) {
       return ApiResponseBuilder.validationError(error.message, []);

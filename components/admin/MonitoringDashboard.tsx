@@ -7,31 +7,9 @@
 
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import {
-  Activity,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Database,
-  Globe,
-  Monitor,
-  Server,
-  TrendingUp,
-  TrendingDown,
-  Users,
-  Zap,
-  BarChart3,
-  Cpu,
-  HardDrive,
-  Wifi,
-  Eye,
-  RefreshCw,
-  Download,
-  Filter,
-  Calendar
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+;
+import { Activity, AlertTriangle, CheckCircle, Clock, Monitor, Server, TrendingUp, TrendingDown, Users, Zap, Cpu, HardDrive, Wifi, RefreshCw, Download } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ga4 } from '@/lib/monitoring/google-analytics';
@@ -112,8 +90,8 @@ export function MonitoringDashboard() {
 
   const [alerts, setAlerts] = useState<AlertData[]>([]);
   const [isRealTime, setIsRealTime] = useState(true);
-  const [timeRange, setTimeRange] = useState('1h');
-  const [selectedMetrics, setSelectedMetrics] = useState('all');
+  const [timeRange] = useState('1h');
+  const [_selectedMetrics] = useState('all');
 
   /**
    * Initialize monitoring dashboard
@@ -142,9 +120,7 @@ export function MonitoringDashboard() {
       
       logger.info('Monitoring dashboard data loaded');
     } catch (error) {
-      logger.error('Failed to load monitoring data', {
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      logger.error('Failed to load monitoring data', error instanceof Error ? error : new Error('Unknown error'));
     }
   };
 

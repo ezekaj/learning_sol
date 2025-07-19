@@ -143,7 +143,7 @@ export const ComprehensiveCollaborationDashboard: React.FC<ComprehensiveCollabor
           description: 'Your microphone is now active with real-time processing.',
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Audio Error',
         description: 'Failed to access microphone.',
@@ -183,7 +183,7 @@ export const ComprehensiveCollaborationDashboard: React.FC<ComprehensiveCollabor
           description: 'Your camera is now active with stream processing.',
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Video Error',
         description: 'Failed to access camera.',
@@ -229,7 +229,7 @@ export const ComprehensiveCollaborationDashboard: React.FC<ComprehensiveCollabor
           description: 'You are now sharing your screen with stream processing.',
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Screen Share Error',
         description: 'Failed to start screen sharing.',

@@ -1,29 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Trophy,
-  Medal,
-  Star,
-  Flame,
-  Users,
-  Filter,
-  RefreshCw,
-  Search,
-  ChevronDown,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Clock,
-  Award,
-  Target,
-  Zap
-} from 'lucide-react';
+import { Trophy, Flame, Filter, RefreshCw, Search, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
-import {
+import type {
   LeaderboardUser,
   LeaderboardCategory,
   LeaderboardFilters,
@@ -32,6 +15,7 @@ import {
 } from '@/lib/community/types';
 import { leaderboardManager, LeaderboardUtils } from '@/lib/community/leaderboard';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { logger } from '@/lib/api/logger';
 
 interface LeaderboardsProps {
   className?: string;
@@ -290,7 +274,7 @@ function LeaderboardUserCard({ user, currentUserId, category, index }: Leaderboa
 
         {/* Badges */}
         <div className="flex items-center space-x-1">
-          {user.badges.slice(0, 3).map((badge, badgeIndex) => (
+          {user.badges.slice(0, 3).map((badge) => (
             <div
               key={badge.id}
               className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center"
@@ -374,7 +358,7 @@ export function Leaderboards({ className }: LeaderboardsProps) {
         setFilters(prev => ({ ...prev, category: defaultCategory.id }));
       }
     } catch (error) {
-      console.error('Failed to load categories:', error);
+      logger.error('Failed to load categories:', {}, error as Error);
       // Use default categories as fallback
       const defaultCategories = leaderboardManager.getDefaultCategories();
       setCategories(defaultCategories);
@@ -409,7 +393,7 @@ export function Leaderboards({ className }: LeaderboardsProps) {
       setHasNextPage(data.hasNextPage);
       setLastUpdated(data.lastUpdated);
     } catch (error) {
-      console.error('Failed to load leaderboard:', error);
+      logger.error('Failed to load leaderboard:', {}, error as Error);
     } finally {
       setLoading(prev => ({ ...prev, leaderboards: false }));
     }
@@ -449,7 +433,7 @@ export function Leaderboards({ className }: LeaderboardsProps) {
       await leaderboardManager.refreshLeaderboard(currentCategory.id, filters);
       await loadLeaderboard(true);
     } catch (error) {
-      console.error('Failed to refresh leaderboard:', error);
+      logger.error('Failed to refresh leaderboard:', {}, error as Error);
     } finally {
       setLoading(prev => ({ ...prev, refresh: false }));
     }

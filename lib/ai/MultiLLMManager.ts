@@ -307,7 +307,7 @@ export class MultiLLMManager {
   }
 
   // Get optimized system prompts for different services and request types
-  private getSystemPrompt(specialization: string, requestType?: string): string {
+  private getSystemPrompt(specialization: string, _requestType?: string): string {
     const basePrompt = "You are an expert Solidity developer and blockchain educator.";
     
     switch (specialization) {

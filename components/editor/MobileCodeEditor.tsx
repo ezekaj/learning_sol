@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { motion } from 'framer-motion';
 import { MobileEditorToolbar } from './MobileEditorToolbar';
-import { useSwipeGesture } from '@/lib/hooks/useSwipeGesture';
+;
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
-import { withPerformanceOptimization, useStableCallback, useStableObject } from '@/lib/components/PerformanceOptimizer';
+import { withPerformanceOptimization } from '@/lib/components/PerformanceOptimizer';
 
 // Dynamically import Monaco to reduce initial bundle size
 const MonacoEditor = dynamic(
@@ -40,7 +39,7 @@ interface MobileCodeEditorProps {
 }
 
 function MobileCodeEditorComponent({
-  documentId,
+  documentId: _documentId,
   initialContent = '',
   language = 'solidity',
   theme = 'vs-dark',
@@ -61,9 +60,9 @@ function MobileCodeEditorComponent({
   const [isRunning, setIsRunning] = useState(false);
   const [editorFontSize, setEditorFontSize] = useState(fontSize);
   const [showNumbers, setShowNumbers] = useState(showLineNumbers);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFullscreen] = useState(false);
   const [undoStack, setUndoStack] = useState<string[]>([initialContent]);
-  const [redoStack, setRedoStack] = useState<string[]>([]);
+  const [_redoStack, setRedoStack] = useState<string[]>([]);
   const [currentUndoIndex, setCurrentUndoIndex] = useState(0);
   
   const editorRef = useRef<any>(null);
@@ -242,16 +241,16 @@ function MobileCodeEditorComponent({
     URL.revokeObjectURL(url);
   }, [content]);
 
-  // Fullscreen toggle
-  const toggleFullscreen = useCallback(() => {
-    if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  }, []);
+  // Fullscreen toggle - handled by toolbar button
+  // const _toggleFullscreen = useCallback(() => {
+  //   if (!document.fullscreenElement) {
+  //     containerRef.current?.requestFullscreen();
+  //     setIsFullscreen(true);
+  //   } else {
+  //     document.exitFullscreen();
+  //     setIsFullscreen(false);
+  //   }
+  // }, []);
 
   // Touch pinch to zoom
   useEffect(() => {

@@ -13,26 +13,26 @@ import {
 
 // Lazy load heavy components
 const GamificationDashboard = lazy(() => 
-  import('@/components/gamification/GamificationDashboard').then(module => ({
-    default: module.GamificationDashboard
+  import('@/components/learning/GamificationSystem').then(module => ({
+    default: module.GamificationSystem
   }))
 );
 
 const AITutoringInterface = lazy(() => 
-  import('@/components/ai/AITutoringInterface').then(module => ({
-    default: module.AITutoringInterface
+  import('@/components/ai/EnhancedAITutor').then(module => ({
+    default: module.EnhancedAITutor
   }))
 );
 
 const RealTimeCollaboration = lazy(() => 
-  import('@/components/collaboration/RealTimeCollaboration').then(module => ({
-    default: module.RealTimeCollaboration
+  import('@/components/collaboration/ComprehensiveCollaborationDashboard').then(module => ({
+    default: module.ComprehensiveCollaborationDashboard
   }))
 );
 
 const AdvancedAnalytics = lazy(() => 
-  import('@/components/analytics/AdvancedAnalytics').then(module => ({
-    default: module.AdvancedAnalytics
+  import('@/components/curriculum/LearningAnalytics').then(module => ({
+    default: module.LearningAnalytics
   }))
 );
 
@@ -47,7 +47,7 @@ const ComponentErrorFallback: React.FC<{
   error: Error; 
   resetErrorBoundary: () => void;
   componentName: string;
-}> = ({ error, resetErrorBoundary, componentName }) => (
+}> = ({ error: _error, resetErrorBoundary, componentName }) => (
   <div className="glass border border-red-400/20 rounded-lg p-6 text-center">
     <div className="text-red-400 mb-4">
       <svg className="w-8 h-8 mx-auto" fill="currentColor" viewBox="0 0 20 20">
@@ -200,7 +200,7 @@ export const LazyRealTimeCollaboration: React.FC<LazyRealTimeCollaborationProps>
               </div>
             </div>
           }>
-            <RealTimeCollaboration {...props} />
+            <RealTimeCollaboration sessionId="default-session" {...props} />
           </Suspense>
         </ErrorBoundary>
       ) : (
@@ -255,7 +255,7 @@ export const LazyAdvancedAnalytics: React.FC<LazyAdvancedAnalyticsProps> = ({
               <TableSkeleton rows={5} columns={4} />
             </div>
           }>
-            <AdvancedAnalytics {...props} />
+            <AdvancedAnalytics userProgress={{} as any} {...props} />
           </Suspense>
         </ErrorBoundary>
       ) : (
@@ -313,25 +313,25 @@ export const LazyUserManagement: React.FC<LazyUserManagementProps> = ({
 // Preload functions for critical components
 export const preloadGamificationDashboard = () => {
   if (typeof window !== 'undefined') {
-    import('@/components/gamification/GamificationDashboard');
+    import('@/components/learning/GamificationSystem');
   }
 };
 
 export const preloadAITutoringInterface = () => {
   if (typeof window !== 'undefined') {
-    import('@/components/ai/AITutoringInterface');
+    import('@/components/ai/EnhancedAITutor');
   }
 };
 
 export const preloadRealTimeCollaboration = () => {
   if (typeof window !== 'undefined') {
-    import('@/components/collaboration/RealTimeCollaboration');
+    import('@/components/collaboration/ComprehensiveCollaborationDashboard');
   }
 };
 
 export const preloadAdvancedAnalytics = () => {
   if (typeof window !== 'undefined') {
-    import('@/components/analytics/AdvancedAnalytics');
+    import('@/components/curriculum/LearningAnalytics');
   }
 };
 

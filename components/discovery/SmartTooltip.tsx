@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 
 interface SmartTooltipContent {
@@ -153,7 +153,7 @@ export const SmartTooltip: React.FC<SmartTooltipProps> = ({
     if (placement === 'auto') {
       const spaceTop = triggerRect.top;
       const spaceBottom = viewport.height - triggerRect.bottom;
-      const spaceLeft = triggerRect.left;
+      // const spaceLeft = triggerRect.left; // Not currently used for auto placement
       const spaceRight = viewport.width - triggerRect.right;
 
       if (spaceBottom >= tooltipRect.height + 8) {

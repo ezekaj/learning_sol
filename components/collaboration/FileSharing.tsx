@@ -10,9 +10,7 @@ import {
   Code,
   Download,
   X,
-  Check,
   AlertCircle,
-  Loader2,
   Eye,
   Share2,
   Copy,
@@ -148,7 +146,7 @@ export function FileSharing({
         });
       }, 200);
 
-      const uploadedFile = await onFileUpload(selectedFile, fileDescription);
+      await onFileUpload(selectedFile, fileDescription);
       
       clearInterval(progressInterval);
       setUploadProgress({ [fileId]: 100 });
@@ -325,7 +323,7 @@ export function FileSharing({
                   <div className="flex items-center space-x-2">
                     <span className="font-medium text-white truncate">{file.name}</span>
                     {file.isPublic && (
-                      <Share2 className="w-3 h-3 text-green-400" title="Public file" />
+                      <Share2 className="w-3 h-3 text-green-400" />
                     )}
                   </div>
                   <div className="flex items-center space-x-2 text-xs text-gray-400">

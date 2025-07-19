@@ -283,7 +283,7 @@ export class NavigationGuard {
   // Check user permissions (placeholder - integrate with your permission system)
   private async checkPermissions(
     user: { id: string; role: string },
-    permissions: string[]
+    _permissions: string[]
   ): Promise<boolean> {
     // This would integrate with your actual permission checking logic
     // For now, return true for admin, false for others requiring specific permissions

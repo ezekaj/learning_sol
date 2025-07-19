@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TrendingTopic } from '@/lib/community/types';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Mock trending topics data
 const mockTrendingTopics: TrendingTopic[] = [
@@ -95,7 +96,7 @@ const mockTrendingTopics: TrendingTopic[] = [
   }
 ];
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -136,7 +137,7 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json(updatedTopics);
   } catch (error) {
-    console.error('Error fetching trending topics:', error);
+    logger.error('Error fetching trending topics', error as Error);
     return NextResponse.json(
       { error: 'Failed to fetch trending topics' },
       { status: 500 }

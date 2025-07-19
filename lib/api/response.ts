@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { 
   ApiResponse, 
-  ApiError, 
+  ApiErrorResponse, 
   ValidationError, 
   ResponseMeta, 
   PaginationMeta,
@@ -18,7 +18,7 @@ export class ApiResponseBuilder {
   private static createBaseResponse<T>(
     success: boolean,
     data?: T,
-    error?: ApiError,
+    error?: ApiErrorResponse,
     meta?: ResponseMeta
   ): ApiResponse<T> {
     return {
@@ -53,7 +53,7 @@ export class ApiResponseBuilder {
     statusCode: HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR,
     details?: ValidationError[] | Record<string, any>
   ): NextResponse<ApiResponse> {
-    const error: ApiError = {
+    const error: ApiErrorResponse = {
       code,
       message,
       details,

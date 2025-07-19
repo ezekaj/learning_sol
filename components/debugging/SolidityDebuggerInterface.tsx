@@ -2,30 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Play,
-  Pause,
-  Square,
-  StepForward,
-  SkipForward,
-  RotateCcw,
-  Bug,
-  Circle,
-  Dot,
-  Eye,
-  EyeOff,
-  Settings,
-  Terminal,
-  Activity,
-  Layers,
-  Variable,
-  Zap,
-  Clock,
-  AlertCircle,
-  CheckCircle,
-  Info,
-  X
-} from 'lucide-react';
+import { Play, Pause, Square, StepForward, SkipForward, RotateCcw, Bug, Circle, Eye, EyeOff, Terminal, Layers, Variable, AlertCircle, X } from 'lucide-react';
 import { useSolidityDebugger } from '@/lib/hooks/useSolidityDebugger';
 import { GlassContainer } from '@/components/ui/Glassmorphism';
 import { cn } from '@/lib/utils';
@@ -53,7 +30,7 @@ export function SolidityDebuggerInterface({
 }: SolidityDebuggerInterfaceProps) {
   const {
     isInitialized,
-    activeSessionId,
+    activeSessionId: _activeSessionId,
     executionState,
     breakpoints,
     isLoading,
@@ -168,7 +145,7 @@ export function SolidityDebuggerInterface({
     <div className={cn('flex flex-col h-full', className)}>
       {/* Debugger Toolbar */}
       <GlassContainer
-        intensity="low"
+        intensity="light"
         tint="neutral"
         border
         className="flex items-center justify-between p-3 mb-2"
@@ -423,7 +400,7 @@ export function SolidityDebuggerInterface({
 // Variables Panel Component
 function VariablesPanel({
   variables,
-  onVariableInspect
+  onVariableInspect: _onVariableInspect
 }: {
   variables: any[];
   onVariableInspect: (name: string) => Promise<any>;

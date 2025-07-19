@@ -10,10 +10,7 @@ import {
   OrphanedAchievementCleanup,
   OrphanedProgressCleanup 
 } from '@/lib/database/orphaned-data';
-import { 
-  ExpiredTokensCleanup,
-  OldLogsCleanup 
-} from '@/lib/database/data-removal';
+import { ExpiredTokensCleanup } from '@/lib/database/data-removal';
 import { 
   MaintenanceScheduler,
   MaintenanceSchedule 

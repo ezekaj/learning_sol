@@ -1,4 +1,4 @@
-import { env, isProduction } from '@/lib/config/environment';
+import { isProduction } from '@/lib/config/environment';
 
 /**
  * Security Configuration

@@ -132,7 +132,7 @@ export const Default: Story = {
 export const Variants: Story = {
   render: () => (
     <div className="flex flex-wrap gap-4">
-      <EnhancedButton variant="primary">Primary</EnhancedButton>
+      <EnhancedButton variant="default">Primary</EnhancedButton>
       <EnhancedButton variant="secondary">Secondary</EnhancedButton>
       <EnhancedButton variant="ghost">Ghost</EnhancedButton>
       <EnhancedButton variant="outline">Outline</EnhancedButton>
@@ -155,7 +155,7 @@ export const Sizes: Story = {
   render: () => (
     <div className="flex items-center gap-4">
       <EnhancedButton size="sm">Small</EnhancedButton>
-      <EnhancedButton size="md">Medium</EnhancedButton>
+      <EnhancedButton size="default">Medium</EnhancedButton>
       <EnhancedButton size="lg">Large</EnhancedButton>
       <EnhancedButton size="icon">
         <Settings className="w-4 h-4" />
@@ -177,16 +177,20 @@ export const Sizes: Story = {
 export const WithIcons: Story = {
   render: () => (
     <div className="flex flex-wrap gap-4">
-      <EnhancedButton icon={<Play className="w-4 h-4" />}>
+      <EnhancedButton>
+        <Play className="w-4 h-4 mr-2" />
         Play Lesson
       </EnhancedButton>
-      <EnhancedButton variant="secondary" icon={<Download className="w-4 h-4" />}>
+      <EnhancedButton variant="secondary">
+        <Download className="w-4 h-4 mr-2" />
         Download
       </EnhancedButton>
-      <EnhancedButton variant="ghost" icon={<Share className="w-4 h-4" />}>
+      <EnhancedButton variant="ghost">
+        <Share className="w-4 h-4 mr-2" />
         Share
       </EnhancedButton>
-      <EnhancedButton variant="outline" icon={<Heart className="w-4 h-4" />}>
+      <EnhancedButton variant="outline">
+        <Heart className="w-4 h-4 mr-2" />
         Favorite
       </EnhancedButton>
     </div>
@@ -254,10 +258,10 @@ export const DisabledStates: Story = {
 export const MobileOptimized: Story = {
   render: () => (
     <div className="flex flex-col gap-4 w-full max-w-sm">
-      <EnhancedButton touchTarget fullWidth>
+      <EnhancedButton touchTarget className="w-full">
         Full Width Touch Button
       </EnhancedButton>
-      <EnhancedButton variant="secondary" touchTarget fullWidth>
+      <EnhancedButton variant="secondary" touchTarget className="w-full">
         Secondary Touch Button
       </EnhancedButton>
       <div className="flex gap-2">
@@ -366,7 +370,7 @@ export const RealWorldExamples: Story = {
       {/* Call to Action */}
       <div className="text-center">
         <h3 className="text-white font-semibold mb-2">Call to Action</h3>
-        <EnhancedButton size="lg" ripple>
+        <EnhancedButton size="lg" rippleEffect>
           Start Learning Solidity
         </EnhancedButton>
       </div>

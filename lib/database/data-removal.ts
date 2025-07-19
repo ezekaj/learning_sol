@@ -23,7 +23,7 @@ interface FileSystem {
 
 // Mock implementations
 const db: DatabaseConnection = {
-  async query<T>(sql: string, params?: any[]): Promise<T[]> {
+  async query<T>(sql: string, _params?: any[]): Promise<T[]> {
     await new Promise(resolve => setTimeout(resolve, 100));
     
     if (sql.includes('refresh_tokens')) {
@@ -46,7 +46,7 @@ const db: DatabaseConnection = {
     return [] as T[];
   },
 
-  async execute(sql: string, params?: any[]): Promise<{ affectedRows: number }> {
+  async execute(sql: string, _params?: any[]): Promise<{ affectedRows: number }> {
     await new Promise(resolve => setTimeout(resolve, 50));
     return { affectedRows: Math.floor(Math.random() * 10) + 1 };
   }

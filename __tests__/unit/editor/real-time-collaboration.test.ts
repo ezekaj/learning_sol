@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { CollaborativeEditor } from '@/lib/collaboration/CollaborativeEditor';
-import { AdvancedCollaborativeEditor } from '@/lib/collaboration/AdvancedCollaborativeEditor';
+;
 
 // Mock WebSocket
 class MockWebSocket {

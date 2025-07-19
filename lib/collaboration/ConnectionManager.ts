@@ -115,7 +115,7 @@ export class ConnectionManager {
     this.onOfflineStateChange?.(true, this.offlineQueue.length);
   }
 
-  private handleOperationReceived(operation: TextOperation): void {
+  private handleOperationReceived(_operation: TextOperation): void {
     // Update recovery state with received operation
     this.recoveryState.lastSyncTimestamp = Date.now();
     this.recoveryState.sessionVersion++;
@@ -236,7 +236,7 @@ export class ConnectionManager {
   }
 
   // Update recovery state
-  private updateRecoveryState(operation: TextOperation): void {
+  private updateRecoveryState(_operation: TextOperation): void {
     this.recoveryState.lastSyncTimestamp = Date.now();
     this.recoveryState.sessionVersion++;
     this.saveRecoveryState();

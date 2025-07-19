@@ -398,7 +398,7 @@ export class ErrorFactory {
     return actions;
   }
 
-  private static getAuthActions(authType: string, redirectUrl?: string): ErrorAction[] {
+  private static getAuthActions(authType: string, _redirectUrl?: string): ErrorAction[] {
     const actions: ErrorAction[] = [];
 
     if (authType === 'login' || authType === 'refresh') {

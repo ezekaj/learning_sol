@@ -1,6 +1,6 @@
 'use client';
 
-import { AdminUser, AdminRole, AdminPermission, SecurityEvent } from './types';
+import { AdminUser, SecurityEvent } from './types';
 
 export class AdminAuthManager {
   private static instance: AdminAuthManager;
@@ -195,7 +195,7 @@ export class AdminAuthManager {
     }
   }
 
-  private async getUserPermissions(userId: string): Promise<string[]> {
+  private async getUserPermissions(_userId: string): Promise<string[]> {
     // Mock permissions based on role
     const rolePermissions: Record<string, string[]> = {
       admin: [
@@ -225,7 +225,7 @@ export class AdminAuthManager {
     return this.currentUser?.id === userId ? this.currentUser : null;
   }
 
-  private async mockAuthAPI(email: string, password: string, twoFactorCode?: string): Promise<{ success: boolean; user?: AdminUser; error?: string }> {
+  private async mockAuthAPI(email: string, password: string, _twoFactorCode?: string): Promise<{ success: boolean; user?: AdminUser; error?: string }> {
     // Mock authentication - in real implementation, this would call your auth API
     await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
 
@@ -294,7 +294,7 @@ export class AdminAuthManager {
     return 'JBSWY3DPEHPK3PXP'; // Mock secret
   }
 
-  async verifyTwoFactorCode(secret: string, code: string): Promise<boolean> {
+  async verifyTwoFactorCode(_secret: string, code: string): Promise<boolean> {
     // Verify TOTP code
     return code === '123456'; // Mock verification
   }

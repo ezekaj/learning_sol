@@ -2,22 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  AlertCircle, 
-  AlertTriangle, 
-  Info, 
-  X, 
-  RefreshCw, 
-  Home, 
-  Search,
-  Wifi,
-  WifiOff,
-  Shield,
-  Upload,
-  FileX
-} from 'lucide-react';
+import { AlertCircle, AlertTriangle, Info, X, RefreshCw, Search, Wifi, WifiOff, Shield, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { AppError, ErrorSeverity, ErrorCategory, ErrorContext } from '@/lib/errors/types';
+import { AppError } from '@/lib/errors/types';
 import { EnhancedButton } from './EnhancedButton';
 import { Card } from './card';
 
@@ -81,7 +68,8 @@ export function ErrorMessage({
   const [isRetrying, setIsRetrying] = useState(false);
 
   const config = severityConfig[error.severity];
-  const CategoryIcon = categoryIcons[error.category];
+  // Category icon would be used for additional visual context
+  // const CategoryIcon = categoryIcons[error.category];
   const SeverityIcon = config.icon;
 
   // Auto-hide functionality

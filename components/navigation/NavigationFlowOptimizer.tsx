@@ -2,27 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  MapPin, 
-  Route, 
-  AlertTriangle, 
-  CheckCircle, 
-  ArrowRight,
-  ExternalLink,
-  Zap,
-  Target,
-  TrendingUp,
-  Users,
-  BookOpen,
-  Code,
-  Trophy,
-  Settings,
-  Home,
-  Search,
-  HelpCircle,
-  Lightbulb
-} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Route, AlertTriangle, CheckCircle, ArrowRight, ExternalLink, Target, Users, BookOpen, Code, Trophy, Home, Search, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useSettings } from '@/lib/hooks/useSettings';
@@ -99,7 +80,7 @@ export function NavigationFlowOptimizer({
             description: 'Set up your learning profile',
             href: '/profile/setup',
             icon: Users,
-            isCompleted: !!user?.profile?.isComplete,
+            isCompleted: !!(user?.profile?.displayName && user?.profile?.bio),
             isBlocked: false,
             estimatedTime: 5
           },
@@ -110,7 +91,7 @@ export function NavigationFlowOptimizer({
             href: '/learn/solidity-basics',
             icon: BookOpen,
             isCompleted: false,
-            isBlocked: !user?.profile?.isComplete,
+            isBlocked: !(user?.profile?.displayName && user?.profile?.bio),
             requirements: ['Complete Profile'],
             estimatedTime: 30
           },
@@ -342,7 +323,7 @@ export function NavigationFlowOptimizer({
           </div>
           
           <div className="space-y-3">
-            {currentFlow.steps.map((step, index) => (
+            {currentFlow.steps.map((step, _index) => (
               <motion.button
                 key={step.id}
                 onClick={() => handleFlowStepClick(step)}

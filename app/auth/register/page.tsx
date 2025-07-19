@@ -6,24 +6,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, getSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { 
-  Mail, 
-  Lock, 
-  Eye, 
-  EyeOff, 
-  Github, 
-  Chrome, 
-  ArrowRight,
-  User,
-  UserPlus,
-  CheckCircle,
-  AlertCircle,
-  Loader2
-} from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Github, Chrome, ArrowRight, User, UserPlus, CheckCircle, Loader2 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/Glassmorphism';
 import { AsyncSubmitButton } from '@/components/ui/EnhancedButton';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
-import { registrationSchema, type RegistrationData, PasswordUtils } from '@/lib/auth/password';
+import { registrationSchema, type RegistrationData } from '@/lib/auth/password';
 import { cn } from '@/lib/utils';
 import { withAuthErrorBoundary } from '@/lib/components/ErrorBoundaryHOCs';
 
@@ -178,9 +165,16 @@ function RegisterPage() {
               >
                 <ErrorMessage
                   error={{
+                    id: 'auth-error',
+                    code: 'AUTH_ERROR',
                     message: authError,
-                    type: 'AUTH_ERROR',
-                    userMessage: authError
+                    severity: 'critical',
+                    category: 'auth',
+                    context: 'inline',
+                    timestamp: new Date(),
+                    userMessage: authError,
+                    actionable: false,
+                    retryable: false
                   }}
                   className="bg-red-500/10 border-red-500/20 text-red-400"
                 />

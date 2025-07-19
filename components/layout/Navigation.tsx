@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { UserAvatar } from '@/components/ui/UserAvatar';
@@ -10,32 +10,9 @@ import { SessionStatusIndicator, SessionStatusBadge } from '@/components/ui/Sess
 import { CompactXPDisplay } from '@/components/xp/XPCounter';
 import { XPNotificationManager } from '@/components/xp/XPNotification';
 import { LevelUpManager } from '@/components/xp/LevelUpCelebration';
-import {
-  BookOpen,
-  Code,
-  Users,
-  Trophy,
-  Settings,
-  Menu,
-  X,
-  Zap,
-  Brain,
-  Rocket,
-  Shield,
-  Palette,
-  Briefcase,
-  Award
-} from 'lucide-react';
+import { BookOpen, Code, Users, Trophy, Menu, X, Zap, Brain, Shield, Palette, Briefcase, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import {  } from '@/components/ui/dropdown-menu';
 import { useLearning } from '@/lib/context/LearningContext';
 import { useSwipeGesture, useOutsideClick } from '@/lib/hooks/useSwipeGesture';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -119,7 +96,7 @@ export function Navigation() {
             role="menubar"
             aria-label="Main menu"
           >
-            {allNavigationItems.map((item, index) => (
+            {allNavigationItems.map((item, _index) => (
               <motion.div key={item.href} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link
                   href={item.href}

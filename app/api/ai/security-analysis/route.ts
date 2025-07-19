@@ -6,13 +6,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { enhancedTutor } from '@/lib/ai/EnhancedTutorSystem';
 import { prisma } from '@/lib/prisma';
-import crypto from 'crypto';
-import {
-  withRateLimit,
-  getUserTier,
-  getClientIP,
-  rateLimitConfigs
-} from '@/lib/utils/rateLimiter';
+// ;
+import { logger } from '@/lib/monitoring/simple-logger';
+import { withRateLimit, getClientIP } from '@/lib/utils/rateLimiter';
 import {
   getCached,
   setCached,
@@ -55,11 +51,11 @@ async function handleSecurityAnalysis(request: NextRequest) {
     }
 
     // Check user tier for rate limiting
-    const userTier = getUserTier(user);
-    const clientIP = getClientIP(request);
+    // const userTier = getUserTier(user);
+    // getClientIP(request); // Available for future use
 
     // Apply rate limiting based on user tier
-    const rateLimitConfig = userTier === 'premium' ? 'premium' : 'free';
+    // const rateLimitConfig = userTier === 'premium' ? 'premium' : 'free';
     // Note: Rate limiting is applied via middleware wrapper
 
     // Generate hash for caching
@@ -70,7 +66,7 @@ async function handleSecurityAnalysis(request: NextRequest) {
     if (cacheResults) {
       const cachedAnalysis = await getCached(cacheKey, cacheConfigs.security);
       if (cachedAnalysis) {
-        console.log(`🎯 Cache hit for security analysis: ${cacheKey}`);
+        logger.info(`🎯 Cache hit for security analysis: ${cacheKey}`);
         return NextResponse.json({
           success: true,
           data: {
@@ -128,7 +124,7 @@ async function handleSecurityAnalysis(request: NextRequest) {
 
     // Perform AI security analysis
     const analysisStartTime = Date.now();
-    console.log(`🔍 Starting security analysis for user ${user.id}`);
+    logger.info(`🔍 Starting security analysis for user ${user.id}`);
 
     const analysis = await enhancedTutor.analyzeCodeSecurity(code, user.id);
     const analysisTime = Date.now() - analysisStartTime;
@@ -167,7 +163,7 @@ async function handleSecurityAnalysis(request: NextRequest) {
     }
 
     const totalResponseTime = Date.now() - startTime;
-    console.log(`✅ Security analysis completed in ${totalResponseTime}ms`);
+    logger.info(`✅ Security analysis completed in ${totalResponseTime}ms`);
 
     return NextResponse.json({
       success: true,
@@ -185,7 +181,7 @@ async function handleSecurityAnalysis(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Security analysis error:', error);
+    logger.error('Security analysis error', error as Error);
     const errorResponse = {
       error: 'Failed to analyze code security',
       details: error instanceof Error ? error.message : 'Unknown error',
@@ -279,7 +275,10 @@ async function handleStreamingAnalysis(
 
 // Apply rate limiting to POST handler
 export const POST = withRateLimit(
-  handleSecurityAnalysis,
+  async (request: Request) => {
+    const nextRequest = request as NextRequest;
+    return handleSecurityAnalysis(nextRequest);
+  },
   'analysis',
   (request: Request) => {
     // Use IP + user agent for anonymous users, user ID for authenticated users
@@ -345,12 +344,12 @@ export async function GET(request: NextRequest) {
       const stats = {
         totalAnalyses: analyses.length,
         averageScore: analyses.length > 0 
-          ? analyses.reduce((sum, a) => sum + a.overallScore, 0) / analyses.length 
+          ? analyses.reduce((sum: number, a: any) => sum + a.overallScore, 0) / analyses.length 
           : 0,
         averageAnalysisTime: analyses.length > 0
-          ? analyses.reduce((sum, a) => sum + a.analysisTime, 0) / analyses.length
+          ? analyses.reduce((sum: number, a: any) => sum + a.analysisTime, 0) / analyses.length
           : 0,
-        recentTrend: analyses.slice(0, 5).map(a => a.overallScore)
+        recentTrend: analyses.slice(0, 5).map((a: any) => a.overallScore)
       };
 
       return NextResponse.json({ 
@@ -363,7 +362,7 @@ export async function GET(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Get security analysis error:', error);
+    logger.error('Get security analysis error', error as Error);
     return NextResponse.json(
       { error: 'Failed to fetch security analyses' }, 
       { status: 500 }
@@ -410,7 +409,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    console.error('Delete security analysis error:', error);
+    logger.error('Delete security analysis error', error as Error);
     return NextResponse.json(
       { error: 'Failed to delete security analysis' }, 
       { status: 500 }
@@ -455,7 +454,7 @@ export async function PATCH(request: NextRequest) {
           analysis,
           success: true
         });
-      } catch (error) {
+      } catch (_error) {
         results.push({
           code: code.substring(0, 100) + '...',
           error: 'Analysis failed',
@@ -490,7 +489,7 @@ export async function PATCH(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Batch security analysis error:', error);
+    logger.error('Batch security analysis error', error as Error);
     return NextResponse.json(
       { error: 'Failed to perform batch analysis' }, 
       { status: 500 }

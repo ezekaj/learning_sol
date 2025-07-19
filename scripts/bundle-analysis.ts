@@ -8,7 +8,7 @@
  */
 
 import { bundleAnalyzer } from '../lib/monitoring/bundle-analysis';
-import { logger } from '../lib/monitoring/logger';
+import { logger } from '../lib/monitoring/simple-logger';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
 

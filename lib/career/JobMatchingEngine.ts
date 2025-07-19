@@ -5,7 +5,7 @@
  */
 
 import { adaptiveLearningEngine } from '@/lib/learning/AdaptiveLearningEngine';
-import { enhancedTutor } from '@/lib/ai/EnhancedTutorSystem';
+;
 
 export interface JobListing {
   id: string;
@@ -357,15 +357,379 @@ export class JobMatchingEngine {
     // Estimate weeks needed to close skill gap
     return Math.ceil(gap / 10) * 2; // 2 weeks per 10 skill points
   }
+
+  // Get user portfolio
+  private async getUserPortfolio(userId: string): Promise<any> {
+    // In production, fetch from database
+    return {
+      projects: [],
+      githubProfile: null,
+      deployedContracts: [],
+      contributions: []
+    };
+  }
+
+  // Get skill assessment
+  private async getSkillAssessment(userId: string): Promise<any> {
+    const profile = await adaptiveLearningEngine.analyzeUserPerformance(userId);
+    return {
+      solidityLevel: profile.skillLevels.solidity || 0,
+      web3Level: profile.skillLevels.web3 || 0,
+      securityLevel: profile.skillLevels.security || 0,
+      gasOptimizationLevel: profile.skillLevels.gasOptimization || 0,
+      overallScore: Object.values(profile.skillLevels).reduce((a, b) => a + b, 0) / Object.keys(profile.skillLevels).length
+    };
+  }
+
+  // Filter jobs by preferences
+  private filterJobsByPreferences(preferences: JobPreferences): BlockchainJob[] {
+    let jobs = Array.from(this.jobListings.values());
+    
+    if (preferences.location) {
+      jobs = jobs.filter(job => job.location === preferences.location || job.remote);
+    }
+    
+    if (preferences.remote !== undefined) {
+      jobs = jobs.filter(job => job.remote === preferences.remote);
+    }
+    
+    if (preferences.minSalary) {
+      jobs = jobs.filter(job => job.salaryMax >= preferences.minSalary!);
+    }
+    
+    if (preferences.companySize) {
+      jobs = jobs.filter(job => job.companySize === preferences.companySize);
+    }
+    
+    if (preferences.industries?.length) {
+      jobs = jobs.filter(job => preferences.industries!.includes(job.industry));
+    }
+    
+    return jobs;
+  }
+
+  // Calculate skill score
+  private calculateSkillScore(requiredSkills: string[], userSkills: Record<string, number>): number {
+    if (requiredSkills.length === 0) return 100;
+    
+    const scores = requiredSkills.map(skill => {
+      const userLevel = userSkills[skill.toLowerCase()] || 0;
+      return Math.min(100, userLevel);
+    });
+    
+    return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+  }
+
+  // Calculate experience score
+  private calculateExperienceScore(requiredYears: number, userProfile: any): number {
+    // Simulate user experience calculation
+    const userYears = userProfile.experienceYears || 0;
+    
+    if (userYears >= requiredYears) return 100;
+    if (userYears >= requiredYears * 0.8) return 80;
+    if (userYears >= requiredYears * 0.6) return 60;
+    if (userYears >= requiredYears * 0.4) return 40;
+    return 20;
+  }
+
+  // Calculate project score
+  private calculateProjectScore(job: BlockchainJob, portfolio: any): number {
+    const relevantProjects = portfolio.projects?.filter((p: any) => 
+      job.requiredSkills.some(skill => p.technologies?.includes(skill))
+    ) || [];
+    
+    return Math.min(100, relevantProjects.length * 20);
+  }
+
+  // Calculate culture score
+  private calculateCultureScore(companyValues: string[], userProfile: any): number {
+    // Simple culture fit calculation
+    const userValues = userProfile.values || [];
+    const matches = companyValues.filter(value => userValues.includes(value));
+    
+    return Math.round((matches.length / companyValues.length) * 100);
+  }
+
+  // Assess salary fit
+  private assessSalaryFit(job: BlockchainJob, preferences: JobPreferences): SalaryFit {
+    const midpoint = (job.salaryMin + job.salaryMax) / 2;
+    const userExpectation = preferences.minSalary || midpoint;
+    
+    let fit: 'below' | 'within' | 'above' = 'within';
+    if (userExpectation > job.salaryMax) fit = 'below';
+    else if (userExpectation < job.salaryMin) fit = 'above';
+    
+    return {
+      fit,
+      salaryRange: `$${job.salaryMin.toLocaleString()} - $${job.salaryMax.toLocaleString()}`,
+      percentMatch: Math.min(100, Math.max(0, 100 - Math.abs(midpoint - userExpectation) / midpoint * 100))
+    };
+  }
+
+  // Calculate growth potential
+  private calculateGrowthPotential(job: BlockchainJob, userProfile: any): number {
+    let score = 50; // Base score
+    
+    // Higher potential for roles slightly above current level
+    if (job.seniorityLevel === 'mid' && userProfile.level === 'junior') score += 30;
+    if (job.seniorityLevel === 'senior' && userProfile.level === 'mid') score += 30;
+    
+    // Consider company size and industry
+    if (job.companySize === 'startup') score += 20;
+    
+    return Math.min(100, score);
+  }
+
+  // Calculate application readiness
+  private calculateApplicationReadiness(match: JobMatch, portfolio: any): ApplicationReadiness {
+    const isReady = match.matchScore >= 60 && portfolio.projects?.length > 0;
+    const missingRequirements: string[] = [];
+    
+    if (match.matchScore < 60) {
+      missingRequirements.push('Improve skill match');
+    }
+    if (!portfolio.projects?.length) {
+      missingRequirements.push('Add portfolio projects');
+    }
+    
+    return {
+      isReady,
+      missingRequirements,
+      recommendedActions: missingRequirements.map(req => `Action: ${req}`),
+      estimatedPrepTime: missingRequirements.length * 7 // days
+    };
+  }
+
+  // Generate match reasons
+  private generateMatchReasons(job: BlockchainJob, scores: any): string[] {
+    const reasons: string[] = [];
+    
+    if (scores.skillScore >= 80) {
+      reasons.push('Strong skill alignment with job requirements');
+    }
+    if (scores.projectScore >= 60) {
+      reasons.push('Relevant project experience');
+    }
+    if (scores.cultureScore >= 70) {
+      reasons.push('Good culture fit with company values');
+    }
+    
+    return reasons;
+  }
+
+  // Identify strengths
+  private identifyStrengths(scores: any): string[] {
+    const strengths: string[] = [];
+    
+    if (scores.skillScore >= 80) strengths.push('Technical skills');
+    if (scores.experienceScore >= 80) strengths.push('Industry experience');
+    if (scores.projectScore >= 80) strengths.push('Project portfolio');
+    if (scores.cultureScore >= 80) strengths.push('Culture alignment');
+    
+    return strengths;
+  }
+
+  // Identify growth areas
+  private identifyGrowthAreas(job: BlockchainJob, userSkills: Record<string, number>): string[] {
+    const areas: string[] = [];
+    
+    job.requiredSkills.forEach(skill => {
+      const userLevel = userSkills[skill.toLowerCase()] || 0;
+      if (userLevel < 60) {
+        areas.push(skill);
+      }
+    });
+    
+    return areas;
+  }
+
+  // Get skill evidence
+  private getSkillEvidence(skill: string, portfolio: any): any[] {
+    const evidence = [];
+    
+    // Find projects using this skill
+    const projects = portfolio.projects?.filter((p: any) => 
+      p.technologies?.includes(skill)
+    ) || [];
+    
+    evidence.push(...projects.map((p: any) => ({
+      type: 'project',
+      title: p.name,
+      description: p.description
+    })));
+    
+    return evidence;
+  }
+
+  // Get relevant projects
+  private getRelevantProjects(requiredSkills: string[], portfolio: any): any[] {
+    return portfolio.projects?.filter((project: any) => 
+      requiredSkills.some(skill => 
+        project.technologies?.includes(skill)
+      )
+    ) || [];
+  }
+
+  // Get relevant certifications
+  private getRelevantCertifications(job: BlockchainJob): any[] {
+    // Map job requirements to relevant certifications
+    const certMap: Record<string, string[]> = {
+      'solidity': ['Certified Solidity Developer', 'ConsenSys Academy'],
+      'security': ['Smart Contract Auditor', 'Security+ Certification'],
+      'web3': ['Web3 Developer Certification', 'Ethereum Developer']
+    };
+    
+    const certs: string[] = [];
+    job.requiredSkills.forEach(skill => {
+      const skillCerts = certMap[skill.toLowerCase()];
+      if (skillCerts) {
+        certs.push(...skillCerts);
+      }
+    });
+    
+    return [...new Set(certs)].map(cert => ({
+      name: cert,
+      relevance: 'high',
+      provider: 'Various'
+    }));
+  }
+
+  // Get projects for skills
+  private getProjectsForSkills(skills: string[]): any[] {
+    const projectIdeas = {
+      'solidity': ['Build a DeFi protocol', 'Create an NFT marketplace'],
+      'security': ['Audit a smart contract', 'Build a security scanner'],
+      'web3': ['Create a dApp frontend', 'Build a web3 wallet']
+    };
+    
+    const projects: any[] = [];
+    skills.forEach(skill => {
+      const ideas = projectIdeas[skill.toLowerCase()] || [];
+      ideas.forEach(idea => {
+        projects.push({
+          title: idea,
+          skill: skill,
+          difficulty: 'intermediate',
+          estimatedTime: '2-4 weeks'
+        });
+      });
+    });
+    
+    return projects;
+  }
+
+  // Get learning resources
+  private getLearningResources(skills: string[]): any[] {
+    const resources: any[] = [];
+    
+    skills.forEach(skill => {
+      resources.push({
+        skill,
+        type: 'course',
+        title: `Master ${skill}`,
+        provider: 'Learning Platform',
+        duration: '4 weeks'
+      });
+    });
+    
+    return resources;
+  }
+
+  // Get networking opportunities
+  private getNetworkingOpportunities(industry: string): any[] {
+    return [
+      {
+        type: 'conference',
+        name: `${industry} Summit 2024`,
+        relevance: 'high'
+      },
+      {
+        type: 'meetup',
+        name: `Local ${industry} Developers`,
+        relevance: 'medium'
+      },
+      {
+        type: 'online',
+        name: `${industry} Discord Community`,
+        relevance: 'high'
+      }
+    ];
+  }
+
+  // Generate milestones
+  private generateMilestones(currentLevel: string, targetLevel: string): any[] {
+    const milestones = [];
+    
+    if (currentLevel === 'junior' && targetLevel === 'mid') {
+      milestones.push(
+        { week: 2, goal: 'Complete advanced Solidity course' },
+        { week: 4, goal: 'Build first DeFi project' },
+        { week: 6, goal: 'Contribute to open source' },
+        { week: 8, goal: 'Deploy to mainnet' }
+      );
+    }
+    
+    return milestones;
+  }
+
+  // Assess current level
+  private assessCurrentLevel(profile: any): string {
+    const avgSkill = Object.values(profile.skillLevels).reduce((a: number, b: number) => a + b, 0) / 
+                     Object.keys(profile.skillLevels).length;
+    
+    if (avgSkill < 30) return 'junior';
+    if (avgSkill < 70) return 'mid';
+    return 'senior';
+  }
+
+  // Estimate interview success
+  private estimateInterviewSuccess(match: JobMatch, preparation: any): number {
+    let successRate = match.matchScore;
+    
+    // Adjust based on preparation
+    if (preparation.mockInterviews > 3) successRate += 10;
+    if (preparation.companyResearch) successRate += 5;
+    if (preparation.technicalPractice) successRate += 10;
+    
+    return Math.min(100, successRate);
+  }
+
+  // Update matching algorithm
+  private async updateMatchingAlgorithm(userId: string, feedback: any): Promise<void> {
+    // Store feedback for algorithm improvement
+    const userFeedback = this.userFeedback.get(userId) || [];
+    userFeedback.push({
+      timestamp: new Date(),
+      feedback,
+      outcome: feedback.hired ? 'success' : 'continue'
+    });
+    
+    this.userFeedback.set(userId, userFeedback);
+    console.log(`📊 Updated matching algorithm with user feedback`);
+  }
+
+  // Get job match by ID
+  private async getJobMatch(userId: string, jobId: string): Promise<JobMatch | null> {
+    const job = this.jobListings.get(jobId);
+    if (!job) return null;
+    
+    const profile = await adaptiveLearningEngine.analyzeUserPerformance(userId);
+    const portfolio = await this.getUserPortfolio(userId);
+    const skillAssessment = await this.getSkillAssessment(userId);
+    
+    return this.calculateJobMatch(userId, job, profile, portfolio, skillAssessment);
+  }
 }
 
 interface JobPreferences {
   location?: string;
   remote?: boolean;
   salaryMin?: number;
+  minSalary?: number;
   experienceLevel?: string[];
   categories?: string[];
-  companySize?: string[];
+  companySize?: string;
+  industries?: string[];
 }
 
 interface CareerRecommendation {
@@ -375,6 +739,19 @@ interface CareerRecommendation {
   priority: 'low' | 'medium' | 'high';
   timeframe: string;
   resources: string[];
+}
+
+interface SalaryFit {
+  fit: 'below' | 'within' | 'above';
+  salaryRange: string;
+  percentMatch: number;
+}
+
+interface ApplicationReadiness {
+  isReady: boolean;
+  missingRequirements: string[];
+  recommendedActions: string[];
+  estimatedPrepTime: number;
 }
 
 export const jobMatchingEngine = new JobMatchingEngine();

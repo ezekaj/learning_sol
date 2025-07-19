@@ -7,7 +7,7 @@
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
-import { logger } from './logger';
+import { logger } from './simple-logger';
 import { env } from '@/lib/config/environment';
 
 /**

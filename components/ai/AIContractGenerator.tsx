@@ -15,7 +15,7 @@ interface ContractTemplate {
   category: 'token' | 'defi' | 'nft' | 'dao' | 'utility';
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   features: string[];
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 }
 
 interface GeneratedContract {

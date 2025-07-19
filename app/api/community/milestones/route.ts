@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CommunityMilestone } from '@/lib/community/types';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Mock community milestones data
 const mockMilestones: CommunityMilestone[] = [
@@ -95,7 +96,7 @@ const mockMilestones: CommunityMilestone[] = [
   }
 ];
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '5');
@@ -125,7 +126,7 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json(limitedMilestones);
   } catch (error) {
-    console.error('Error fetching community milestones:', error);
+    logger.error('Error fetching community milestones', error as Error);
     return NextResponse.json(
       { error: 'Failed to fetch community milestones' },
       { status: 500 }

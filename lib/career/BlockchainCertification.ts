@@ -84,11 +84,12 @@ export interface BlockchainCertificate {
 export class BlockchainCertification {
   private certifications: Map<string, Certification> = new Map();
   private attempts: Map<string, CertificationAttempt[]> = new Map();
-  private provider: ethers.Provider;
+  // Provider kept for future blockchain interactions
+  // private provider: ethers.Provider;
   private contract: ethers.Contract;
 
   constructor(provider: ethers.Provider, contractAddress: string, abi: any[]) {
-    this.provider = provider;
+    // this.provider = provider;
     this.contract = new ethers.Contract(contractAddress, abi, provider);
     this.initializeCertifications();
   }
@@ -436,12 +437,12 @@ export class BlockchainCertification {
     return ethers.keccak256(ethers.toUtf8Bytes(data));
   }
 
-  private async uploadToIPFS(metadata: any): Promise<string> {
+  private async uploadToIPFS(_metadata: any): Promise<string> {
     // Simplified IPFS upload - would use actual IPFS client
     return `ipfs://QmHash${Date.now()}`;
   }
 
-  private async mintCertificateNFT(recipient: string, metadataUri: string): Promise<string> {
+  private async mintCertificateNFT(_recipient: string, _metadataUri: string): Promise<string> {
     // Simplified NFT minting - would require actual contract interaction
     return `${Date.now()}`;
   }
@@ -449,6 +450,139 @@ export class BlockchainCertification {
   private findAttempt(userId: string, attemptId: string): CertificationAttempt | undefined {
     const userAttempts = this.attempts.get(userId) || [];
     return userAttempts.find(a => a.id === attemptId);
+  }
+
+  // Assess practical projects
+  private async assessPracticalProjects(userId: string, certification: Certification): Promise<number> {
+    // In production, would evaluate actual deployed contracts and projects
+    // For now, return a simulated score based on certification requirements
+    const baseScore = 70;
+    const bonus = Math.random() * 30;
+    return Math.round(baseScore + bonus);
+  }
+
+  // Generate project feedback
+  private generateProjectFeedback(score: number): string {
+    if (score >= 90) {
+      return 'Excellent practical implementation! Your projects demonstrate deep understanding.';
+    } else if (score >= 70) {
+      return 'Good project work. Consider adding more complex features to showcase advanced skills.';
+    } else if (score >= 50) {
+      return 'Adequate projects. Focus on completing more real-world implementations.';
+    }
+    return 'More practical experience needed. Build and deploy additional projects.';
+  }
+
+  // Get project evidence
+  private getProjectEvidence(userId: string): string[] {
+    // In production, would fetch actual project data
+    return [
+      'DeFi Protocol Implementation',
+      'NFT Marketplace Contract',
+      'DAO Governance System'
+    ];
+  }
+
+  // Assess code quality
+  private assessCodeQuality(profile: UserProfile): number {
+    // Calculate based on profile metrics
+    const qualityMetrics = profile.lastAnalysisScores;
+    const avgScore = Object.values(qualityMetrics).reduce((a, b) => a + b, 0) / 
+                     Object.keys(qualityMetrics).length;
+    return Math.round(avgScore);
+  }
+
+  // Generate code quality feedback
+  private generateCodeQualityFeedback(score: number): string {
+    if (score >= 90) {
+      return 'Exceptional code quality! Clean, efficient, and well-documented.';
+    } else if (score >= 70) {
+      return 'Good code quality. Minor improvements in documentation and optimization possible.';
+    } else if (score >= 50) {
+      return 'Acceptable code quality. Focus on best practices and code organization.';
+    }
+    return 'Code quality needs improvement. Review Solidity best practices.';
+  }
+
+  // Get code quality evidence
+  private getCodeQualityEvidence(profile: UserProfile): string[] {
+    const evidence: string[] = [];
+    
+    if (profile.lastAnalysisScores.security > 80) {
+      evidence.push('Strong security practices');
+    }
+    if (profile.lastAnalysisScores.gas > 80) {
+      evidence.push('Efficient gas optimization');
+    }
+    if (profile.totalProblems > 50) {
+      evidence.push(`Completed ${profile.totalProblems} coding challenges`);
+    }
+    
+    return evidence;
+  }
+
+  // Generate security feedback
+  private generateSecurityFeedback(score: number): string {
+    if (score >= 90) {
+      return 'Excellent security awareness! You understand and prevent common vulnerabilities.';
+    } else if (score >= 70) {
+      return 'Good security knowledge. Continue studying advanced attack vectors.';
+    } else if (score >= 50) {
+      return 'Basic security understanding. Focus on common vulnerabilities like reentrancy.';
+    }
+    return 'Security knowledge needs improvement. Study smart contract security patterns.';
+  }
+
+  // Get security evidence
+  private getSecurityEvidence(profile: UserProfile): string[] {
+    return [
+      'Reentrancy protection implemented',
+      'Access control patterns used',
+      'Input validation present'
+    ];
+  }
+
+  // Generate gas optimization feedback
+  private generateGasFeedback(score: number): string {
+    if (score >= 90) {
+      return 'Outstanding gas optimization! Your contracts are highly efficient.';
+    } else if (score >= 70) {
+      return 'Good gas efficiency. Consider advanced optimization techniques.';
+    } else if (score >= 50) {
+      return 'Acceptable gas usage. Study storage optimization patterns.';
+    }
+    return 'Gas optimization needed. Review common gas-saving techniques.';
+  }
+
+  // Get gas optimization evidence
+  private getGasEvidence(profile: UserProfile): string[] {
+    return [
+      'Efficient storage usage',
+      'Optimized loops',
+      'Minimal external calls'
+    ];
+  }
+
+  // Validate certificate metadata
+  private validateCertificateMetadata(metadata: any): boolean {
+    // Validate required fields
+    const requiredFields = ['name', 'description', 'image', 'attributes'];
+    return requiredFields.every(field => metadata.hasOwnProperty(field));
+  }
+
+  // Fetch metadata from IPFS or other storage
+  private async fetchMetadata(uri: string): Promise<any> {
+    // In production, would fetch from IPFS or other decentralized storage
+    // For now, return mock metadata
+    return {
+      name: 'Blockchain Developer Certificate',
+      description: 'Certified blockchain developer',
+      image: 'ipfs://...',
+      attributes: [
+        { trait_type: 'Level', value: 'Advanced' },
+        { trait_type: 'Score', value: '95' }
+      ]
+    };
   }
 }
 

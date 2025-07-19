@@ -2,25 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import {
-  Award,
-  Download,
-  Share2,
-  ExternalLink,
-  Calendar,
-  CheckCircle,
-  Clock,
-  Star,
-  Trophy,
-  Shield,
-  Zap,
-  BookOpen,
-  Code,
-  Users,
-  Globe,
-  Link as LinkIcon,
-  AlertCircle
-} from 'lucide-react';
+import { Award, Download, Share2, Calendar, CheckCircle, Clock, Star, Shield, BookOpen, Code, AlertCircle } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { GlassCard } from '@/components/ui/Glassmorphism';
 import { EnhancedButton } from '@/components/ui/EnhancedButton';
@@ -106,7 +88,7 @@ const mockCertificates: Certificate[] = [
 
 export default function CertificatesPage() {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
-  const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
+  const [_selectedCertificate, _setSelectedCertificate] = useState<Certificate | null>(null);
   const [filter, setFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -201,7 +183,7 @@ export default function CertificatesPage() {
   };
 
   return (
-    <ProtectedRoute requireAuth>
+    <ProtectedRoute permission={{ requireAuth: true }}>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
         <div className="max-w-7xl mx-auto">
           {/* Breadcrumbs */}
@@ -510,7 +492,7 @@ export default function CertificatesPage() {
               </p>
               {filter === 'all' && (
                 <EnhancedButton
-                  variant="primary"
+                  variant="default"
                   onClick={() => window.location.href = '/learn'}
                 >
                   Start Learning

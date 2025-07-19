@@ -2,10 +2,11 @@ import { NextRequest } from 'next/server';
 import { adminEndpoint } from '@/lib/api/middleware';
 import { ApiResponseBuilder } from '@/lib/api/response';
 import { validateBody } from '@/lib/api/validation';
-import { MiddlewareContext } from '@/lib/api/types';
+import { MiddlewareContext } from '@/lib/api/middleware';
 import { maintenanceScheduler, MaintenanceSchedule } from '@/lib/database/maintenance';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Validation schemas
 const ScheduleCreateSchema = z.object({
@@ -36,22 +37,22 @@ const ScheduleCreateSchema = z.object({
   })
 });
 
-const ScheduleUpdateSchema = ScheduleCreateSchema.partial();
+// const ScheduleUpdateSchema = ScheduleCreateSchema.partial();
 
 // GET /api/v1/admin/maintenance/schedules - List maintenance schedules
-export const GET = adminEndpoint(async (request: NextRequest, context: MiddlewareContext) => {
+export const GET = adminEndpoint(async (_request: NextRequest, _context: MiddlewareContext) => {
   try {
     const schedules = maintenanceScheduler.getSchedules();
     
     return ApiResponseBuilder.success(schedules);
   } catch (error) {
-    console.error('Get maintenance schedules error:', error);
+    logger.error('Get maintenance schedules error', error as Error);
     return ApiResponseBuilder.internalServerError('Failed to get maintenance schedules');
   }
 });
 
 // POST /api/v1/admin/maintenance/schedules - Create maintenance schedule
-export const POST = adminEndpoint(async (request: NextRequest, context: MiddlewareContext) => {
+export const POST = adminEndpoint(async (request: NextRequest, _context: MiddlewareContext) => {
   try {
     const body = await validateBody(ScheduleCreateSchema, request);
 
@@ -61,16 +62,27 @@ export const POST = adminEndpoint(async (request: NextRequest, context: Middlewa
       description: body.description,
       operations: body.operations,
       schedule: body.schedule,
-      enabled: body.enabled,
-      options: body.options,
-      notifications: body.notifications
+      enabled: body.enabled || true,
+      options: {
+        dryRun: body.options?.dryRun || false,
+        force: body.options?.force || false,
+        batchSize: body.options?.batchSize || 1000,
+        maxExecutionTime: body.options?.maxExecutionTime || 1800
+      },
+      notifications: {
+        onSuccess: body.notifications?.onSuccess || false,
+        onFailure: body.notifications?.onFailure || true,
+        onWarnings: body.notifications?.onWarnings || true,
+        recipients: body.notifications?.recipients || [],
+        channels: body.notifications?.channels || []
+      }
     };
 
     await maintenanceScheduler.addSchedule(schedule);
 
     return ApiResponseBuilder.created(schedule);
   } catch (error) {
-    console.error('Create maintenance schedule error:', error);
+    logger.error('Create maintenance schedule error', error as Error);
     
     if (error instanceof Error) {
       return ApiResponseBuilder.validationError(error.message, []);

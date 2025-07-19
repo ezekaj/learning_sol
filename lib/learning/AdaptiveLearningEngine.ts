@@ -103,6 +103,22 @@ export interface PerformanceMetrics {
   retention: number;
 }
 
+export interface LearningResource {
+  id: string;
+  type: 'article' | 'video' | 'tutorial' | 'exercise';
+  title: string;
+  url: string;
+  difficulty: number;
+  estimatedTime: number;
+}
+
+export interface TestCase {
+  id: string;
+  input: string;
+  expectedOutput: string;
+  description: string;
+}
+
 export class AdaptiveLearningEngine {
   private readonly PERFORMANCE_WINDOW = 10; // Last 10 sessions
   private readonly MIN_SESSIONS_FOR_ADAPTATION = 3;
@@ -384,7 +400,7 @@ export class AdaptiveLearningEngine {
   }
 
   private determineLearningPersonality(sessions: LearningSession[]): 'visual' | 'analytical' | 'practical' | 'social' {
-    if (sessions.length === 0) return 'adaptive';
+    if (sessions.length === 0) return 'analytical';
     
     // Analyze session patterns to determine personality
     const avgHintsUsed = sessions.reduce((sum, s) => sum + s.hintsUsed, 0) / sessions.length;
@@ -462,7 +478,7 @@ export class AdaptiveLearningEngine {
   // Database methods for concept mastery tracking
   private async getConceptLevel(userId: string, concept: string): Promise<number> {
     return performanceOptimizer.optimizeDBQuery(async () => {
-      const aiContext = await prisma.aILearningContext.findUnique({
+      const aiContext = await prisma.aiLearningContext.findUnique({
         where: { userId },
         select: { conceptMastery: true } // Only select needed field
       });
@@ -478,7 +494,7 @@ export class AdaptiveLearningEngine {
 
   private async updateConceptLevel(userId: string, concept: string, level: number): Promise<void> {
     return performanceOptimizer.optimizeDBQuery(async () => {
-      const aiContext = await prisma.aILearningContext.findUnique({
+      const aiContext = await prisma.aiLearningContext.findUnique({
         where: { userId },
         select: { conceptMastery: true }
       });
@@ -490,7 +506,7 @@ export class AdaptiveLearningEngine {
 
       conceptMastery[concept] = level;
 
-      await prisma.aILearningContext.upsert({
+      await prisma.aiLearningContext.upsert({
         where: { userId },
         update: {
           conceptMastery,
@@ -536,7 +552,7 @@ export class AdaptiveLearningEngine {
       });
 
       // Update user's strong areas in AI context
-      const aiContext = await prisma.aILearningContext.findUnique({
+      const aiContext = await prisma.aiLearningContext.findUnique({
         where: { userId }
       });
 
@@ -545,7 +561,7 @@ export class AdaptiveLearningEngine {
         if (!strongAreas.includes(concept)) {
           strongAreas.push(concept);
 
-          await prisma.aILearningContext.update({
+          await prisma.aiLearningContext.update({
             where: { userId },
             data: {
               strongAreas: JSON.stringify(strongAreas),
@@ -560,6 +576,279 @@ export class AdaptiveLearningEngine {
       console.error(`Error recording concept mastery for ${userId}:${concept}:`, error);
       throw error;
     }
+  }
+
+  // Missing method implementations
+  private async getRecentSessions(userId: string): Promise<LearningSession[]> {
+    const sessions = await prisma.learningSession.findMany({
+      where: { userId },
+      orderBy: { startTime: 'desc' },
+      take: this.PERFORMANCE_WINDOW
+    });
+    
+    return sessions.map(session => ({
+      id: session.id,
+      userId: session.userId,
+      startTime: session.startTime,
+      endTime: session.endTime || undefined,
+      conceptsCovered: session.conceptsCovered,
+      exercisesCompleted: session.exercisesCompleted,
+      averageScore: session.averageScore,
+      difficultyAdjustments: session.difficultyAdjustments,
+      hintsUsed: session.hintsUsed,
+      timeSpent: session.timeSpent,
+      frustrationLevel: session.frustrationLevel,
+      engagementLevel: session.engagementLevel
+    }));
+  }
+
+  private async getAnalysisHistory(userId: string): Promise<any[]> {
+    // Implementation would fetch analysis history from database
+    return [];
+  }
+
+  private async calculateSkillLevels(userId: string, sessions: LearningSession[]): Promise<Record<string, number>> {
+    const skillLevels: Record<string, number> = {};
+    
+    // Calculate skill levels based on session performance
+    sessions.forEach(session => {
+      session.conceptsCovered.forEach(concept => {
+        if (!skillLevels[concept]) {
+          skillLevels[concept] = 0;
+        }
+        // Simple calculation based on average score
+        skillLevels[concept] = Math.min(100, skillLevels[concept] + (session.averageScore * 0.1));
+      });
+    });
+    
+    return skillLevels;
+  }
+
+  private identifyStrengthAreas(analysisHistory: any[]): string[] {
+    const strengths = new Map<string, number>();
+    
+    analysisHistory.forEach(analysis => {
+      // Count successful implementations
+      if (analysis.overallScore > 80) {
+        analysis.concepts?.forEach((concept: string) => {
+          strengths.set(concept, (strengths.get(concept) || 0) + 1);
+        });
+      }
+    });
+    
+    // Return top strength areas
+    return Array.from(strengths.entries())
+      .filter(([_, count]) => count >= 3)
+      .sort(([_, a], [__, b]) => b - a)
+      .slice(0, 5)
+      .map(([concept, _]) => concept);
+  }
+
+  private calculateSessionParameters(sessions: LearningSession[]): { attentionSpan: number; optimalSessionLength: number } {
+    if (sessions.length === 0) {
+      return { attentionSpan: 30, optimalSessionLength: 45 };
+    }
+    
+    const avgTimeSpent = sessions.reduce((sum, s) => sum + s.timeSpent, 0) / sessions.length;
+    const avgEngagement = sessions.reduce((sum, s) => sum + s.engagementLevel, 0) / sessions.length;
+    
+    // Calculate optimal parameters based on engagement and time spent
+    const attentionSpan = Math.min(60, Math.max(15, avgTimeSpent * (avgEngagement / 10)));
+    const optimalSessionLength = Math.min(90, Math.max(30, attentionSpan * 1.5));
+    
+    return { attentionSpan, optimalSessionLength };
+  }
+
+  private getLatestScores(analysisHistory: any[]): { security: number; gasOptimization: number; codeQuality: number } {
+    if (analysisHistory.length === 0) {
+      return { security: 0, gasOptimization: 0, codeQuality: 0 };
+    }
+    
+    const latest = analysisHistory[analysisHistory.length - 1];
+    return {
+      security: latest.securityScore || 0,
+      gasOptimization: latest.gasOptimizationScore || 0,
+      codeQuality: latest.codeQualityScore || 0
+    };
+  }
+
+  private async saveLearningProfile(profile: LearningProfile): Promise<void> {
+    await prisma.userLearningProfile.upsert({
+      where: { userId: profile.userId },
+      update: {
+        skillLevels: profile.skillLevels,
+        learningVelocity: profile.learningVelocity,
+        preferredDifficulty: profile.preferredDifficulty,
+        weaknessPatterns: profile.weaknessPatterns,
+        strengthAreas: profile.strengthAreas,
+        lastAnalysisScores: profile.lastAnalysisScores,
+        personalityType: profile.personalityType,
+        attentionSpan: profile.attentionSpan,
+        optimalSessionLength: profile.optimalSessionLength,
+        updatedAt: new Date()
+      },
+      create: {
+        userId: profile.userId,
+        skillLevels: profile.skillLevels,
+        learningVelocity: profile.learningVelocity,
+        preferredDifficulty: profile.preferredDifficulty,
+        weaknessPatterns: profile.weaknessPatterns,
+        strengthAreas: profile.strengthAreas,
+        lastAnalysisScores: profile.lastAnalysisScores,
+        personalityType: profile.personalityType,
+        attentionSpan: profile.attentionSpan,
+        optimalSessionLength: profile.optimalSessionLength
+      }
+    });
+  }
+
+  private async getAdaptationHistory(userId: string): Promise<AdaptationRecord[]> {
+    // Implementation would fetch adaptation history from database
+    return [];
+  }
+
+  private async saveLearningPath(path: LearningPath): Promise<void> {
+    // Implementation would save learning path to database
+  }
+
+  private async selectNextConcepts(profile: LearningProfile): Promise<ConceptNode[]> {
+    // Implementation would select appropriate concepts based on profile
+    return [];
+  }
+
+  private createMilestones(conceptNodes: ConceptNode[], profile: LearningProfile): Milestone[] {
+    return conceptNodes.map((concept, index) => ({
+      id: `milestone-${index}`,
+      name: `Master ${concept.name}`,
+      description: `Achieve mastery in ${concept.name}`,
+      requiredConcepts: [concept.id],
+      reward: 'Concept mastery badge',
+      estimatedCompletion: new Date(Date.now() + (index + 1) * 7 * 24 * 60 * 60 * 1000) // Weekly milestones
+    }));
+  }
+
+  private calculateCurrentLevel(skillLevels: Record<string, number>): number {
+    const levels = Object.values(skillLevels);
+    return levels.length > 0 ? levels.reduce((sum, level) => sum + level, 0) / levels.length : 0;
+  }
+
+  private calculateRecommendedDifficulty(profile: LearningProfile): number {
+    const avgSkillLevel = this.calculateCurrentLevel(profile.skillLevels);
+    // Convert skill level (0-100) to difficulty (0-1)
+    return Math.max(0.1, Math.min(1.0, avgSkillLevel / 100));
+  }
+
+  private estimateCompletionTime(conceptNodes: ConceptNode[], profile: LearningProfile): number {
+    const totalTime = conceptNodes.reduce((sum, concept) => sum + concept.estimatedTime, 0);
+    // Adjust based on learning velocity
+    return Math.round(totalTime / profile.learningVelocity);
+  }
+
+  private parseExerciseFromAI(content: string, concept: ConceptNode): Exercise {
+    return {
+      id: `exercise-${Date.now()}`,
+      type: 'coding',
+      concept: concept.name,
+      difficulty: concept.difficulty,
+      estimatedTime: concept.estimatedTime,
+      content: content,
+      hints: []
+    };
+  }
+
+  private async evaluateAdaptationTriggers(userId: string): Promise<void> {
+    // Implementation would check if adaptation is needed based on recent performance
+  }
+
+  private calculateMasteryScore(performance: PerformanceMetrics): number {
+    // Weighted average of performance metrics
+    return (
+      performance.accuracy * 0.3 +
+      performance.consistency * 0.25 +
+      performance.improvement * 0.2 +
+      performance.retention * 0.15 +
+      performance.speed * 0.1
+    );
+  }
+
+  private async getLearningProfile(userId: string): Promise<LearningProfile> {
+    const profile = await prisma.userLearningProfile.findUnique({
+      where: { userId }
+    });
+    
+    if (!profile) {
+      // Return default profile
+      return {
+        userId,
+        skillLevels: {},
+        learningVelocity: 1.0,
+        preferredDifficulty: 'adaptive',
+        weaknessPatterns: [],
+        strengthAreas: [],
+        lastAnalysisScores: { security: 0, gasOptimization: 0, codeQuality: 0 },
+        personalityType: 'analytical',
+        attentionSpan: 30,
+        optimalSessionLength: 45,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
+    
+    return {
+      userId: profile.userId,
+      skillLevels: profile.skillLevels as Record<string, number>,
+      learningVelocity: profile.learningVelocity,
+      preferredDifficulty: profile.preferredDifficulty as 'gradual' | 'challenge' | 'adaptive',
+      weaknessPatterns: profile.weaknessPatterns,
+      strengthAreas: profile.strengthAreas,
+      lastAnalysisScores: profile.lastAnalysisScores as { security: number; gasOptimization: number; codeQuality: number },
+      personalityType: profile.personalityType as 'visual' | 'analytical' | 'practical' | 'social',
+      attentionSpan: profile.attentionSpan,
+      optimalSessionLength: profile.optimalSessionLength,
+      createdAt: profile.createdAt,
+      updatedAt: profile.updatedAt
+    };
+  }
+
+  private getTargetAccuracy(difficulty: string): number {
+    switch (difficulty) {
+      case 'gradual': return 0.8;
+      case 'challenge': return 0.6;
+      case 'adaptive': return 0.7;
+      default: return 0.7;
+    }
+  }
+
+  private async recordAdaptation(userId: string, oldDifficulty: number, newDifficulty: number, performance: PerformanceMetrics): Promise<void> {
+    const adaptationRecord: AdaptationRecord = {
+      timestamp: new Date(),
+      trigger: 'performance-based',
+      oldDifficulty,
+      newDifficulty,
+      reason: `Adjusted based on accuracy: ${performance.accuracy}`,
+      performance: performance.accuracy
+    };
+    
+    // Implementation would save adaptation record to database
+  }
+
+  private async analyzeTalent(userId: string, analysisType: string): Promise<any> {
+    // Implementation would analyze talent based on type
+    return {
+      userId,
+      analysisType,
+      score: 85,
+      details: {}
+    };
+  }
+
+  private generateBulkAnalysisSummary(results: any[]): any {
+    return {
+      totalAnalyzed: results.length,
+      averageScore: results.reduce((sum, r) => sum + r.score, 0) / results.length,
+      topPerformers: results.filter(r => r.score > 90).length,
+      needsImprovement: results.filter(r => r.score < 70).length
+    };
   }
 }
 

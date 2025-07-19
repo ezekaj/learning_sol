@@ -6,17 +6,16 @@ import {
   Lock, 
   Trophy, 
   Star, 
-  Clock, 
   CheckCircle, 
   Target,
   Gift,
   Zap,
   Calendar
 } from 'lucide-react';
-import { Achievement, UserAchievement, AchievementStatus } from '@/lib/achievements/types';
+import { Achievement, UserAchievement } from '@/lib/achievements/types';
 import { ACHIEVEMENT_RARITIES } from '@/lib/achievements/data';
 import { GlassCard } from '@/components/ui/Glassmorphism';
-import { EnhancedButton } from '@/components/ui/EnhancedButton';
+;
 import { cn } from '@/lib/utils';
 
 interface AchievementCardProps {

@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
+import { CollaborationType, CollaborationStatus, User } from '@prisma/client';
+import { CollaborationWithDetails, TransformedCollaboration, CollaborationParticipant } from '../types';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -26,8 +29,8 @@ export async function GET(_request: NextRequest) {
             id: session.user.id,
           },
         },
-        ...(type && { type: type as any }),
-        status: status as any,
+        ...(type && { type: type as CollaborationType }),
+        status: status as CollaborationStatus,
       },
       include: {
         participants: {
@@ -56,13 +59,13 @@ export async function GET(_request: NextRequest) {
     });
 
     // Transform collaborations to include missing properties for frontend compatibility
-    const transformedCollaborations = collaborations.map((collab: any) => ({
+    const transformedCollaborations = collaborations.map((collab: CollaborationWithDetails): TransformedCollaboration => ({
       ...collab,
       maxParticipants: collab.maxParticipants || 4,
       language: 'solidity',
-      code: collab.code || '// Start coding together!\n',
+      code: (collab as any).code || '// Start coding together!\n',
       isActive: collab.status === 'ACTIVE',
-      participants: collab.participants.map((p: any) => ({
+      participants: collab.participants.map((p: CollaborationParticipant) => ({
         ...p,
         role: 'STUDENT' // Default role for collaboration participants
       }))
@@ -70,12 +73,12 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json({ collaborations: transformedCollaborations });
   } catch (error) {
-    console.error('Error fetching collaborations:', error);
+    logger.error('Error fetching collaborations', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -114,12 +117,12 @@ export async function POST(_request: NextRequest) {
 
     return NextResponse.json({ collaboration });
   } catch (error) {
-    console.error('Error creating collaboration:', error);
+    logger.error('Error creating collaboration', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function PATCH(_request: NextRequest) {
+export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -145,7 +148,7 @@ export async function PATCH(_request: NextRequest) {
       return NextResponse.json({ error: 'Collaboration not found' }, { status: 404 });
     }
 
-    const isParticipant = collaboration.participants.some((p: any) => p.id === session.user.id);
+    const isParticipant = collaboration.participants.some((p: User) => p.id === session.user.id);
     
     if (!isParticipant) {
       return NextResponse.json({ error: 'Not authorized to modify this collaboration' }, { status: 403 });
@@ -225,7 +228,7 @@ export async function PATCH(_request: NextRequest) {
 
     return NextResponse.json({ collaboration: updatedCollaboration });
   } catch (error) {
-    console.error('Error updating collaboration:', error);
+    logger.error('Error updating collaboration', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

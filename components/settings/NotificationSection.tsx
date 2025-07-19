@@ -2,26 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Bell,
-  Mail,
-  Smartphone,
-  Monitor,
-  Volume2,
-  VolumeX,
-  Clock,
-  Settings,
-  Check,
-  X,
-  AlertCircle,
-  Info,
-  Zap,
-  Users,
-  BookOpen,
-  Award,
-  Shield,
-  MessageSquare
-} from 'lucide-react';
+import { Bell, Mail, Smartphone, Monitor, Clock, Settings, AlertCircle, Info, Zap, Users, BookOpen, Award, Shield } from 'lucide-react';
 import { NotificationSettings, SettingsValidationError } from '@/types/settings';
 import { GlassContainer } from '@/components/ui/Glassmorphism';
 import { cn } from '@/lib/utils';
@@ -36,7 +17,7 @@ export interface NotificationSectionProps {
 export function NotificationSection({
   notifications,
   onUpdate,
-  validationErrors = [],
+  // validationErrors = [],
   className
 }: NotificationSectionProps) {
   const [activeTab, setActiveTab] = useState<'email' | 'push' | 'inApp'>('email');
@@ -56,9 +37,10 @@ export function NotificationSection({
   }, [notifications, onUpdate]);
 
   // Get validation error for a specific field
-  const getFieldError = useCallback((field: string) => {
-    return validationErrors.find(error => error.field === field);
-  }, [validationErrors]);
+  // Validation errors are displayed inline
+  // const getFieldError = useCallback((field: string) => {
+  //   return validationErrors.find(error => error.field === field);
+  // }, [validationErrors]);
 
   return (
     <GlassContainer

@@ -2,25 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  History,
-  X,
-  Search,
-  Filter,
-  Trash2,
-  CheckCircle,
-  AlertCircle,
-  Info,
-  Trophy,
-  Star,
-  Zap,
-  Users,
-  Bell,
-  Settings,
-  Shield,
-  Calendar,
-  Clock
-} from 'lucide-react';
+import { History, X, Search, Trash2, CheckCircle, AlertCircle, Info, Trophy, Star, Zap, Users, Bell, Settings, Shield, Clock } from 'lucide-react';
 import { GlassContainer } from './Glassmorphism';
 import { useNotifications, Notification, NotificationType } from './NotificationSystem';
 import { cn } from '@/lib/utils';

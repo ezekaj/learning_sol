@@ -7,7 +7,7 @@
 
 'use client';
 
-import React, { ComponentType, ReactElement, forwardRef } from 'react';
+import React, { ComponentType, forwardRef } from 'react';
 import { 
   PageErrorBoundary, 
   FeatureErrorBoundary, 
@@ -45,7 +45,8 @@ export function withPageErrorBoundary<P extends object>(
   config: ErrorBoundaryConfig = {}
 ) {
   const WrappedComponent = forwardRef<unknown, P>((props, ref) => {
-    const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
+    // Error handling is done by the specialized error boundary
+    // const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
       logger.error(`Page Error Boundary: ${config.name || Component.displayName || Component.name}`, {
         error: error.message,
         stack: error.stack,
@@ -55,7 +56,7 @@ export function withPageErrorBoundary<P extends object>(
       });
       
       config.onError?.(error, errorInfo);
-    };
+    // };
 
     return (
       <PageErrorBoundary
@@ -80,7 +81,8 @@ export function withFeatureErrorBoundary<P extends object>(
   config: ErrorBoundaryConfig = {}
 ) {
   const WrappedComponent = forwardRef<unknown, P>((props, ref) => {
-    const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
+    // Error handling is done by the specialized error boundary
+    // const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
       logger.error(`Feature Error Boundary: ${config.name || Component.displayName || Component.name}`, {
         error: error.message,
         stack: error.stack,
@@ -90,7 +92,7 @@ export function withFeatureErrorBoundary<P extends object>(
       });
       
       config.onError?.(error, errorInfo);
-    };
+    // };
 
     return (
       <FeatureErrorBoundary
@@ -117,7 +119,8 @@ export function withComponentErrorBoundary<P extends object>(
   config: ErrorBoundaryConfig = {}
 ) {
   const WrappedComponent = forwardRef<unknown, P>((props, ref) => {
-    const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
+    // Error handling is done by the specialized error boundary
+    // const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
       logger.error(`Component Error Boundary: ${config.name || Component.displayName || Component.name}`, {
         error: error.message,
         stack: error.stack,
@@ -127,7 +130,7 @@ export function withComponentErrorBoundary<P extends object>(
       });
       
       config.onError?.(error, errorInfo);
-    };
+    // };
 
     return (
       <ComponentErrorBoundary
@@ -154,7 +157,8 @@ export function withCodeEditorErrorBoundary<P extends object>(
   config: ErrorBoundaryConfig = {}
 ) {
   const WrappedComponent = forwardRef<unknown, P>((props, ref) => {
-    const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
+    // Error handling is done by the specialized error boundary
+    // const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
       logger.error(`Code Editor Error Boundary: ${config.name || Component.displayName || Component.name}`, {
         error: error.message,
         stack: error.stack,
@@ -164,7 +168,7 @@ export function withCodeEditorErrorBoundary<P extends object>(
       });
       
       config.onError?.(error, errorInfo);
-    };
+    // };
 
     return (
       <CodeEditorErrorBoundary>
@@ -185,7 +189,8 @@ export function withLearningModuleErrorBoundary<P extends object>(
   config: ErrorBoundaryConfig & { moduleId?: string; lessonId?: string } = {}
 ) {
   const WrappedComponent = forwardRef<unknown, P>((props, ref) => {
-    const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
+    // Error handling is done by the specialized error boundary
+    // const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
       logger.error(`Learning Module Error Boundary: ${config.name || Component.displayName || Component.name}`, {
         error: error.message,
         stack: error.stack,
@@ -197,7 +202,7 @@ export function withLearningModuleErrorBoundary<P extends object>(
       });
       
       config.onError?.(error, errorInfo);
-    };
+    // };
 
     return (
       <LearningModuleErrorBoundary 
@@ -221,7 +226,8 @@ export function withAuthErrorBoundary<P extends object>(
   config: ErrorBoundaryConfig = {}
 ) {
   const WrappedComponent = forwardRef<unknown, P>((props, ref) => {
-    const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
+    // Error handling is done by the specialized error boundary
+    // const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
       logger.error(`Auth Error Boundary: ${config.name || Component.displayName || Component.name}`, {
         error: error.message,
         stack: error.stack,
@@ -231,7 +237,7 @@ export function withAuthErrorBoundary<P extends object>(
       });
       
       config.onError?.(error, errorInfo);
-    };
+    // };
 
     return (
       <AuthErrorBoundary>
@@ -255,7 +261,8 @@ export function withAsyncErrorBoundary<P extends object>(
   } = {}
 ) {
   const WrappedComponent = forwardRef<unknown, P>((props, ref) => {
-    const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
+    // Error handling is done by the specialized error boundary
+    // const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
       logger.error(`Async Error Boundary: ${config.name || Component.displayName || Component.name}`, {
         error: error.message,
         stack: error.stack,
@@ -266,7 +273,7 @@ export function withAsyncErrorBoundary<P extends object>(
       });
       
       config.onError?.(error, errorInfo);
-    };
+    // };
 
     return (
       <AsyncComponentErrorBoundary 

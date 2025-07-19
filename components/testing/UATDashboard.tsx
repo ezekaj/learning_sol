@@ -23,7 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { uatScenarios, uatSuccessCriteria, type UATSession } from '@/lib/testing/uatScenarios';
+import { uatScenarios, uatSuccessCriteria } from '@/lib/testing/uatScenarios';
 // import { useToast } from '@/hooks/use-toast'; // Temporarily disabled for build
 
 /**

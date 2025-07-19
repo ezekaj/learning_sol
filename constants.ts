@@ -131,7 +131,7 @@ This simple contract demonstrates the basic syntax for defining state variables 
    *   **Types of Imports:**
         *   Local files: \`import "./AnotherContract.sol";\`
         *   NPM packages: \`import "@openzeppelin/contracts/access/Ownable.sol";\` (requires installation via npm/yarn).
-        *   Importing specific symbols: \`import {SpecificFunction, SpecificStruct} from "./MyLibrary.sol";\`
+        *   Importing specific symbols: \`;\`
         *   Aliasing imports: \`import "./MyLibrary.sol" as Lib;\`
 
 ### 4. Contract Definition

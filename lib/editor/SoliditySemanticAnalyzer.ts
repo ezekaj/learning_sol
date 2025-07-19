@@ -154,7 +154,7 @@ export class SoliditySemanticAnalyzer {
     }
   }
 
-  private analyzeImports(line: string, lineNumber: number, errors: SolidityError[], warnings: SolidityError[]): void {
+  private analyzeImports(line: string, lineNumber: number, _errors: SolidityError[], warnings: SolidityError[]): void {
     const importMatch = line.match(/^\s*import\s+["']([^"']+)["']/);
     if (importMatch) {
       const importPath = importMatch[1];
@@ -178,7 +178,7 @@ export class SoliditySemanticAnalyzer {
   private analyzeContractDeclaration(
     line: string, 
     lineNumber: number, 
-    errors: SolidityError[], 
+    _errors: SolidityError[], 
     warnings: SolidityError[], 
     symbols: SoliditySymbol[]
   ): void {
@@ -219,7 +219,7 @@ export class SoliditySemanticAnalyzer {
   private analyzeFunctionDeclaration(
     line: string, 
     lineNumber: number, 
-    errors: SolidityError[], 
+    _errors: SolidityError[], 
     warnings: SolidityError[], 
     symbols: SoliditySymbol[]
   ): void {
@@ -272,7 +272,7 @@ export class SoliditySemanticAnalyzer {
   private analyzeVariableDeclaration(
     line: string, 
     lineNumber: number, 
-    errors: SolidityError[], 
+    _errors: SolidityError[], 
     warnings: SolidityError[], 
     symbols: SoliditySymbol[]
   ): void {
@@ -407,7 +407,7 @@ export class SoliditySemanticAnalyzer {
     }
   }
 
-  private analyzeCrossReferences(content: string, errors: SolidityError[], warnings: SolidityError[]): void {
+  private analyzeCrossReferences(content: string, _errors: SolidityError[], warnings: SolidityError[]): void {
     // Check for undefined variables/functions
     const lines = content.split('\n');
     for (let i = 0; i < lines.length; i++) {

@@ -209,15 +209,15 @@ describe('AuthService - Comprehensive Test Suite', () => {
         );
       });
 
-      it('should generate valid access token for super admin', () => {
-        const superAdminUser = { ...mockUser, role: UserRole.SUPER_ADMIN };
+      it('should generate valid access token for admin with all permissions', () => {
+        const adminUser = { ...mockUser, role: UserRole.ADMIN };
         
-        AuthService.generateAccessToken(superAdminUser);
+        AuthService.generateAccessToken(adminUser);
         
         expect(mockJwt.sign).toHaveBeenCalledWith(
           expect.objectContaining({
-            role: UserRole.SUPER_ADMIN,
-            permissions: ['*']
+            role: UserRole.ADMIN,
+            permissions: expect.arrayContaining(['users:read', 'system:read', 'system:write'])
           }),
           expect.any(String),
           expect.any(Object)
@@ -435,10 +435,13 @@ describe('AuthService - Comprehensive Test Suite', () => {
         expect(permissions).toContain('lessons:delete');
       });
 
-      it('should return all permissions for SUPER_ADMIN role', () => {
-        const permissions = AuthService.getRolePermissions(UserRole.SUPER_ADMIN);
+      it('should return admin permissions for ADMIN role', () => {
+        const permissions = AuthService.getRolePermissions(UserRole.ADMIN);
 
-        expect(permissions).toEqual(['*']);
+        expect(permissions).toContain('users:read');
+        expect(permissions).toContain('users:write');
+        expect(permissions).toContain('system:read');
+        expect(permissions).toContain('system:write');
       });
 
       it('should return empty array for invalid role', () => {

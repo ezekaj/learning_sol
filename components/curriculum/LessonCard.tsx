@@ -16,7 +16,7 @@ import {
   Star,
   ChevronRight
 } from 'lucide-react';
-import { Lesson, LessonProgress, LessonStatus, LessonType } from '@/lib/curriculum/types';
+import { Lesson, LessonProgress, LessonStatus } from '@/lib/curriculum/types';
 import { GlassCard } from '@/components/ui/Glassmorphism';
 import { ProgressBar } from '@/components/xp/ProgressBar';
 import { EnhancedButton } from '@/components/ui/EnhancedButton';

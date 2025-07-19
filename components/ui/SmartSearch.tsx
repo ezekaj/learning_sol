@@ -367,7 +367,7 @@ export function SmartSearch({
             exit={{ opacity: 0, y: -10 }}
             className="absolute top-full left-0 right-0 z-50 mt-2"
           >
-            <GlassContainer intensity="high" className="max-h-96 overflow-y-auto">
+            <GlassContainer intensity="heavy" className="max-h-96 overflow-y-auto">
               {suggestions.length > 0 ? (
                 <div className="py-2">
                   {/* Section Headers */}

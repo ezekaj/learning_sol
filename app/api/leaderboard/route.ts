@@ -2,11 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
+// import { User, UserProfile } from '@prisma/client';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
 
-export async function GET(_request: NextRequest) {
+// Type for user with profile (used in leaderboard queries)
+// type UserWithProfile = User & {
+//   profile: UserProfile | null;
+// };
+
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -61,7 +68,7 @@ export async function GET(_request: NextRequest) {
 
     // Calculate additional stats for each user
     const leaderboardWithStats = await Promise.all(
-      topUsers.map(async (user: any, index: number) => {
+      topUsers.map(async (user, index) => {
         // Get user's completed lessons count
         const completedLessons = await prisma.userProgress.count({
           where: {
@@ -148,12 +155,12 @@ export async function GET(_request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching leaderboard:', error);
+    logger.error('Error fetching leaderboard', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -188,7 +195,7 @@ export async function POST(_request: NextRequest) {
 
         // Create a challenge record (this would need a Challenge model in Prisma)
         // For now, we'll just return success
-        console.log(`Challenge created: ${session.user.id} challenges ${targetUserId} in ${challengeType}`);
+        logger.info(`Challenge created: ${session.user.id} challenges ${targetUserId} in ${challengeType}`);
 
         return NextResponse.json({ 
           success: true, 
@@ -204,7 +211,7 @@ export async function POST(_request: NextRequest) {
 
         // This would need a UserFollow model in Prisma
         // For now, we'll just return success
-        console.log(`${session.user.id} follows ${followUserId}`);
+        logger.info(`${session.user.id} follows ${followUserId}`);
 
         return NextResponse.json({ 
           success: true, 
@@ -215,7 +222,7 @@ export async function POST(_request: NextRequest) {
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Error processing leaderboard action:', error);
+    logger.error('Error processing leaderboard action', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

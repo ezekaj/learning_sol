@@ -1,6 +1,6 @@
 'use client';
 
-import * as monaco from 'monaco-editor';
+import { editor, languages, Range } from 'monaco-editor';
 import {
   solidityLanguageConfig,
   solidityTokensProvider,
@@ -12,7 +12,7 @@ import { SoliditySemanticAnalyzer } from './SoliditySemanticAnalyzer';
 import { SolidityIntelliSense } from './SolidityIntelliSense';
 
 // Custom Solidity theme
-export const solidityTheme: monaco.editor.IStandaloneThemeData = {
+export const solidityTheme: editor.IStandaloneThemeData = {
   base: 'vs-dark',
   inherit: true,
   rules: [
@@ -95,16 +95,16 @@ export class MonacoSoliditySetup {
     if (this.isInitialized) return;
 
     // Register Solidity language
-    monaco.languages.register({ id: 'solidity' });
+    languages.register({ id: 'solidity' });
 
     // Set language configuration
-    monaco.languages.setLanguageConfiguration('solidity', solidityLanguageConfig);
+    languages.setLanguageConfiguration('solidity', solidityLanguageConfig);
 
     // Set tokenization rules
-    monaco.languages.setMonarchTokensProvider('solidity', solidityTokensProvider);
+    languages.setMonarchTokensProvider('solidity', solidityTokensProvider);
 
     // Register enhanced completion provider
-    monaco.languages.registerCompletionItemProvider('solidity', {
+    languages.registerCompletionItemProvider('solidity', {
       triggerCharacters: ['.', '(', ' ', '\n'],
       provideCompletionItems: (model, position, context) => {
         const intelliSense = this.intelliSenseProviders.get(model.id);
@@ -117,23 +117,23 @@ export class MonacoSoliditySetup {
     });
 
     // Register hover provider
-    monaco.languages.registerHoverProvider('solidity', solidityHoverProvider);
+    languages.registerHoverProvider('solidity', solidityHoverProvider);
 
     // Register signature help provider
-    monaco.languages.registerSignatureHelpProvider('solidity', soliditySignatureHelpProvider);
+    languages.registerSignatureHelpProvider('solidity', soliditySignatureHelpProvider);
 
     // Define custom theme
-    monaco.editor.defineTheme('solidity-dark', solidityTheme);
+    editor.defineTheme('solidity-dark', solidityTheme);
 
     // Register document formatting provider
-    monaco.languages.registerDocumentFormattingEditProvider('solidity', {
+    languages.registerDocumentFormattingEditProvider('solidity', {
       provideDocumentFormattingEdits: (model, options) => {
         return this.formatSolidityCode(model, options);
       }
     });
 
     // Register code action provider for quick fixes
-    monaco.languages.registerCodeActionProvider('solidity', {
+    languages.registerCodeActionProvider('solidity', {
       provideCodeActions: (model, range, context) => {
         return this.provideCodeActions(model, range, context);
       }
@@ -145,7 +145,7 @@ export class MonacoSoliditySetup {
   /**
    * Setup semantic analysis and IntelliSense for a model
    */
-  static setupSemanticAnalysis(model: monaco.editor.ITextModel): void {
+  static setupSemanticAnalysis(model: editor.ITextModel): void {
     const modelId = model.id;
 
     // Create semantic analyzer
@@ -179,7 +179,7 @@ export class MonacoSoliditySetup {
   /**
    * Run semantic analysis and update markers
    */
-  private static runSemanticAnalysis(model: monaco.editor.ITextModel): void {
+  private static runSemanticAnalysis(model: editor.ITextModel): void {
     const analyzer = this.semanticAnalyzers.get(model.id);
     if (!analyzer) return;
 
@@ -187,7 +187,7 @@ export class MonacoSoliditySetup {
       const result = analyzer.analyze();
       
       // Convert errors and warnings to Monaco markers
-      const markers: monaco.editor.IMarkerData[] = [
+      const markers: editor.IMarkerData[] = [
         ...result.errors.map(error => ({
           severity: error.severity,
           message: error.message,
@@ -213,7 +213,7 @@ export class MonacoSoliditySetup {
       ];
 
       // Set markers on the model
-      monaco.editor.setModelMarkers(model, 'solidity-analyzer', markers);
+      editor.setModelMarkers(model, 'solidity-analyzer', markers);
 
       // Emit custom event with analysis results
       if (typeof window !== 'undefined') {
@@ -230,12 +230,12 @@ export class MonacoSoliditySetup {
    * Format Solidity code
    */
   private static formatSolidityCode(
-    model: monaco.editor.ITextModel,
-    options: monaco.languages.FormattingOptions
-  ): monaco.languages.TextEdit[] {
+    model: editor.ITextModel,
+    options: languages.FormattingOptions
+  ): languages.TextEdit[] {
     const content = model.getValue();
     const lines = content.split('\n');
-    const edits: monaco.languages.TextEdit[] = [];
+    const edits: languages.TextEdit[] = [];
     
     let indentLevel = 0;
     const indentSize = options.tabSize;
@@ -260,7 +260,7 @@ export class MonacoSoliditySetup {
       // Add edit if indentation is incorrect
       if (currentIndent !== expectedIndent) {
         edits.push({
-          range: new monaco.Range(i + 1, 1, i + 1, currentIndent.length + 1),
+          range: new Range(i + 1, 1, i + 1, currentIndent.length + 1),
           text: expectedIndent
         });
       }
@@ -278,11 +278,11 @@ export class MonacoSoliditySetup {
    * Provide code actions (quick fixes)
    */
   private static provideCodeActions(
-    model: monaco.editor.ITextModel,
-    range: monaco.Range,
-    context: monaco.languages.CodeActionContext
-  ): monaco.languages.ProviderResult<monaco.languages.CodeActionList> {
-    const actions: monaco.languages.CodeAction[] = [];
+    model: editor.ITextModel,
+    range: Range,
+    context: languages.CodeActionContext
+  ): languages.ProviderResult<languages.CodeActionList> {
+    const actions: languages.CodeAction[] = [];
 
     // Quick fixes for common issues
     context.markers.forEach(marker => {
@@ -294,8 +294,8 @@ export class MonacoSoliditySetup {
             edit: {
               edits: [{
                 resource: model.uri,
-                edit: {
-                  range: new monaco.Range(
+                textEdit: {
+                  range: new Range(
                     marker.endLineNumber,
                     marker.endColumn - 1,
                     marker.endLineNumber,
@@ -316,8 +316,8 @@ export class MonacoSoliditySetup {
             edit: {
               edits: [{
                 resource: model.uri,
-                edit: {
-                  range: new monaco.Range(
+                textEdit: {
+                  range: new Range(
                     marker.startLineNumber,
                     marker.endColumn,
                     marker.startLineNumber,
@@ -337,8 +337,8 @@ export class MonacoSoliditySetup {
             edit: {
               edits: [{
                 resource: model.uri,
-                edit: {
-                  range: new monaco.Range(
+                textEdit: {
+                  range: new Range(
                     marker.startLineNumber,
                     marker.startColumn,
                     marker.endLineNumber,
@@ -387,7 +387,7 @@ export class MonacoSoliditySetup {
   /**
    * Update IntelliSense with latest symbols
    */
-  private static updateIntelliSense(model: monaco.editor.ITextModel): void {
+  private static updateIntelliSense(model: editor.ITextModel): void {
     const analyzer = this.semanticAnalyzers.get(model.id);
     const intelliSense = this.intelliSenseProviders.get(model.id);
 
@@ -432,26 +432,26 @@ export class MonacoSoliditySetup {
   /**
    * Get Monaco completion item kind from symbol type
    */
-  private static getCompletionItemKind(symbolType: string): monaco.languages.CompletionItemKind {
+  private static getCompletionItemKind(symbolType: string): languages.CompletionItemKind {
     switch (symbolType) {
       case 'contract':
-        return monaco.languages.CompletionItemKind.Class;
+        return languages.CompletionItemKind.Class;
       case 'function':
-        return monaco.languages.CompletionItemKind.Function;
+        return languages.CompletionItemKind.Function;
       case 'variable':
-        return monaco.languages.CompletionItemKind.Variable;
+        return languages.CompletionItemKind.Variable;
       case 'event':
-        return monaco.languages.CompletionItemKind.Event;
+        return languages.CompletionItemKind.Event;
       case 'modifier':
-        return monaco.languages.CompletionItemKind.Function;
+        return languages.CompletionItemKind.Function;
       case 'struct':
-        return monaco.languages.CompletionItemKind.Struct;
+        return languages.CompletionItemKind.Struct;
       case 'enum':
-        return monaco.languages.CompletionItemKind.Enum;
+        return languages.CompletionItemKind.Enum;
       case 'mapping':
-        return monaco.languages.CompletionItemKind.Property;
+        return languages.CompletionItemKind.Property;
       default:
-        return monaco.languages.CompletionItemKind.Text;
+        return languages.CompletionItemKind.Text;
     }
   }
 

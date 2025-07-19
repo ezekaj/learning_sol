@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { apiPerformanceMonitor } from '@/lib/monitoring/apiPerformance';
+;
 
 interface PerformanceMetrics {
   lcp: number | null;

@@ -3,11 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Shield, Lock, AlertTriangle, ArrowRight, RefreshCw, User, Crown } from 'lucide-react';
+import { Shield, Lock, ArrowRight, User, Crown } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { SessionManager } from '@/lib/auth/sessionManager';
 import { AuthErrorBoundary } from '@/components/errors/SpecializedErrorBoundaries';
-import { ErrorMessage } from '@/components/ui/ErrorMessage';
+;
 import { EnhancedButton } from '@/components/ui/EnhancedButton';
 import { GlassCard } from '@/components/ui/Glassmorphism';
 import { ErrorFactory } from '@/lib/errors/types';
@@ -88,10 +88,10 @@ export function ProtectedRoute({
   requiredRole,
   showLoginPrompt = true
 }: ProtectedRouteProps) {
-  const { user, isLoading, isAuthenticated, checkPermission } = useAuth();
+  const { user, isLoading, isAuthenticated } = useAuth();
   const [sessionManager] = useState(() => SessionManager.getInstance());
   const [isCheckingSession, setIsCheckingSession] = useState(true);
-  const [authError, setAuthError] = useState<any>(null);
+  const [_authError, setAuthError] = useState<any>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
@@ -143,8 +143,10 @@ export function ProtectedRoute({
     );
   }
 
-  // Check if user has required permissions
-  const hasRequiredPermissions = (): boolean => {
+  // NOTE: Permission checking is done inline below
+  // Keeping this for reference of the permission logic
+  /*
+  const _hasRequiredPermissions = (): boolean => {
     if (!user) return false;
 
     // Check roles
@@ -166,6 +168,7 @@ export function ProtectedRoute({
 
     return true;
   };
+  */
 
   // Handle redirect logic
   const handleRedirect = (reason: 'unauthenticated' | 'unauthorized') => {
@@ -221,8 +224,8 @@ export function ProtectedRoute({
   }
 
   // Check role permissions
-  if (requiredRole && session?.user) {
-    const userRole = (session.user as any).role;
+  if (requiredRole && user) {
+    const userRole = (user as any).role;
     
     // Role hierarchy: ADMIN > INSTRUCTOR > MENTOR > STUDENT
     const roleHierarchy = {
@@ -315,7 +318,7 @@ const RoleBadge: React.FC<RoleBadgeProps> = ({ role }) => {
 // Higher-order component for protecting pages
 export function withAuth<P extends object>(
   Component: React.ComponentType<P>,
-  options: Omit<ProtectedRouteProps, 'children'> = {}
+  options: Omit<ProtectedRouteProps, 'children'> = { permission: { requireAuth: true } }
 ) {
   return function AuthenticatedComponent(props: P) {
     return (
@@ -371,7 +374,10 @@ function UnauthenticatedError({
   );
 }
 
-function UnauthorizedError({
+// NOTE: This component was replaced by inline error rendering
+// Keeping for reference if needed in the future
+/*
+function _UnauthorizedError({
   permission,
   currentRole,
   onRequestAccess,
@@ -460,6 +466,7 @@ function UnauthorizedError({
     </div>
   );
 }
+*/
 
 // Hook for checking route permissions
 export function useRouteProtection(pathname: string) {

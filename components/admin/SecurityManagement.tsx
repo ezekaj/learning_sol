@@ -2,40 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Shield,
-  Lock,
-  Key,
-  Eye,
-  EyeOff,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Clock,
-  User,
-  Users,
-  Settings,
-  Activity,
-  Globe,
-  Smartphone,
-  Wifi,
-  Database,
-  Server,
-  Monitor,
-  Search,
-  Filter,
-  Download,
-  RefreshCw,
-  Plus,
-  Edit,
-  Trash2,
-  MoreVertical
-} from 'lucide-react';
+import { Shield, Lock, Key, Eye, AlertTriangle, CheckCircle, XCircle, Settings, Database, Search, Download, RefreshCw, Plus, Edit, Trash2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
-import { SecurityEvent, AdminRole, AdminPermission } from '@/lib/admin/types';
-import { adminAuth, ADMIN_PERMISSIONS } from '@/lib/admin/auth';
+import { SecurityEvent } from '@/lib/admin/types';
+import { adminAuth } from '@/lib/admin/auth';
 
 interface SecurityManagementProps {
   className?: string;
@@ -284,7 +256,7 @@ export function SecurityManagement({ className }: SecurityManagementProps) {
         id: 'sec_003',
         type: 'unauthorized_access',
         severity: 'critical',
-        userId: null,
+        userId: undefined,
         ipAddress: '203.0.113.42',
         userAgent: 'Python-requests/2.25.1',
         timestamp: new Date(Date.now() - 10800000), // 3 hours ago
@@ -325,7 +297,7 @@ export function SecurityManagement({ className }: SecurityManagementProps) {
     setLoading(false);
   };
 
-  const handleResolveEvent = async (eventId: string, resolution: string) => {
+  const handleResolveEvent = async (eventId: string, _resolution: string) => {
     setSecurityEvents(prev => prev.map(event => {
       if (event.id === eventId) {
         return {

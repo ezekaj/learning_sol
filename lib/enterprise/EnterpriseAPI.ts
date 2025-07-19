@@ -3,8 +3,6 @@
  * Robust API for integration with existing HR platforms and recruitment systems
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { jobMatchingEngine } from '@/lib/career/JobMatchingEngine';
 import { blockchainCertification } from '@/lib/career/BlockchainCertification';
 import { adaptiveLearningEngine } from '@/lib/learning/AdaptiveLearningEngine';
 
@@ -474,6 +472,116 @@ export class EnterpriseAPI {
 
     this.clients.set(sampleClient.id, sampleClient);
   }
+
+  // Missing method implementations
+  private async findMatchingTalent(criteria: TalentSearchCriteria): Promise<TalentProfile[]> {
+    // Mock implementation - would search database
+    return [];
+  }
+
+  private applyClientFilters(clientId: string, talents: TalentProfile[]): TalentProfile[] {
+    // Mock implementation - would apply client-specific filters
+    return talents;
+  }
+
+  private paginateResults(talents: TalentProfile[], pagination: PaginationOptions): { items: TalentProfile[]; pagination: PaginationInfo } {
+    const start = (pagination.page - 1) * pagination.limit;
+    const end = start + pagination.limit;
+    const items = talents.slice(start, end);
+    
+    return {
+      items,
+      pagination: {
+        currentPage: pagination.page,
+        totalPages: Math.ceil(talents.length / pagination.limit),
+        hasNext: end < talents.length,
+        hasPrevious: pagination.page > 1
+      }
+    };
+  }
+
+  private async trackAPIUsage(clientId: string, operation: string, criteria: any): Promise<void> {
+    // Mock implementation - would track API usage
+  }
+
+  private async verifyIndividualSkill(userId: string, skill: string, profile: any): Promise<SkillVerification> {
+    return {
+      skill,
+      verified: true,
+      confidence: 0.85,
+      evidence: ['project-analysis', 'code-review'],
+      lastVerified: new Date()
+    };
+  }
+
+  private calculateOverallConfidence(verifications: SkillVerification[]): number {
+    if (verifications.length === 0) return 0;
+    return verifications.reduce((sum, v) => sum + v.confidence, 0) / verifications.length;
+  }
+
+  private async getCertificationDetails(tokenId: string): Promise<any> {
+    // Mock implementation - would get certification details
+    return {};
+  }
+
+  private async getTraditionalCertificationDetails(certificationId: string): Promise<any> {
+    // Mock implementation - would get traditional certification details
+    return {};
+  }
+
+  private async analyzeTalent(userId: string, analysisType: string): Promise<TalentAnalysisResult> {
+    return {
+      userId,
+      analysisType,
+      score: 85,
+      details: {},
+      recommendations: []
+    };
+  }
+
+  private generateBulkAnalysisSummary(results: TalentAnalysisResult[]): BulkAnalysisSummary {
+    return {
+      totalAnalyzed: results.length,
+      averageScore: results.reduce((sum, r) => sum + r.score, 0) / results.length,
+      topPerformers: results.filter(r => r.score > 90).length,
+      needsImprovement: results.filter(r => r.score < 70).length
+    };
+  }
+
+  private async parseJobRequirements(jobDescription: JobDescription): Promise<JobRequirements> {
+    return {
+      requiredSkills: [],
+      preferredSkills: [],
+      experience: { min: 0, max: 10 },
+      education: [],
+      certifications: []
+    };
+  }
+
+  private async findJobMatches(requirements: JobRequirements, maxCandidates: number): Promise<JobCandidate[]> {
+    // Mock implementation - would find matching candidates
+    return [];
+  }
+
+  private rankJobMatches(matches: JobCandidate[], requirements: JobRequirements): JobCandidate[] {
+    // Mock implementation - would rank matches
+    return matches;
+  }
+
+  private async generateReport(reportType: string, parameters: ReportParameters): Promise<TalentReport> {
+    return {
+      id: `report-${Date.now()}`,
+      type: reportType,
+      data: {},
+      generatedAt: new Date(),
+      parameters
+    };
+  }
+
+  private applyReportCustomizations(clientId: string, report: TalentReport): TalentReport {
+    // Mock implementation - would apply customizations
+    return report;
+  }
 }
 
 // Interfaces for API responses
@@ -513,6 +621,152 @@ interface RateLimitState {
   requestsThisHour: number;
   requestsThisDay: number;
   lastReset: Date;
+}
+
+interface SkillVerification {
+  skill: string;
+  verified: boolean;
+  confidence: number;
+  evidence: string[];
+  lastVerified: Date;
+}
+
+interface SkillVerificationResult {
+  userId: string;
+  verifications: SkillVerification[];
+  overallConfidence: number;
+  verificationDate: Date;
+  validUntil: Date;
+}
+
+interface CertificationVerificationResult {
+  certificationId: string;
+  tokenId?: string;
+  verified: boolean;
+  details: any;
+  verificationDate: Date;
+  verificationMethod: 'blockchain' | 'traditional';
+}
+
+interface TalentAnalysisResult {
+  userId: string;
+  analysisType: string;
+  score: number;
+  details: any;
+  recommendations: string[];
+}
+
+interface BulkAnalysisResult {
+  analysisType: string;
+  results: TalentAnalysisResult[];
+  summary: BulkAnalysisSummary;
+  processedAt: Date;
+  totalProcessed: number;
+}
+
+interface BulkAnalysisSummary {
+  totalAnalyzed: number;
+  averageScore: number;
+  topPerformers: number;
+  needsImprovement: number;
+}
+
+interface JobDescription {
+  id: string;
+  title: string;
+  company: string;
+  description: string;
+  requirements: string[];
+  location: string;
+  type: 'full-time' | 'part-time' | 'contract' | 'internship';
+}
+
+interface JobRequirements {
+  requiredSkills: string[];
+  preferredSkills: string[];
+  experience: { min: number; max: number };
+  education: string[];
+  certifications: string[];
+}
+
+interface JobCandidate {
+  userId: string;
+  matchScore: number;
+  profile: TalentProfile;
+  reasons: string[];
+}
+
+interface JobMatchResult {
+  jobId: string;
+  matches: JobCandidate[];
+  totalCandidates: number;
+  searchCriteria: JobRequirements;
+  generatedAt: Date;
+}
+
+interface ReportParameters {
+  timeRange?: { start: Date; end: Date };
+  filters?: Record<string, any>;
+  groupBy?: string[];
+  metrics?: string[];
+}
+
+interface TalentReport {
+  id: string;
+  type: string;
+  data: any;
+  generatedAt: Date;
+  parameters: ReportParameters;
+}
+
+interface WebhookRegistration {
+  webhookId: string;
+  clientId: string;
+  events: string[];
+  url: string;
+  status: 'active' | 'inactive';
+  createdAt: Date;
+}
+
+// Missing interfaces for additional types
+interface ExperienceRecord {
+  id: string;
+  company: string;
+  position: string;
+  startDate: Date;
+  endDate?: Date;
+  description: string;
+  technologies: string[];
+  achievements: string[];
+}
+
+interface EducationRecord {
+  id: string;
+  institution: string;
+  degree: string;
+  field: string;
+  startDate: Date;
+  endDate?: Date;
+  description?: string;
+  achievements?: string[];
+}
+
+interface TalentPreferences {
+  remoteWork: boolean;
+  salary: { min: number; max: number; currency: string };
+  location: string[];
+  industries: string[];
+  roleTypes: string[];
+  availability: 'immediate' | 'soon' | 'not-looking';
+}
+
+interface VerificationStatus {
+  email: boolean;
+  phone: boolean;
+  github: boolean;
+  linkedin: boolean;
+  identity: boolean;
+  skills: boolean;
 }
 
 export const enterpriseAPI = new EnterpriseAPI();

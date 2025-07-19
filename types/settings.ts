@@ -118,18 +118,33 @@ export interface AccessibilitySettings {
   keyboardNavigation: boolean;
   focusIndicators: boolean;
   colorBlindnessSupport: 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia';
+  colorBlindSupport: boolean;
   voiceCommands: boolean;
+  fontSize: number;
+  stickyKeys: boolean;
+  clickDelay: number;
+  largeClickTargets: boolean;
+  simpleLanguage: boolean;
+  readingGuide: boolean;
+  reduceMotion: boolean;
+  autoPauseMedia: boolean;
+  sessionTimeoutWarning: number;
 }
 
 export interface PrivacySettings {
   profileVisibility: 'public' | 'friends' | 'private';
   showProgress: boolean;
   showAchievements: boolean;
+  allowCollaboration: boolean;
+  showOnlineStatus: boolean;
+  dataRetentionDays: number; // in days
   allowAnalytics: boolean;
+  allowPersonalization: boolean;
+  allowMarketing: boolean;
+  allowThirdParty: boolean;
   allowCookies: boolean;
   dataRetention: number; // in days
   shareUsageData: boolean;
-  allowPersonalization: boolean;
 }
 
 export interface UserSettings {
@@ -330,16 +345,31 @@ export const DEFAULT_USER_SETTINGS: Omit<UserSettings, 'profile'> = {
     keyboardNavigation: true,
     focusIndicators: true,
     colorBlindnessSupport: 'none',
-    voiceCommands: false
+    colorBlindSupport: false,
+    voiceCommands: false,
+    fontSize: 16,
+    stickyKeys: false,
+    clickDelay: 0,
+    largeClickTargets: false,
+    simpleLanguage: false,
+    readingGuide: false,
+    reduceMotion: false,
+    autoPauseMedia: false,
+    sessionTimeoutWarning: 5
   },
   privacy: {
     profileVisibility: 'public',
     showProgress: true,
     showAchievements: true,
+    allowCollaboration: true,
+    showOnlineStatus: true,
+    dataRetentionDays: 365,
     allowAnalytics: true,
+    allowPersonalization: true,
+    allowMarketing: false,
+    allowThirdParty: false,
     allowCookies: true,
     dataRetention: 365,
-    shareUsageData: false,
-    allowPersonalization: true
+    shareUsageData: false
   }
 };

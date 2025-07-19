@@ -2,26 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Eye,
-  EyeOff,
-  Type,
-  Palette,
-  Volume2,
-  VolumeX,
-  MousePointer,
-  Keyboard,
-  Monitor,
-  Zap,
-  Settings,
-  Info,
-  Check,
-  X,
-  AlertCircle,
-  Contrast,
-  Move,
-  Focus
-} from 'lucide-react';
+import { Eye, Type, Palette, Volume2, MousePointer, Keyboard, Monitor, Settings, Info, AlertCircle, Contrast, Move, Focus } from 'lucide-react';
 import { AccessibilitySettings, SettingsValidationError } from '@/types/settings';
 import { GlassContainer } from '@/components/ui/Glassmorphism';
 import { cn } from '@/lib/utils';
@@ -36,7 +17,7 @@ export interface AccessibilitySectionProps {
 export function AccessibilitySection({
   accessibility,
   onUpdate,
-  validationErrors = [],
+  // validationErrors = [],
   className
 }: AccessibilitySectionProps) {
   const [activeTab, setActiveTab] = useState<'visual' | 'motor' | 'cognitive'>('visual');
@@ -46,10 +27,10 @@ export function AccessibilitySection({
     await onUpdate({ [field]: value });
   }, [onUpdate]);
 
-  // Get validation error for a specific field
-  const getFieldError = useCallback((field: string) => {
-    return validationErrors.find(error => error.field === field);
-  }, [validationErrors]);
+  // Validation errors are displayed inline
+  // const getFieldError = useCallback((field: string) => {
+  //   return validationErrors.find(error => error.field === field);
+  // }, [validationErrors]);
 
   return (
     <GlassContainer

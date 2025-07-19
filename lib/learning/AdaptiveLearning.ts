@@ -3,7 +3,7 @@
 // Integrates with Enhanced AI Tutoring System for dynamic difficulty adjustment
 
 import { prisma } from '@/lib/prisma';
-import { enhancedTutor } from '../ai/EnhancedTutorSystem';
+;
 
 export interface LearningProfile {
   userId: string;
@@ -126,7 +126,7 @@ export class AdaptiveLearningEngine {
 
     try {
       // Load from database
-      const dbProfile = await prisma.aILearningContext.findUnique({
+      const dbProfile = await prisma.aiLearningContext.findUnique({
         where: { userId },
         include: {
           user: {
@@ -212,7 +212,7 @@ export class AdaptiveLearningEngine {
     const profile: LearningProfile = this.createDefaultProfile(userId);
     
     // Save to database
-    await prisma.aILearningContext.create({
+    await prisma.aiLearningContext.create({
       data: {
         userId,
         skillLevel: profile.skillLevel,
@@ -593,7 +593,7 @@ export class AdaptiveLearningEngine {
 
   private async saveLearningProfile(profile: LearningProfile): Promise<void> {
     try {
-      await prisma.aILearningContext.upsert({
+      await prisma.aiLearningContext.upsert({
         where: { userId: profile.userId },
         update: {
           skillLevel: profile.skillLevel,

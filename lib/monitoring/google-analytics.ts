@@ -5,8 +5,8 @@
  * performance metrics, and Core Web Vitals for production monitoring.
  */
 
-import { env, monitoringConfig } from '@/lib/config/environment';
-import { logger } from './logger';
+import { env } from '@/lib/config/environment';
+import { logger } from './simple-logger';
 
 /**
  * GA4 Event structure

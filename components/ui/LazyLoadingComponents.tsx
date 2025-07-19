@@ -9,12 +9,12 @@ import { GlassContainer } from '@/components/ui/Glassmorphism';
 import { LoadingSpinner } from './LoadingStates';
 
 // Lazy loaded components
-const CodeEditor = lazy(() => import('@/components/editor/CodeEditor'));
-const VideoPlayer = lazy(() => import('@/components/media/VideoPlayer'));
-const ThreeVisualization = lazy(() => import('@/components/3d/ThreeVisualization'));
-const AdvancedSettings = lazy(() => import('@/components/settings/AdvancedSettings'));
-const CollaborationPanel = lazy(() => import('@/components/collaboration/CollaborationPanel'));
-const AnalyticsDashboard = lazy(() => import('@/components/analytics/AnalyticsDashboard'));
+const CodeEditor = lazy(() => import('@/components/editor/EnhancedCodeEditor'));
+// const VideoPlayer = lazy(() => import('@/components/media/VideoPlayer'));
+// const ThreeVisualization = lazy(() => import('@/components/3d/ThreeVisualization'));
+const AdvancedSettings = lazy(() => import('@/components/settings/SettingsPage'));
+const CollaborationPanel = lazy(() => import('@/components/collaboration/CollaborationHub'));
+const AnalyticsDashboard = lazy(() => import('@/components/curriculum/LearningAnalytics'));
 
 // Enhanced Lazy Loading Wrapper
 interface LazyLoadingWrapperProps {
@@ -31,8 +31,8 @@ interface LazyLoadingWrapperProps {
 export function LazyLoadingWrapper({
   children,
   fallback,
-  error,
-  onError,
+  error: _error,
+  onError: _onError,
   componentName = 'Component',
   icon: Icon = FileText,
   description,

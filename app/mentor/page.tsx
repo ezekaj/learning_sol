@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+;
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { GlassCard } from '@/components/ui/Glassmorphism';
-import { Users, MessageCircle, Calendar, Award, Heart, TrendingUp } from 'lucide-react';
+import { Users, MessageCircle, Calendar, Award, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function MentorPage() {

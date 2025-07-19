@@ -323,7 +323,7 @@ export function LearningPathVisualization({
                       <div>
                         <h4 className="text-sm font-medium text-gray-300 mb-2">Lessons</h4>
                         <div className="space-y-2">
-                          {module.lessons.slice(0, 3).map((lesson, lessonIndex) => {
+                          {module.lessons.slice(0, 3).map((lesson) => {
                             const lessonProgress = userProgress.lessons[lesson.id];
                             const lessonStatus = lessonProgress?.status || 'available';
                             

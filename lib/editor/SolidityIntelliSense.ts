@@ -1,26 +1,26 @@
 'use client';
 
-import * as monaco from 'monaco-editor';
+import { editor, languages, Position, IRange } from 'monaco-editor';
 
 export interface SoliditySymbol {
   name: string;
   type: 'contract' | 'function' | 'variable' | 'event' | 'modifier' | 'struct' | 'enum' | 'mapping';
-  kind: monaco.languages.CompletionItemKind;
+  kind: languages.CompletionItemKind;
   detail: string;
   documentation?: string;
   insertText: string;
-  insertTextRules?: monaco.languages.CompletionItemInsertTextRule;
-  range?: monaco.IRange;
+  insertTextRules?: languages.CompletionItemInsertTextRule;
+  range?: IRange;
   sortText?: string;
   filterText?: string;
-  additionalTextEdits?: monaco.languages.TextEdit[];
-  command?: monaco.languages.Command;
+  additionalTextEdits?: languages.TextEdit[];
+  command?: languages.Command;
 }
 
 export interface CompletionContext {
-  position: monaco.Position;
+  position: Position;
   triggerCharacter?: string;
-  triggerKind: monaco.languages.CompletionTriggerKind;
+  triggerKind: languages.CompletionTriggerKind;
   word: string;
   lineText: string;
   isInString: boolean;
@@ -50,12 +50,12 @@ export class SolidityIntelliSense {
    * Provide completion items based on context
    */
   provideCompletionItems(
-    model: monaco.editor.ITextModel,
-    position: monaco.Position,
-    context: monaco.languages.CompletionContext
-  ): monaco.languages.ProviderResult<monaco.languages.CompletionList> {
+    model: editor.ITextModel,
+    position: Position,
+    context: languages.CompletionContext
+  ): languages.ProviderResult<languages.CompletionList> {
     const completionContext = this.analyzeContext(model, position, context);
-    const suggestions: monaco.languages.CompletionItem[] = [];
+    const suggestions: languages.CompletionItem[] = [];
 
     // Add context-specific suggestions
     this.addContextualSuggestions(suggestions, completionContext);
@@ -89,9 +89,9 @@ export class SolidityIntelliSense {
    * Analyze the current context for intelligent suggestions
    */
   private analyzeContext(
-    model: monaco.editor.ITextModel,
-    position: monaco.Position,
-    context: monaco.languages.CompletionContext
+    model: editor.ITextModel,
+    position: Position,
+    context: languages.CompletionContext
   ): CompletionContext {
     const lineText = model.getLineContent(position.lineNumber);
     const word = model.getWordUntilPosition(position);
@@ -154,7 +154,7 @@ export class SolidityIntelliSense {
    * Add contextual suggestions based on current scope
    */
   private addContextualSuggestions(
-    suggestions: monaco.languages.CompletionItem[],
+    suggestions: languages.CompletionItem[],
     context: CompletionContext
   ): void {
     const range = this.getWordRange(context);
@@ -164,49 +164,49 @@ export class SolidityIntelliSense {
       suggestions.push(
         {
           label: 'function',
-          kind: monaco.languages.CompletionItemKind.Keyword,
+          kind: languages.CompletionItemKind.Keyword,
           insertText: [
             'function ${1:functionName}(${2:parameters}) ${3:public} ${4:returns (${5:returnType})} {',
             '\t$0',
             '}'
           ].join('\n'),
-          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet,
           documentation: 'Create a new function',
           range,
           sortText: '0001'
         },
         {
           label: 'constructor',
-          kind: monaco.languages.CompletionItemKind.Constructor,
+          kind: languages.CompletionItemKind.Constructor,
           insertText: [
             'constructor(${1:parameters}) ${2:public} {',
             '\t$0',
             '}'
           ].join('\n'),
-          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet,
           documentation: 'Create a constructor',
           range,
           sortText: '0002'
         },
         {
           label: 'modifier',
-          kind: monaco.languages.CompletionItemKind.Function,
+          kind: languages.CompletionItemKind.Function,
           insertText: [
             'modifier ${1:modifierName}(${2:parameters}) {',
             '\t${3:require(${4:condition}, "${5:error message}");}',
             '\t_;',
             '}'
           ].join('\n'),
-          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet,
           documentation: 'Create a modifier',
           range,
           sortText: '0003'
         },
         {
           label: 'event',
-          kind: monaco.languages.CompletionItemKind.Event,
+          kind: languages.CompletionItemKind.Event,
           insertText: 'event ${1:EventName}(${2:parameters});',
-          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet,
           documentation: 'Create an event',
           range,
           sortText: '0004'
@@ -219,27 +219,27 @@ export class SolidityIntelliSense {
       suggestions.push(
         {
           label: 'require',
-          kind: monaco.languages.CompletionItemKind.Function,
+          kind: languages.CompletionItemKind.Function,
           insertText: 'require(${1:condition}, "${2:error message}");',
-          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet,
           documentation: 'Require condition with error message',
           range,
           sortText: '0001'
         },
         {
           label: 'emit',
-          kind: monaco.languages.CompletionItemKind.Keyword,
+          kind: languages.CompletionItemKind.Keyword,
           insertText: 'emit ${1:EventName}(${2:parameters});',
-          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet,
           documentation: 'Emit an event',
           range,
           sortText: '0002'
         },
         {
           label: 'return',
-          kind: monaco.languages.CompletionItemKind.Keyword,
+          kind: languages.CompletionItemKind.Keyword,
           insertText: 'return ${1:value};',
-          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet,
           documentation: 'Return a value',
           range,
           sortText: '0003'
@@ -267,7 +267,7 @@ export class SolidityIntelliSense {
    * Add builtin Solidity suggestions
    */
   private addBuiltinSuggestions(
-    suggestions: monaco.languages.CompletionItem[],
+    suggestions: languages.CompletionItem[],
     context: CompletionContext
   ): void {
     if (context.isInString || context.isInComment) return;
@@ -294,7 +294,7 @@ export class SolidityIntelliSense {
    * Add user-defined symbol suggestions
    */
   private addUserDefinedSuggestions(
-    suggestions: monaco.languages.CompletionItem[],
+    suggestions: languages.CompletionItem[],
     context: CompletionContext
   ): void {
     if (context.isInString || context.isInComment) return;
@@ -339,7 +339,7 @@ export class SolidityIntelliSense {
    * Add code snippet suggestions
    */
   private addSnippetSuggestions(
-    suggestions: monaco.languages.CompletionItem[],
+    suggestions: languages.CompletionItem[],
     context: CompletionContext
   ): void {
     if (context.isInString || context.isInComment) return;
@@ -387,9 +387,9 @@ export class SolidityIntelliSense {
       if (snippet.label.toLowerCase().includes(context.word.toLowerCase())) {
         suggestions.push({
           label: snippet.label,
-          kind: monaco.languages.CompletionItemKind.Snippet,
+          kind: languages.CompletionItemKind.Snippet,
           insertText: snippet.insertText,
-          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet,
           documentation: snippet.documentation,
           range,
           sortText: `9${snippet.label}`
@@ -402,7 +402,7 @@ export class SolidityIntelliSense {
    * Add import suggestions
    */
   private addImportSuggestions(
-    suggestions: monaco.languages.CompletionItem[],
+    suggestions: languages.CompletionItem[],
     context: CompletionContext
   ): void {
     if (!context.lineText.startsWith('import')) return;
@@ -422,7 +422,7 @@ export class SolidityIntelliSense {
     commonImports.forEach(importPath => {
       suggestions.push({
         label: importPath,
-        kind: monaco.languages.CompletionItemKind.Module,
+        kind: languages.CompletionItemKind.Module,
         insertText: `"${importPath}"`,
         documentation: `Import ${importPath}`,
         range,
@@ -432,14 +432,14 @@ export class SolidityIntelliSense {
   }
 
   // Helper methods
-  private addTypeSuggestions(suggestions: monaco.languages.CompletionItem[], context: CompletionContext): void {
+  private addTypeSuggestions(suggestions: languages.CompletionItem[], context: CompletionContext): void {
     const types = ['uint256', 'int256', 'bool', 'address', 'string', 'bytes32', 'bytes'];
     const range = this.getWordRange(context);
     
     types.forEach(type => {
       suggestions.push({
         label: type,
-        kind: monaco.languages.CompletionItemKind.TypeParameter,
+        kind: languages.CompletionItemKind.TypeParameter,
         insertText: type,
         range,
         sortText: `0${type}`
@@ -447,14 +447,14 @@ export class SolidityIntelliSense {
     });
   }
 
-  private addVisibilitySuggestions(suggestions: monaco.languages.CompletionItem[], context: CompletionContext): void {
+  private addVisibilitySuggestions(suggestions: languages.CompletionItem[], context: CompletionContext): void {
     const visibilities = ['public', 'private', 'internal', 'external'];
     const range = this.getWordRange(context);
     
     visibilities.forEach(visibility => {
       suggestions.push({
         label: visibility,
-        kind: monaco.languages.CompletionItemKind.Keyword,
+        kind: languages.CompletionItemKind.Keyword,
         insertText: visibility,
         range,
         sortText: `0${visibility}`
@@ -462,14 +462,14 @@ export class SolidityIntelliSense {
     });
   }
 
-  private addMutabilitySuggestions(suggestions: monaco.languages.CompletionItem[], context: CompletionContext): void {
+  private addMutabilitySuggestions(suggestions: languages.CompletionItem[], context: CompletionContext): void {
     const mutabilities = ['pure', 'view', 'payable'];
     const range = this.getWordRange(context);
     
     mutabilities.forEach(mutability => {
       suggestions.push({
         label: mutability,
-        kind: monaco.languages.CompletionItemKind.Keyword,
+        kind: languages.CompletionItemKind.Keyword,
         insertText: mutability,
         range,
         sortText: `0${mutability}`
@@ -477,7 +477,7 @@ export class SolidityIntelliSense {
     });
   }
 
-  private getWordRange(context: CompletionContext): monaco.IRange {
+  private getWordRange(context: CompletionContext): IRange {
     return new monaco.Range(
       context.position.lineNumber,
       context.position.column - context.word.length,
@@ -504,7 +504,7 @@ export class SolidityIntelliSense {
       {
         name: 'msg.sender',
         type: 'variable',
-        kind: monaco.languages.CompletionItemKind.Property,
+        kind: languages.CompletionItemKind.Property,
         detail: 'address',
         documentation: 'The address of the account that called the current function',
         insertText: 'msg.sender'
@@ -512,7 +512,7 @@ export class SolidityIntelliSense {
       {
         name: 'msg.value',
         type: 'variable',
-        kind: monaco.languages.CompletionItemKind.Property,
+        kind: languages.CompletionItemKind.Property,
         detail: 'uint256',
         documentation: 'The amount of wei sent with the current call',
         insertText: 'msg.value'
@@ -520,7 +520,7 @@ export class SolidityIntelliSense {
       {
         name: 'block.timestamp',
         type: 'variable',
-        kind: monaco.languages.CompletionItemKind.Property,
+        kind: languages.CompletionItemKind.Property,
         detail: 'uint256',
         documentation: 'The current block timestamp as seconds since unix epoch',
         insertText: 'block.timestamp'
@@ -528,20 +528,20 @@ export class SolidityIntelliSense {
       {
         name: 'require',
         type: 'function',
-        kind: monaco.languages.CompletionItemKind.Function,
+        kind: languages.CompletionItemKind.Function,
         detail: 'function require(bool condition, string memory message)',
         documentation: 'Throws an error if the condition is not met',
         insertText: 'require(${1:condition}, "${2:message}")',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+        insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet
       },
       {
         name: 'keccak256',
         type: 'function',
-        kind: monaco.languages.CompletionItemKind.Function,
+        kind: languages.CompletionItemKind.Function,
         detail: 'function keccak256(bytes memory data) returns (bytes32)',
         documentation: 'Computes the Keccak-256 hash of the input',
         insertText: 'keccak256(${1:data})',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+        insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet
       }
     ];
   }
@@ -552,11 +552,11 @@ export class SolidityIntelliSense {
       {
         name: 'add',
         type: 'function',
-        kind: monaco.languages.CompletionItemKind.Method,
+        kind: languages.CompletionItemKind.Method,
         detail: 'function add(uint256 a, uint256 b) returns (uint256)',
         documentation: 'Safe addition that reverts on overflow',
         insertText: 'add(${1:a}, ${2:b})',
-        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+        insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet
       }
     ]);
   }

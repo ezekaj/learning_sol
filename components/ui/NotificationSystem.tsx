@@ -10,34 +10,11 @@ import React, {
   useMemo
 } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  CheckCircle,
-  AlertCircle,
-  Info,
-  X,
-  Trophy,
-  Star,
-  Zap,
-  Users,
-  Bell,
-  Settings,
-  History,
-  Volume2,
-  VolumeX,
-  Pause,
-  Play,
-  Shield,
-  Crown,
-  Medal,
-  Target,
-  Flame,
-  Sparkles,
-  Gift
-} from 'lucide-react';
+import { CheckCircle, AlertCircle, Info, X, Trophy, Star, Zap, Users, Bell, Settings, History, Volume2, VolumeX, Pause, Play, Shield } from 'lucide-react';
 import { CelebrationModal, QuickSuccessAnimation, ConfettiExplosion } from './CelebrationAnimations';
 import { notificationVariants } from '@/lib/animations/micro-interactions';
 import { cn } from '@/lib/utils';
-import { respectsReducedMotion, getAnimationDuration } from '@/lib/accessibility/contrast-utils';
+import { respectsReducedMotion } from '@/lib/accessibility/contrast-utils';
 import { announceToScreenReader } from '@/lib/utils/accessibility';
 import { NotificationPreferencesModal } from './NotificationPreferences';
 import { NotificationHistoryModal } from './NotificationHistory';
@@ -76,6 +53,7 @@ export interface NotificationMetadata {
   source?: string;
   timestamp?: number;
   groupKey?: string;
+  rarity?: string;
 }
 
 export interface Notification {
@@ -289,7 +267,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   // Refs and utilities
   const throttle = useRef(new NotificationThrottle());
-  const queueRef = useRef<Notification[]>([]);
+  // Queue functionality is handled by state management
+  // const queueRef = useRef<Notification[]>([]);
   const liveRegionRef = useRef<HTMLDivElement>(null);
   const timeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
@@ -638,7 +617,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }, 2000);
   }, []);
 
-  const triggerConfetti = useCallback((particleCount: number = 50) => {
+  const triggerConfetti = useCallback((_particleCount: number = 50) => {
     setConfettiTrigger(true);
     setTimeout(() => setConfettiTrigger(false), 100);
   }, []);
@@ -1008,7 +987,7 @@ const NotificationCard = React.memo(({
   onMarkRead: () => void;
   reducedMotion?: boolean;
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
+  const [_isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Focus management

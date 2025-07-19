@@ -1,15 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  Achievement, 
-  AchievementProgress, 
-  AchievementEvent, 
-  AchievementNotification,
-  UserAchievement,
-  AchievementStats,
-  AchievementFilter
-} from '@/lib/achievements/types';
+import { Achievement, AchievementEvent, AchievementNotification, UserAchievement, AchievementStats, AchievementFilter } from '@/lib/achievements/types';
 import { AchievementManager } from '@/lib/achievements/manager';
 import { useAuth } from './useAuth';
 import { useError } from '@/lib/errors/ErrorContext';

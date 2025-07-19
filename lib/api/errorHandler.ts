@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { PrismaClientKnownRequestError, PrismaClientValidationError } from '@prisma/client/runtime/library';
 import { logger } from './logger';
-import { ApiErrorCode, HttpStatus } from './types';
+;
 
 // Enhanced error context interface
 export interface ErrorContext {

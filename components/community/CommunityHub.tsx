@@ -2,21 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Trophy,
-  BarChart3,
-  Users,
-  TrendingUp,
-  Activity,
-  Star,
-  Zap,
-  Target,
-  Award,
-  MessageSquare,
-  Flame,
-  Clock,
-  RefreshCw
-} from 'lucide-react';
+import { Trophy, BarChart3, Users, Activity, Star, Target, Award } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
@@ -44,7 +30,7 @@ function QuickStats({ loading }: QuickStatsProps) {
   useEffect(() => {
     // Simulate real-time stats updates
     const interval = setInterval(() => {
-      setStats(prev => ({
+      setStats(() => ({
         activeUsers: 1247 + Math.floor(Math.random() * 20) - 10,
         onlineNow: 89 + Math.floor(Math.random() * 10) - 5,
         lessonsToday: 156 + Math.floor(Math.random() * 5) - 2,
@@ -318,7 +304,7 @@ export function CommunityHub({ className }: CommunityHubProps) {
                     { title: 'Smart Contract Expert', user: 'Alice J.', time: '2 hours ago', icon: '📜' },
                     { title: 'Streak Master', user: 'Bob S.', time: '4 hours ago', icon: '🔥' },
                     { title: 'Community Helper', user: 'Carol D.', time: '6 hours ago', icon: '🤝' }
-                  ].map((achievement, index) => (
+                  ].map((achievement) => (
                     <div key={achievement.title} className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
                         <span className="text-sm">{achievement.icon}</span>

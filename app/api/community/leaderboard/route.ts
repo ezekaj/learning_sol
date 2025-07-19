@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { 
-  LeaderboardUser, 
-  LeaderboardResponse, 
-  LeaderboardFilters,
-  LeaderboardCategory 
-} from '@/lib/community/types';
+import { LeaderboardUser, LeaderboardResponse, LeaderboardFilters } from '@/lib/community/types';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Mock data for demonstration - in production, this would come from your database
 const mockUsers: LeaderboardUser[] = [
@@ -163,7 +159,7 @@ function applyFilters(users: LeaderboardUser[], filters: LeaderboardFilters): Le
   return filtered;
 }
 
-function sortUsers(users: LeaderboardUser[], category: string, timeframe: string): LeaderboardUser[] {
+function sortUsers(users: LeaderboardUser[], category: string, _timeframe: string): LeaderboardUser[] {
   const sorted = [...users];
 
   switch (category) {
@@ -194,7 +190,7 @@ function sortUsers(users: LeaderboardUser[], category: string, timeframe: string
   return sorted;
 }
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { category, filters, page = 1, limit = 50 } = body;
@@ -232,7 +228,7 @@ export async function POST(_request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching leaderboard:', error);
+    logger.error('Error fetching leaderboard', error as Error);
     return NextResponse.json(
       { error: 'Failed to fetch leaderboard data' },
       { status: 500 }

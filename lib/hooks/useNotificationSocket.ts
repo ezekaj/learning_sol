@@ -51,7 +51,7 @@ export function useNotificationSocket() {
       );
 
       unsubscribers.push(
-        notificationService.current.on('connection:lost', (data: any) => {
+        notificationService.current.on('connection:lost', (_data: any) => {
           setConnectionStatus(prev => ({ ...prev, isConnected: false }));
           showWarning('Connection Lost', 'Attempting to reconnect...', {
             duration: 5000,
@@ -61,7 +61,7 @@ export function useNotificationSocket() {
       );
 
       unsubscribers.push(
-        notificationService.current.on('connection:error', (data: any) => {
+        notificationService.current.on('connection:error', (_data: any) => {
           showError('Connection Error', 'Failed to connect to real-time services', {
             metadata: { category: 'connection', priority: 'high' }
           });

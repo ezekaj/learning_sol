@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+;
 import { CommunityHub } from '@/components/community/CommunityHub';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 

@@ -1,24 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import {
-  Users,
-  TrendingUp,
-  TrendingDown,
-  Activity,
-  Clock,
-  Award,
-  BookOpen,
-  Target,
-  Calendar,
-  BarChart3,
-  PieChart,
-  LineChart,
-  Download,
-  Filter,
-  RefreshCw
-} from 'lucide-react';
+import { Users, TrendingUp, TrendingDown, Activity, Clock, Target, BarChart3, PieChart, LineChart, Download, RefreshCw } from 'lucide-react';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
@@ -79,7 +63,7 @@ function MetricCard({ metric }: { metric: AnalyticsMetric }) {
   );
 }
 
-function SimpleChart({ title, data, type = 'line' }: { title: string; data: ChartData; type?: 'line' | 'bar' | 'pie' }) {
+function SimpleChart({ title, data, type: _type = 'line' }: { title: string; data: ChartData; type?: 'line' | 'bar' | 'pie' }) {
   return (
     <Card className="bg-white/10 backdrop-blur-md border-white/20 p-6">
       <div className="flex items-center justify-between mb-4">

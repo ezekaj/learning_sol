@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Editor, Monaco } from '@monaco-editor/react';
-import * as monaco from 'monaco-editor';
+import { editor } from 'monaco-editor';
 import { MonacoSoliditySetup } from '@/lib/editor/MonacoSoliditySetup';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -14,11 +14,9 @@ import {
   AlertTriangle,
   Eye,
   EyeOff,
-  Settings,
   Code,
   CheckCircle,
   XCircle,
-  Info,
   Lightbulb,
   Zap
 } from 'lucide-react';
@@ -48,7 +46,7 @@ export function AdvancedCollaborativeMonacoEditor({
   documentId,
   initialContent = '',
   language = 'solidity',
-  theme = 'vs-dark',
+  theme: _theme = 'vs-dark',
   height = '400px',
   width = '100%',
   autoSave = true,
@@ -63,7 +61,7 @@ export function AdvancedCollaborativeMonacoEditor({
   // Collaborative editor hook
   const {
     content,
-    version,
+    version: _version,
     collaborators,
     isConnected,
     hasUnsavedChanges,
@@ -74,7 +72,7 @@ export function AdvancedCollaborativeMonacoEditor({
     updateCursor,
     undo,
     manualSave,
-    resolveConflicts,
+    resolveConflicts: _resolveConflicts,
     canUndo,
     activeCollaboratorCount
   } = useAdvancedCollaborativeEditor({
@@ -86,7 +84,7 @@ export function AdvancedCollaborativeMonacoEditor({
   });
 
   // Monaco editor refs and state
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
   const [isEditorReady, setIsEditorReady] = useState(false);
   const [showCollaboratorCursors, setShowCollaboratorCursors] = useState(true);
@@ -97,17 +95,17 @@ export function AdvancedCollaborativeMonacoEditor({
 
   // Handle editor mount
   const handleEditorDidMount = useCallback((
-    editor: monaco.editor.IStandaloneCodeEditor,
+    editorInstance: editor.IStandaloneCodeEditor,
     monacoInstance: Monaco
   ) => {
-    editorRef.current = editor;
+    editorRef.current = editorInstance;
     monacoRef.current = monacoInstance;
 
     // Initialize Solidity language support
     MonacoSoliditySetup.initialize();
 
     // Setup semantic analysis for the model
-    const model = editor.getModel();
+    const model = editorInstance.getModel();
     if (model) {
       MonacoSoliditySetup.setupSemanticAnalysis(model);
     }
@@ -115,7 +113,7 @@ export function AdvancedCollaborativeMonacoEditor({
     setIsEditorReady(true);
 
     // Configure editor options with enhanced features
-    editor.updateOptions({
+    editorInstance.updateOptions({
       minimap: { enabled: showMinimap },
       readOnly: readOnly,
       fontSize: 14,
@@ -156,8 +154,7 @@ export function AdvancedCollaborativeMonacoEditor({
         showFolders: true,
         showTypeParameters: true,
         showIssues: true,
-        showUsers: true,
-        showSnippets: true
+        showUsers: true
       },
       quickSuggestions: {
         other: true,
@@ -174,41 +171,44 @@ export function AdvancedCollaborativeMonacoEditor({
       },
       lightbulb: {
         enabled: true
-      },
-      codeActionsOnSave: {
-        'source.fixAll': true
       }
     });
 
     // Set up event listeners
-    editor.onDidChangeModelContent((e) => {
+    editorInstance.onDidChangeModelContent((_e) => {
       if (isUpdatingFromCollaboration.current) return;
 
-      const newContent = editor.getValue();
-      const cursor = editor.getPosition();
-      const selection = editor.getSelection();
+      const newContent = editorInstance.getValue();
+      const cursor = editorInstance.getPosition();
+      const selection = editorInstance.getSelection();
 
       if (cursor) {
         const cursorPos: CursorPosition = {
           line: cursor.lineNumber - 1, // Monaco uses 1-based, we use 0-based
           column: cursor.column - 1,
-          offset: editor.getModel()?.getOffsetAt(cursor) || 0
+          offset: 0 // Simplified without getOffsetAt
         };
 
         let selectionRange: SelectionRange | undefined;
-        if (selection && !selection.isEmpty()) {
+        if (selection && !(selection as any).isEmpty()) {
+          // Monaco Selection is based on Range, so we can get the values directly
+          const startLine = (selection as any).startLineNumber;
+          const startCol = (selection as any).startColumn;
+          const endLine = (selection as any).endLineNumber;
+          const endCol = (selection as any).endColumn;
+          
           selectionRange = {
             start: {
-              line: selection.startLineNumber - 1,
-              column: selection.startColumn - 1,
-              offset: editor.getModel()?.getOffsetAt(selection.getStartPosition()) || 0
+              line: startLine - 1,
+              column: startCol - 1,
+              offset: 0
             },
             end: {
-              line: selection.endLineNumber - 1,
-              column: selection.endColumn - 1,
-              offset: editor.getModel()?.getOffsetAt(selection.getEndPosition()) || 0
+              line: endLine - 1,
+              column: endCol - 1,
+              offset: 0
             },
-            direction: selection.getDirection() === monaco.SelectionDirection.LTR ? 'forward' : 'backward'
+            direction: (startLine < endLine || (startLine === endLine && startCol < endCol)) ? 'forward' : 'backward'
           };
         }
 
@@ -217,31 +217,37 @@ export function AdvancedCollaborativeMonacoEditor({
       }
     });
 
-    editor.onDidChangeCursorPosition((e) => {
+    editorInstance.onDidChangeCursorPosition((e) => {
       if (isUpdatingFromCollaboration.current) return;
 
       const cursor: CursorPosition = {
         line: e.position.lineNumber - 1,
         column: e.position.column - 1,
-        offset: editor.getModel()?.getOffsetAt(e.position) || 0
+        offset: 0 // Simplified without getOffsetAt
       };
 
-      const selection = editor.getSelection();
+      const selection = editorInstance.getSelection();
       let selectionRange: SelectionRange | undefined;
       
-      if (selection && !selection.isEmpty()) {
+      if (selection && !(selection as any).isEmpty()) {
+        // Monaco Selection is based on Range, so we can get the values directly
+        const startLine = (selection as any).startLineNumber;
+        const startCol = (selection as any).startColumn;
+        const endLine = (selection as any).endLineNumber;
+        const endCol = (selection as any).endColumn;
+        
         selectionRange = {
           start: {
-            line: selection.startLineNumber - 1,
-            column: selection.startColumn - 1,
-            offset: editor.getModel()?.getOffsetAt(selection.getStartPosition()) || 0
+            line: startLine - 1,
+            column: startCol - 1,
+            offset: 0
           },
           end: {
-            line: selection.endLineNumber - 1,
-            column: selection.endColumn - 1,
-            offset: editor.getModel()?.getOffsetAt(selection.getEndPosition()) || 0
+            line: endLine - 1,
+            column: endCol - 1,
+            offset: 0
           },
-          direction: selection.getDirection() === monaco.SelectionDirection.LTR ? 'forward' : 'backward'
+          direction: (startLine < endLine || (startLine === endLine && startCol < endCol)) ? 'forward' : 'backward'
         };
       }
 
@@ -250,29 +256,30 @@ export function AdvancedCollaborativeMonacoEditor({
     });
 
     // Add keyboard shortcuts
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+    editorInstance.addCommand(2048 | 49, () => { // Ctrl+S
       manualSave();
     });
 
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyZ, () => {
+    editorInstance.addCommand(2048 | 56, () => { // Ctrl+Z
       if (canUndo) {
         undo();
       }
     });
 
     // Add command for formatting
-    editor.addCommand(monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF, () => {
-      editor.getAction('editor.action.formatDocument')?.run();
+    editorInstance.addCommand(1024 | 512 | 36, () => { // Shift+Alt+F
+      editorInstance.getAction('editor.action.formatDocument')?.run();
     });
 
     // Add command for quick fix
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Period, () => {
-      editor.getAction('editor.action.quickFix')?.run();
+    editorInstance.addCommand(2048 | 84, () => { // Ctrl+Period
+      editorInstance.getAction('editor.action.quickFix')?.run();
     });
 
     // Listen for semantic analysis results
     const handleAnalysisComplete = (event: CustomEvent) => {
-      if (event.detail.modelId === editor.getModel()?.id) {
+      const model = editorInstance.getModel();
+      if (model && (model as any).uri && event.detail.modelId === (model as any).uri.toString()) {
         setAnalysisResults(event.detail.result);
       }
     };
@@ -326,7 +333,7 @@ export function AdvancedCollaborativeMonacoEditor({
   useEffect(() => {
     if (!editorRef.current || !monacoRef.current || !showCollaboratorCursors) return;
 
-    const newDecorations: monaco.editor.IModelDeltaDecoration[] = [];
+    const newDecorations: Array<any> = [];
 
     collaborators.forEach(collaborator => {
       if (!collaborator.isActive || !collaborator.cursor) return;
@@ -353,7 +360,7 @@ export function AdvancedCollaborativeMonacoEditor({
             inlineClassName: 'collaborator-cursor-name',
             inlineClassNameAffectsLetterSpacing: true
           },
-          stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
+          stickiness: 1
         }
       });
 
@@ -377,7 +384,7 @@ export function AdvancedCollaborativeMonacoEditor({
           ),
           options: {
             className: 'collaborator-selection',
-            stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
+            stickiness: 1
           }
         });
       }
@@ -414,7 +421,7 @@ export function AdvancedCollaborativeMonacoEditor({
     <div className={cn('relative', className)}>
       {/* Editor Toolbar */}
       <GlassContainer
-        intensity="low"
+        intensity="light"
         tint="neutral"
         border
         className="flex items-center justify-between p-3 mb-2"

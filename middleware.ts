@@ -2,6 +2,16 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { shouldAutoRedirect } from '@/lib/utils/redirects';
+import { logger } from '@/lib/api/logger';
+
+// Type definitions for protected routes
+type ProtectedRouteConfig = {
+  requireAuth: boolean;
+  roles?: string[];
+} & (
+  | { isApi: true }
+  | { redirectTo: string }
+);
 
 // Define protected routes and their requirements
 const PROTECTED_ROUTES = {
@@ -183,7 +193,7 @@ export async function middleware(request: NextRequest) {
 
     // Check authentication requirement
     if (protectedRoute.requireAuth && !isAuthenticated) {
-      if (protectedRoute.isApi) {
+      if ('isApi' in protectedRoute && protectedRoute.isApi) {
         return new NextResponse(
           JSON.stringify({ 
             error: 'Authentication required',
@@ -197,7 +207,7 @@ export async function middleware(request: NextRequest) {
       }
 
       // Redirect to auth with return URL
-      const redirectTo = protectedRoute.redirectTo || '/auth';
+      const redirectTo = ('redirectTo' in protectedRoute ? protectedRoute.redirectTo : null) || '/auth';
       const returnUrl = encodeURIComponent(pathname + request.nextUrl.search);
       return NextResponse.redirect(
         new URL(`${redirectTo}?returnUrl=${returnUrl}`, request.url)
@@ -207,7 +217,7 @@ export async function middleware(request: NextRequest) {
     // Check role requirements
     if (protectedRoute.roles && protectedRoute.roles.length > 0) {
       if (!userRole || !protectedRoute.roles.includes(userRole)) {
-        if (protectedRoute.isApi) {
+        if ('isApi' in protectedRoute && protectedRoute.isApi) {
           return new NextResponse(
             JSON.stringify({ 
               error: 'Insufficient permissions',
@@ -244,7 +254,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
 
   } catch (error) {
-    console.error('Middleware error:', error);
+    logger.error('Middleware error:', {}, error as Error);
     
     // In case of error, allow the request to proceed
     // The client-side protection will handle it
@@ -253,7 +263,7 @@ export async function middleware(request: NextRequest) {
 }
 
 // Helper function to find matching protected route
-function findProtectedRoute(pathname: string) {
+function findProtectedRoute(pathname: string): ProtectedRouteConfig | null {
   // Check exact matches first
   if (PROTECTED_ROUTES[pathname as keyof typeof PROTECTED_ROUTES]) {
     return PROTECTED_ROUTES[pathname as keyof typeof PROTECTED_ROUTES];

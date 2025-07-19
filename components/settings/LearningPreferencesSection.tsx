@@ -2,30 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  BookOpen,
-  Target,
-  Clock,
-  Bell,
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Eye,
-  EyeOff,
-  Calendar,
-  TrendingUp,
-  Award,
-  Settings,
-  Code,
-  Palette,
-  Type,
-  Monitor,
-  Users,
-  MessageSquare,
-  Cursor,
-  Zap
-} from 'lucide-react';
+import { BookOpen, Target, Bell, Play, TrendingUp, Settings, Code, Palette, Type, Users, MessageSquare, Zap } from 'lucide-react';
 import { 
   LearningPreferences, 
   EditorPreferences, 

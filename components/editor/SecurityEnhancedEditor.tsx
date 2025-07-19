@@ -2,18 +2,9 @@
 // Integrates SecurityScanner with Monaco Editor for live vulnerability detection
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import * as monaco from 'monaco-editor';
+import { editor } from 'monaco-editor';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Shield, 
-  AlertTriangle, 
-  Info, 
-  Zap, 
-  CheckCircle, 
-  XCircle,
-  Lightbulb,
-  TrendingUp
-} from 'lucide-react';
+import { Shield, AlertTriangle, Info, CheckCircle, XCircle } from 'lucide-react';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -59,7 +50,7 @@ export const SecurityEnhancedEditor: React.FC<SecurityEnhancedEditorProps> = ({
   const { toast } = useToast();
   
   const editorRef = useRef<HTMLDivElement>(null);
-  const editorInstanceRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const editorInstanceRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const securityScannerRef = useRef<SecurityScanner | null>(null);
   
   const [isEditorReady, setIsEditorReady] = useState(false);
@@ -100,7 +91,7 @@ export const SecurityEnhancedEditor: React.FC<SecurityEnhancedEditorProps> = ({
       contextmenu: true,
       quickSuggestions: true,
       suggestOnTriggerCharacters: true,
-      wordBasedSuggestions: true,
+      wordBasedSuggestions: 'currentDocument',
       // Security-specific settings
       rulers: [80, 120],
       renderWhitespace: 'boundary',
@@ -173,9 +164,9 @@ export const SecurityEnhancedEditor: React.FC<SecurityEnhancedEditorProps> = ({
   const updateSecurityStats = useCallback((result: SecurityScanResult) => {
     const stats: SecurityStats = {
       totalIssues: result.issues.length,
-      criticalIssues: result.issues.filter(i => i.severity === 'error').length,
-      warningIssues: result.issues.filter(i => i.severity === 'warning').length,
-      infoIssues: result.issues.filter(i => i.severity === 'info').length,
+      criticalIssues: result.issues.filter(i => i.severity === 'critical').length,
+      warningIssues: result.issues.filter(i => i.severity === 'high' || i.severity === 'medium').length,
+      infoIssues: result.issues.filter(i => i.severity === 'low').length,
       securityScore: result.overallScore,
       lastScanTime: new Date()
     };
@@ -247,36 +238,39 @@ export const SecurityEnhancedEditor: React.FC<SecurityEnhancedEditorProps> = ({
     }
   }, [toast, updateSecurityStats]);
 
-  const getScoreColor = (score: number): string => {
-    if (score >= 90) return 'text-green-500';
-    if (score >= 70) return 'text-yellow-500';
-    return 'text-red-500';
-  };
+  // Score visualization helpers - replaced by inline logic
+  // const _getScoreColor = (score: number): string => {
+  //   if (score >= 90) return 'text-green-500';
+  //   if (score >= 70) return 'text-yellow-500';
+  //   return 'text-red-500';
+  // };
 
-  const getScoreIcon = (score: number) => {
-    if (score >= 90) return <CheckCircle className="w-5 h-5 text-green-500" />;
-    if (score >= 70) return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
-    return <XCircle className="w-5 h-5 text-red-500" />;
-  };
+  // const _getScoreIcon = (score: number) => {
+  //   if (score >= 90) return <CheckCircle className="w-5 h-5 text-green-500" />;
+  //   if (score >= 70) return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
+  //   return <XCircle className="w-5 h-5 text-red-500" />;
+  // };
 
   const getSeverityIcon = (severity: SecurityIssue['severity']) => {
     switch (severity) {
-      case 'error':
+      case 'critical':
+      case 'high':
         return <XCircle className="w-4 h-4 text-red-500" />;
-      case 'warning':
+      case 'medium':
         return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
-      case 'info':
+      case 'low':
         return <Info className="w-4 h-4 text-blue-500" />;
     }
   };
 
   const getSeverityBadgeVariant = (severity: SecurityIssue['severity']) => {
     switch (severity) {
-      case 'error':
+      case 'critical':
+      case 'high':
         return 'destructive';
-      case 'warning':
+      case 'medium':
         return 'secondary';
-      case 'info':
+      case 'low':
         return 'outline';
     }
   };

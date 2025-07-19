@@ -141,7 +141,7 @@ export async function POST(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id, progress, type = 'lesson' } = await request.json();
+    const { id, progress, type = 'lesson' } = await _request.json();
 
     if (!id || progress === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });

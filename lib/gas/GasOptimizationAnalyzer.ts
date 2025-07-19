@@ -630,7 +630,6 @@ export class GasOptimizationAnalyzer {
         ),
         options: {
           className: 'gas-heatmap',
-          backgroundColor,
           hoverMessage: {
             value: `**Gas Cost: ${point.gasCost}**\n\n${point.description}\n\nCategory: ${point.category}`
           },

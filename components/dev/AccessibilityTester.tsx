@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, CheckCircle, X, Eye, Settings, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { accessibilityTester, type AccessibilityTestResult } from '@/lib/accessibility/AccessibilityTester';
+import { accessibilityTester, AccessibilityTestResult } from '@/lib/accessibility/AccessibilityTester';
+import { logger } from '@/lib/api/logger';
 
 interface AccessibilityTesterProps {
   enabled?: boolean;
@@ -39,15 +40,13 @@ export const AccessibilityTester: React.FC<AccessibilityTesterProps> = ({
       setResults(result);
       setLastTestTime(new Date());
       
-      // Log results to console for developers
-      console.group('🔍 Accessibility Test Results');
-      console.log(accessibilityTester.generateReport(result));
+      // Log results for developers
+      logger.info('Accessibility Test Results', { report: accessibilityTester.generateReport(result) });
       if (result.violations.length > 0) {
-        console.warn('Accessibility violations found:', result.violations);
+        logger.warn('Accessibility violations found', { violations: result.violations });
       }
-      console.groupEnd();
     } catch (error) {
-      console.error('Accessibility test failed:', error);
+      logger.error('Accessibility test failed:', {}, error as Error);
     } finally {
       setIsLoading(false);
     }
@@ -232,7 +231,7 @@ export const AccessibilityTester: React.FC<AccessibilityTesterProps> = ({
                       <div className="bg-gray-800 rounded-lg p-4">
                         <h3 className="text-lg font-semibold text-white mb-4">Violations</h3>
                         <div className="space-y-4">
-                          {results.violations.map((violation, index) => (
+                          {results.violations.map((violation: any, index: number) => (
                             <div key={index} className="border border-gray-700 rounded-lg p-4">
                               <div className="flex items-start justify-between mb-2">
                                 <h4 className="font-medium text-white">{violation.description}</h4>

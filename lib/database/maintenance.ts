@@ -1,5 +1,5 @@
 import { cleanupManager, CleanupReport, CleanupOptions } from './cleanup';
-import { migrationManager } from './migrations';
+;
 import { registerOrphanedDataOperations } from './orphaned-data';
 import { registerDataRemovalOperations } from './data-removal';
 import { logger } from '@/lib/api/logger';
@@ -24,7 +24,7 @@ export interface CronSchedule {
   dayOfMonth: string;
   month: string;
   dayOfWeek: string;
-  timezone: string;
+  timezone?: string;
 }
 
 export interface NotificationConfig {

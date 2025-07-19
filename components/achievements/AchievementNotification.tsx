@@ -9,9 +9,7 @@ import {
   Zap,
   Gift,
   Crown,
-  Sparkles,
-  CheckCircle,
-  Award
+  CheckCircle
 } from 'lucide-react';
 import { Achievement, AchievementNotification as IAchievementNotification } from '@/lib/achievements/types';
 import { ACHIEVEMENT_RARITIES } from '@/lib/achievements/data';
@@ -319,10 +317,10 @@ export function AchievementNotificationManager() {
     type: 'full' | 'toast';
   }>>([]);
 
-  const addNotification = (notification: IAchievementNotification, achievement: Achievement, type: 'full' | 'toast' = 'full') => {
-    const id = `${notification.id}_${Date.now()}`;
-    setNotifications(prev => [...prev, { id, notification, achievement, type }]);
-  };
+  // const addNotification = (notification: IAchievementNotification, achievement: Achievement, type: 'full' | 'toast' = 'full') => {
+  //   const id = `${notification.id}_${Date.now()}`;
+  //   setNotifications(prev => [...prev, { id, notification, achievement, type }]);
+  // };
 
   const removeNotification = (id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id));

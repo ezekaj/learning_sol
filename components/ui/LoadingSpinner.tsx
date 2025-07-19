@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+;
 import { motion } from 'framer-motion';
-import { Loader2, RotateCw, RefreshCw, Zap, Circle } from 'lucide-react';
+import { Loader2, RotateCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface LoadingSpinnerProps {

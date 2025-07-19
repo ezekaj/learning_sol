@@ -354,7 +354,7 @@ export class CommitManager {
     this.queueCommit(`Cleanup ${description}`, files, 1);
   }
 
-  async commitLessonCompletion(lessonId: string, code: string): Promise<void> {
+  async commitLessonCompletion(lessonId: string, _code: string): Promise<void> {
     this.queueCommit(
       `Complete lesson ${lessonId} with working solution`,
       [`lessons/${lessonId}/solution.sol`],

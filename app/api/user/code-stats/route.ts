@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
@@ -63,12 +64,12 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json({ stats });
   } catch (error) {
-    console.error('Error fetching code stats:', error);
+    logger.error('Error fetching code stats', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -83,11 +84,14 @@ export async function POST(_request: NextRequest) {
         const { linesAdded, linesRemoved, language, projectId } = data;
         
         // TODO: Implement real-time code tracking
-        console.log(`User ${session.user.id} code activity:`, {
-          linesAdded,
-          linesRemoved,
-          language,
-          projectId,
+        logger.info(`User ${session.user.id} code activity`, {
+          userId: session.user.id,
+          metadata: {
+            linesAdded,
+            linesRemoved,
+            language,
+            projectId,
+          }
         });
 
         return NextResponse.json({ 
@@ -99,10 +103,13 @@ export async function POST(_request: NextRequest) {
         const { contractAddress, networkId, gasUsed } = data;
         
         // TODO: Track contract deployments
-        console.log(`User ${session.user.id} deployed contract:`, {
-          contractAddress,
-          networkId,
-          gasUsed,
+        logger.info(`User ${session.user.id} deployed contract`, {
+          userId: session.user.id,
+          metadata: {
+            contractAddress,
+            networkId,
+            gasUsed,
+          }
         });
 
         return NextResponse.json({ 
@@ -114,7 +121,7 @@ export async function POST(_request: NextRequest) {
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Error processing code stats action:', error);
+    logger.error('Error processing code stats action', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

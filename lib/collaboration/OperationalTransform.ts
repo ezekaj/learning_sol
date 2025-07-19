@@ -77,8 +77,13 @@ export class OperationalTransform {
     return {
       operation: {
         ...operation,
-        meta: {
+        meta: operation.meta ? {
           ...operation.meta,
+          cursor: transformedCursor,
+          selection: transformedSelection
+        } : {
+          userId: '',
+          timestamp: Date.now(),
           cursor: transformedCursor,
           selection: transformedSelection
         }
@@ -192,8 +197,8 @@ export class OperationalTransform {
         newOps1.push({ type: 'retain', length: minLength });
         newOps2.push({ type: 'retain', length: minLength });
         
-        op1Current = this.consumeOperation(op1Current, minLength);
-        op2Current = this.consumeOperation(op2Current, minLength);
+        op1Current = this.consumeOperation(op1Current, minLength) || ops1[++i1];
+        op2Current = this.consumeOperation(op2Current, minLength) || ops2[++i2];
       }
       // Handle insert vs insert
       else if (op1Current?.type === 'insert' && op2Current?.type === 'insert') {
@@ -221,21 +226,21 @@ export class OperationalTransform {
       // Handle delete vs delete
       else if (op1Current?.type === 'delete' && op2Current?.type === 'delete') {
         const minLength = Math.min(op1Current.length || 0, op2Current.length || 0);
-        op1Current = this.consumeOperation(op1Current, minLength);
-        op2Current = this.consumeOperation(op2Current, minLength);
+        op1Current = this.consumeOperation(op1Current, minLength) || ops1[++i1];
+        op2Current = this.consumeOperation(op2Current, minLength) || ops2[++i2];
       }
       // Handle delete vs retain
       else if (op1Current?.type === 'delete' && op2Current?.type === 'retain') {
         const minLength = Math.min(op1Current.length || 0, op2Current.length || 0);
         newOps1.push({ type: 'delete', length: minLength });
-        op1Current = this.consumeOperation(op1Current, minLength);
-        op2Current = this.consumeOperation(op2Current, minLength);
+        op1Current = this.consumeOperation(op1Current, minLength) || ops1[++i1];
+        op2Current = this.consumeOperation(op2Current, minLength) || ops2[++i2];
       }
       else if (op1Current?.type === 'retain' && op2Current?.type === 'delete') {
         const minLength = Math.min(op1Current.length || 0, op2Current.length || 0);
         newOps2.push({ type: 'delete', length: minLength });
-        op1Current = this.consumeOperation(op1Current, minLength);
-        op2Current = this.consumeOperation(op2Current, minLength);
+        op1Current = this.consumeOperation(op1Current, minLength) || ops1[++i1];
+        op2Current = this.consumeOperation(op2Current, minLength) || ops2[++i2];
       }
       else {
         // Move to next operation if current is consumed
@@ -284,8 +289,8 @@ export class OperationalTransform {
       } else if (op1Current?.type === 'retain' && op2Current?.type === 'retain') {
         const minLength = Math.min(op1Current.length || 0, op2Current.length || 0);
         newOps.push({ type: 'retain', length: minLength });
-        op1Current = this.consumeOperation(op1Current, minLength);
-        op2Current = this.consumeOperation(op2Current, minLength);
+        op1Current = this.consumeOperation(op1Current, minLength) || ops1[++i1];
+        op2Current = this.consumeOperation(op2Current, minLength) || ops2[++i2];
       } else if (op1Current?.type === 'insert' && op2Current?.type === 'retain') {
         const insertLength = op1Current.text?.length || 0;
         const retainLength = op2Current.length || 0;
@@ -293,7 +298,7 @@ export class OperationalTransform {
         if (insertLength <= retainLength) {
           newOps.push({ type: 'insert', text: op1Current.text });
           op1Current = ops1[++i1];
-          op2Current = this.consumeOperation(op2Current, insertLength);
+          op2Current = this.consumeOperation(op2Current, insertLength) || ops2[++i2];
         } else {
           const partialText = op1Current.text?.slice(0, retainLength) || '';
           newOps.push({ type: 'insert', text: partialText });
@@ -306,7 +311,7 @@ export class OperationalTransform {
         
         if (insertLength <= deleteLength) {
           op1Current = ops1[++i1];
-          op2Current = this.consumeOperation(op2Current, insertLength);
+          op2Current = this.consumeOperation(op2Current, insertLength) || ops2[++i2];
         } else {
           op1Current = { type: 'insert', text: op1Current.text?.slice(deleteLength) };
           op2Current = ops2[++i2];
@@ -314,8 +319,8 @@ export class OperationalTransform {
       } else if (op1Current?.type === 'retain' && op2Current?.type === 'delete') {
         const minLength = Math.min(op1Current.length || 0, op2Current.length || 0);
         newOps.push({ type: 'delete', length: minLength });
-        op1Current = this.consumeOperation(op1Current, minLength);
-        op2Current = this.consumeOperation(op2Current, minLength);
+        op1Current = this.consumeOperation(op1Current, minLength) || ops1[++i1];
+        op2Current = this.consumeOperation(op2Current, minLength) || ops2[++i2];
       } else {
         if (!op1Current) op1Current = ops1[++i1];
         if (!op2Current) op2Current = ops2[++i2];

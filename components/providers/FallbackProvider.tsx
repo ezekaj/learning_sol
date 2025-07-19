@@ -164,7 +164,7 @@ export function withFallbackProtection<P extends object>(
 
     return (
       <ErrorBoundary
-        level={level}
+        level={level === 'section' ? 'component' : level}
         fallback={fallback}
         onError={handleError}
       >
@@ -265,7 +265,7 @@ export function ErrorMetrics({ className }: { className?: string }) {
         <div className="bg-white/5 p-4 rounded-lg">
           <h4 className="text-white font-medium mb-3">Top Errors</h4>
           <div className="space-y-2">
-            {metrics.topErrors.slice(0, 5).map((error: any, index: number) => (
+            {metrics.topErrors.slice(0, 5).map((error: any, _index: number) => (
               <div key={error.fingerprint} className="flex items-center justify-between text-sm">
                 <span className="text-gray-300 truncate flex-1 mr-4">{error.message}</span>
                 <span className="text-red-400 font-medium">{error.count}</span>

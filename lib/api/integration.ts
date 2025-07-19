@@ -13,7 +13,7 @@ import { rateLimiters } from './rate-limiting';
 import { apiLogger, createLoggingMiddleware } from './logging';
 import { errorTracker } from '@/lib/monitoring/error-tracking';
 import { isFeatureEnabled } from '@/lib/features/feature-flags';
-import { applyAccessibilitySettings, trackFallbackUsage } from '@/lib/utils/fallback-integration';
+import { trackFallbackUsage } from '@/lib/utils/fallback-integration';
 import { UserSettings } from '@/types/settings';
 import { z } from 'zod';
 
@@ -135,7 +135,7 @@ export function createApiRoute(options: {
         const userRole = request.headers.get('x-user-role') as any;
         const userId = request.headers.get('x-user-id');
 
-        if (!isFeatureEnabled(featureFlag, userRole, userId)) {
+        if (!isFeatureEnabled(featureFlag, userRole, userId || undefined)) {
           return new NextResponse(
             JSON.stringify({
               success: false,
@@ -165,7 +165,7 @@ export function createApiRoute(options: {
 }
 
 // Settings integration utilities
-export async function getUserSettings(userId: string): Promise<UserSettings | null> {
+export async function getUserSettings(_userId: string): Promise<UserSettings | null> {
   try {
     // In a real implementation, this would fetch from your database
     // For now, return mock settings
@@ -176,29 +176,36 @@ export async function getUserSettings(userId: string): Promise<UserSettings | nu
         bio: 'Learning Solidity',
         location: 'New York',
         website: 'https://johndoe.dev',
-        github: 'johndoe',
-        twitter: 'johndoe',
-        linkedin: 'john-doe',
+        githubUsername: 'johndoe',
+        twitterUsername: 'johndoe',
+        linkedinUsername: 'john-doe',
         avatar: 'https://example.com/avatar.jpg'
       },
       security: {
         twoFactorEnabled: false,
         sessionTimeout: 60,
-        loginNotifications: true
+        loginNotifications: true,
+        backupCodes: [],
+        passwordLastChanged: new Date(),
+        suspiciousActivityAlerts: true,
+        allowedDevices: [],
+        ipWhitelist: []
       },
       learning: {
-        learningGoals: ['Master Solidity', 'Build DeFi apps'],
-        skillLevel: 'BEGINNER',
-        preferredDifficulty: 'BEGINNER',
-        dailyGoal: 60,
-        weeklyGoal: 420,
-        reminderTime: '19:00',
-        timezone: 'America/New_York',
+        difficulty: 'beginner',
+        learningPath: ['Master Solidity', 'Build DeFi apps'],
+        preferredLanguages: ['solidity', 'javascript'],
+        studyReminders: {
+          enabled: true,
+          frequency: 'daily',
+          time: '19:00',
+          timezone: 'America/New_York'
+        },
         progressTracking: {
           showDetailedStats: true,
-          trackTimeSpent: true,
-          showStreak: true,
-          showXP: true
+          shareProgress: true,
+          goalSetting: true,
+          weeklyGoals: 7
         }
       },
       editor: {
@@ -210,64 +217,83 @@ export async function getUserSettings(userId: string): Promise<UserSettings | nu
         lineNumbers: true,
         minimap: true,
         autoSave: true,
-        autoSaveDelay: 2000,
-        keyBindings: 'default'
+        autoSaveInterval: 2000,
+        formatOnSave: true,
+        formatOnType: false,
+        showWhitespace: false,
+        renderControlCharacters: false,
+        keyBindings: 'default',
+        bracketPairColorization: true,
+        lineHeight: 1.5
       },
       collaboration: {
-        allowCollaboration: true,
-        shareProgress: true,
-        showOnlineStatus: true,
-        allowDirectMessages: true,
-        mentorshipAvailable: false,
-        publicProfile: true,
-        showAchievements: true,
-        allowFollowers: true
+        showCursors: true,
+        showSelections: true,
+        showUserNames: true,
+        enableRealTimeChat: true,
+        autoJoinSessions: false,
+        sharePresence: true,
+        allowInvitations: true,
+        defaultPermissions: 'read',
+        notificationSound: true
       },
       notifications: {
         email: {
           courseUpdates: true,
-          newLessons: true,
-          achievements: true,
-          reminders: true,
-          weeklyDigest: true,
-          marketing: false
+          achievementUnlocked: true,
+          weeklyProgress: true,
+          collaborationInvites: true,
+          systemAnnouncements: true,
+          securityAlerts: true,
+          marketingEmails: false
         },
         push: {
-          enabled: true,
-          courseUpdates: true,
-          achievements: true,
-          reminders: true,
-          messages: true
+          courseReminders: true,
+          achievementUnlocked: true,
+          collaborationActivity: true,
+          systemAlerts: true
         },
         inApp: {
-          achievements: true,
-          courseUpdates: true,
-          messages: true,
-          system: true
+          realTimeCollaboration: true,
+          codeAnalysisResults: true,
+          debuggingAlerts: true,
+          versionControlUpdates: true
         }
       },
       accessibility: {
         fontSize: 16,
         highContrast: false,
-        reduceMotion: false,
+        reducedMotion: false,
         screenReader: false,
         keyboardNavigation: true,
         focusIndicators: true,
         largeClickTargets: false,
         simpleLanguage: false,
-        audioDescriptions: false,
-        captionsEnabled: false
+        largeText: false,
+        colorBlindnessSupport: 'none',
+        colorBlindSupport: false,
+        voiceCommands: false,
+        stickyKeys: false,
+        clickDelay: 0,
+        readingGuide: false,
+        reduceMotion: false,
+        autoPauseMedia: true,
+        sessionTimeoutWarning: 5
       },
       privacy: {
         profileVisibility: 'public',
-        showEmail: false,
         showProgress: true,
         showAchievements: true,
+        allowCollaboration: true,
+        showOnlineStatus: true,
+        dataRetentionDays: 365,
         allowAnalytics: true,
+        allowPersonalization: true,
+        allowMarketing: false,
+        allowThirdParty: false,
         allowCookies: true,
-        dataRetention: '2years',
-        marketingEmails: false,
-        thirdPartySharing: false
+        dataRetention: 365,
+        shareUsageData: true
       }
     };
   } catch (error) {
@@ -303,21 +329,12 @@ export function createFallbackMiddleware() {
     try {
       const response = await handler(request);
       
-      // Track successful API usage
-      trackFallbackUsage('api_success', {
-        component: 'api',
-        page: new URL(request.url).pathname,
-        userRole: request.headers.get('x-user-role') || undefined,
-        metadata: {
-          method: request.method,
-          statusCode: response.status
-        }
-      });
+      // API success doesn't need fallback tracking
       
       return response;
     } catch (error) {
-      // Track API failures for fallback analytics
-      trackFallbackUsage('api_error', {
+      // Track API failures as error boundary fallback
+      trackFallbackUsage('error_boundary', {
         component: 'api',
         page: new URL(request.url).pathname,
         userRole: request.headers.get('x-user-role') || undefined,

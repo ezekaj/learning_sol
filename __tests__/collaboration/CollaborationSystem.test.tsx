@@ -3,7 +3,7 @@ import { act } from 'react-dom/test-utils';
 import { CollaborationProvider, useCollaboration } from '@/lib/context/CollaborationContext';
 import { CollaborativeEditor } from '@/lib/collaboration/CollaborativeEditor';
 import { OperationalTransform, TextOperation } from '@/lib/collaboration/OperationalTransform';
-import { ConnectionManager } from '@/lib/collaboration/ConnectionManager';
+;
 import { UserPresencePanel } from '@/components/collaboration/UserPresencePanel';
 import { CollaborationChat } from '@/components/collaboration/CollaborationChat';
 import { ConnectionStatusIndicator } from '@/components/collaboration/ConnectionStatusIndicator';

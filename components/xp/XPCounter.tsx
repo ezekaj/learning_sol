@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, useSpring, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Zap, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

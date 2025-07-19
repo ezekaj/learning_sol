@@ -7,7 +7,8 @@ import {
   withErrorHandling,
   generateRequestId
 } from '@/lib/api/utils';
-import { ApiErrorCode, HttpStatus, SettingsUpdateRequest } from '@/lib/api/types';
+import { ApiErrorCode, HttpStatus } from '@/lib/api/types';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Validation schemas for different settings sections
 const profileSettingsSchema = z.object({
@@ -106,7 +107,7 @@ const notificationSettingsSchema = z.object({
 const accessibilitySettingsSchema = z.object({
   fontSize: z.number().min(12, 'Font size must be at least 12px').max(24, 'Font size cannot exceed 24px').optional(),
   highContrast: z.boolean().optional(),
-  reduceMotion: z.boolean().optional(),
+  reducedMotion: z.boolean().optional(),
   screenReader: z.boolean().optional(),
   keyboardNavigation: z.boolean().optional(),
   focusIndicators: z.boolean().optional(),
@@ -222,7 +223,7 @@ const mockUserSettings = {
   accessibility: {
     fontSize: 16,
     highContrast: false,
-    reduceMotion: false,
+    reducedMotion: false,
     screenReader: false,
     keyboardNavigation: true,
     focusIndicators: true,
@@ -246,7 +247,7 @@ const mockUserSettings = {
 };
 
 // GET /api/settings - Get all user settings
-async function getSettingsHandler(request: NextRequest) {
+async function getSettingsHandler(_request: NextRequest) {
   const requestId = generateRequestId();
   
   try {
@@ -256,7 +257,7 @@ async function getSettingsHandler(request: NextRequest) {
     return successResponse(mockUserSettings, undefined, HttpStatus.OK, requestId);
     
   } catch (error) {
-    console.error('Get settings error:', error);
+    logger.error('Get settings error', error as Error);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to fetch settings',
@@ -308,18 +309,20 @@ async function updateSettingsHandler(request: NextRequest) {
     // const userId = getUserFromToken(request);
     
     // Update settings
-    mockUserSettings[section] = {
-      ...mockUserSettings[section],
+    (mockUserSettings as any)[section] = {
+      ...(mockUserSettings as any)[section],
       ...validation.data
     };
     mockUserSettings.updatedAt = new Date().toISOString();
     
     // Log settings update
-    console.log('Settings updated:', {
-      section,
+    logger.info('Settings updated', {
       userId: mockUserSettings.userId,
-      timestamp: mockUserSettings.updatedAt,
-      requestId
+      requestId,
+      metadata: {
+        section,
+        timestamp: mockUserSettings.updatedAt
+      }
     });
     
     return successResponse(
@@ -334,7 +337,7 @@ async function updateSettingsHandler(request: NextRequest) {
     );
     
   } catch (error) {
-    console.error('Update settings error:', error);
+    logger.error('Update settings error', error as Error);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to update settings',

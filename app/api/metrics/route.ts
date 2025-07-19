@@ -7,9 +7,10 @@ import {
   withErrorHandling,
   generateRequestId
 } from '@/lib/api/utils';
-import { ApiErrorCode, HttpStatus } from '@/lib/api/types';
+import { ApiErrorCode, HttpStatus, MetricsResponseData } from '@/lib/api/types';
 import { errorTracker } from '@/lib/monitoring/error-tracking';
 import { apiLogger } from '@/lib/api/logging';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Validation schema for metrics query
 const metricsQuerySchema = z.object({
@@ -62,15 +63,7 @@ function generateRequestMetrics(timeRangeMs: number, granularity: string) {
     timestamp: new Date(timestamp).toISOString(),
     requests: Math.floor(Math.random() * 1000) + 100,
     errors: Math.floor(Math.random() * 50) + 5,
-    averageResponseTime: Math.floor(Math.random() * 500) + 100,
-    statusCodes: {
-      '200': Math.floor(Math.random() * 800) + 200,
-      '400': Math.floor(Math.random() * 20) + 5,
-      '401': Math.floor(Math.random() * 10) + 2,
-      '403': Math.floor(Math.random() * 5) + 1,
-      '404': Math.floor(Math.random() * 15) + 3,
-      '500': Math.floor(Math.random() * 5) + 1
-    }
+    responseTime: Math.floor(Math.random() * 500) + 100
   }));
 }
 
@@ -162,7 +155,7 @@ async function getMetricsHandler(request: NextRequest) {
     const timeSeriesData = generateRequestMetrics(timeRangeMs, granularity);
     
     // Compile response data
-    const responseData = {
+    const responseData: MetricsResponseData = {
       summary: {
         timeRange,
         granularity,
@@ -178,7 +171,11 @@ async function getMetricsHandler(request: NextRequest) {
       errors: {
         total: errorMetrics.totalErrors,
         rate: errorMetrics.errorRate,
-        topErrors: errorMetrics.topErrors,
+        topErrors: errorMetrics.topErrors.map((error: any) => ({
+          type: error.fingerprint || error.type,
+          count: error.count,
+          message: error.message
+        })),
         errorsByPage: errorMetrics.errorsByPage,
         errorsByBrowser: errorMetrics.errorsByBrowser
       },
@@ -217,7 +214,7 @@ async function getMetricsHandler(request: NextRequest) {
     
     // Filter response based on requested metrics
     if (metrics && metrics.length > 0) {
-      const filteredData: any = { summary: responseData.summary };
+      const filteredData: Partial<MetricsResponseData> = { summary: responseData.summary };
       
       if (metrics.includes('errors')) {
         filteredData.errors = responseData.errors;
@@ -229,7 +226,7 @@ async function getMetricsHandler(request: NextRequest) {
         filteredData.performance = responseData.performance;
       }
       if (metrics.includes('status_codes')) {
-        filteredData.statusCodes = responseData.traffic.statusCodes;
+        filteredData.statusCodes = responseData.traffic?.statusCodes;
       }
       
       return successResponse(filteredData, undefined, HttpStatus.OK, requestId);
@@ -238,7 +235,7 @@ async function getMetricsHandler(request: NextRequest) {
     return successResponse(responseData, undefined, HttpStatus.OK, requestId);
     
   } catch (error) {
-    console.error('Get metrics error:', error);
+    logger.error('Get metrics error', error as Error);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to fetch metrics',

@@ -9,9 +9,11 @@ import {
   parsePaginationParams,
   createPaginationMeta
 } from '@/lib/api/utils';
-import { ApiErrorCode, HttpStatus, ErrorReportRequest } from '@/lib/api/types';
+import { ApiErrorCode, HttpStatus } from '@/lib/api/types';
 import { errorTracker } from '@/lib/monitoring/error-tracking';
 import { apiLogger } from '@/lib/api/logging';
+import { ApiError } from '@/lib/api/errors';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Validation schema for error reports
 const errorReportSchema = z.object({
@@ -97,7 +99,7 @@ async function getErrorsHandler(request: NextRequest) {
     return successResponse(responseData, meta, HttpStatus.OK, requestId);
     
   } catch (error) {
-    console.error('Get errors error:', error);
+    logger.error('Get errors error', error as Error);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to fetch error reports',
@@ -148,7 +150,7 @@ async function reportErrorHandler(request: NextRequest) {
 
     // Log the error report
     apiLogger.logError(
-      error as any,
+      error as ApiError,
       {
         requestId,
         method: request.method,
@@ -179,7 +181,7 @@ async function reportErrorHandler(request: NextRequest) {
     );
     
   } catch (error) {
-    console.error('Report error error:', error);
+    logger.error('Report error error', error as Error);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to report error',
@@ -218,11 +220,11 @@ async function clearErrorsHandler(request: NextRequest) {
       }
       
       // In a real implementation, you would filter and delete from database
-      console.log(`Would clear errors older than ${cutoffDate.toISOString()}`);
+      logger.info(`Would clear errors older than ${cutoffDate.toISOString()}`);
     } else {
       // Clear all errors
       errorTracker.clearEvents();
-      console.log('All error reports cleared');
+      logger.info('All error reports cleared');
     }
 
     return successResponse(
@@ -236,7 +238,7 @@ async function clearErrorsHandler(request: NextRequest) {
     );
     
   } catch (error) {
-    console.error('Clear errors error:', error);
+    logger.error('Clear errors error', error as Error);
     return errorResponse(
       ApiErrorCode.INTERNAL_SERVER_ERROR,
       'Failed to clear error reports',

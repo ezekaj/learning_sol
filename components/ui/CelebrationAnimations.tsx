@@ -1,19 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Trophy, 
-  Star, 
-  Zap, 
-  Crown, 
-  Medal, 
-  Sparkles, 
-  CheckCircle,
-  Target,
-  Award,
-  Flame
-} from 'lucide-react';
+import { Trophy, Crown, Sparkles, CheckCircle, Target, Award, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSettings } from '@/lib/hooks/useSettings';
 import { GlassContainer } from '@/components/ui/Glassmorphism';
@@ -46,7 +35,7 @@ export function ConfettiExplosion({
 }) {
   const [particles, setParticles] = useState<ConfettiParticle[]>([]);
   const [isActive, setIsActive] = useState(false);
-  const animationRef = useRef<number>();
+  // Animation ref removed - not needed with current implementation
   const { settings } = useSettings();
   const shouldAnimate = !settings?.accessibility?.reduceMotion;
 
@@ -232,7 +221,7 @@ export function CelebrationModal({
               className="relative"
             >
               <GlassContainer 
-                intensity="high" 
+                intensity="heavy" 
                 className={cn(
                   "p-8 max-w-md w-full text-center border-2",
                   config.bgColor,

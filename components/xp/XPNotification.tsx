@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Star, Trophy, Target, BookOpen, Code, Award } from 'lucide-react';
+import { Zap, Star, Trophy, Target, BookOpen, Code } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface XPGain {

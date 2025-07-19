@@ -26,7 +26,7 @@ export const HelpSystem: React.FC<HelpSystemProps> = ({
   isOpen,
   onClose,
   initialQuery = '',
-  context,
+  context: _context,
 }) => {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');

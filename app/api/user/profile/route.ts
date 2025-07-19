@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
@@ -94,12 +95,12 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json(profileData);
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    logger.error('Error fetching user profile', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function PATCH(_request: NextRequest) {
+export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -136,12 +137,12 @@ export async function PATCH(_request: NextRequest) {
       profile: updatedProfile 
     });
   } catch (error) {
-    console.error('Error updating user profile:', error);
+    logger.error('Error updating user profile', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -225,7 +226,7 @@ export async function POST(_request: NextRequest) {
 
     return NextResponse.json({ error: 'Action not processed' }, { status: 400 });
   } catch (error) {
-    console.error('Error processing profile action:', error);
+    logger.error('Error processing profile action', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

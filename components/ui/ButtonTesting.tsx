@@ -1,12 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  Play, Save, Download, Upload, Settings, Trash2, 
-  Check, X, AlertTriangle, Info, Heart, Star,
-  Send, Edit, Copy, Share, Plus, Minus
-} from 'lucide-react';
+;
+import { Play, Download, Settings, Trash2, Check, X, Heart, Star, Send, Edit, Copy, Share, Plus, Minus } from 'lucide-react';
 import { 
   EnhancedButton, 
   PrimaryButton, 
@@ -29,11 +25,11 @@ import {
 import { LoadingSpinner } from './LoadingSpinner';
 import { FeedbackIndicator, SuccessIndicator, ErrorIndicator } from './FeedbackIndicators';
 import { Card } from './card';
-import { cn } from '@/lib/utils';
+;
 
 export function ButtonTesting() {
   const [testResults, setTestResults] = useState<string[]>([]);
-  const [isTestingAll, setIsTestingAll] = useState(false);
+  const [_isTestingAll, setIsTestingAll] = useState(false);
 
   const addTestResult = (result: string) => {
     setTestResults(prev => [...prev, `${new Date().toLocaleTimeString()}: ${result}`]);
@@ -181,7 +177,7 @@ export function ButtonTesting() {
               tooltip="Submit form with validation"
               asyncOptions={{
                 onSuccess: () => addTestResult('Form submitted successfully'),
-                onError: (error) => addTestResult(`Form submission failed: ${error.message}`)
+                onError: (error: Error) => addTestResult(`Form submission failed: ${error.message}`)
               }}
             />
             
@@ -190,7 +186,7 @@ export function ButtonTesting() {
               tooltip="Save current changes"
               asyncOptions={{
                 onSuccess: () => addTestResult('Changes saved successfully'),
-                onError: (error) => addTestResult(`Save failed: ${error.message}`)
+                onError: (error: Error) => addTestResult(`Save failed: ${error.message}`)
               }}
             />
             
@@ -200,7 +196,7 @@ export function ButtonTesting() {
               tooltip="Delete selected item"
               asyncOptions={{
                 onSuccess: () => addTestResult('Item deleted successfully'),
-                onError: (error) => addTestResult(`Delete failed: ${error.message}`)
+                onError: (error: Error) => addTestResult(`Delete failed: ${error.message}`)
               }}
             />
           </GlassButtonGroup>

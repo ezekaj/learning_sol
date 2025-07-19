@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { gitIntegration, GitIntegrationManager } from '@/lib/git/GitIntegration';
+import { gitIntegration } from '@/lib/git/GitIntegration';
 
 interface GitHookState {
   isGitAvailable: boolean;

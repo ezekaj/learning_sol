@@ -9,9 +9,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { enhancedTutor } from '@/lib/ai/EnhancedTutorSystem';
 import { 
   getCached, 
-  setCached, 
-  cacheConfigs 
+  setCached
 } from '@/lib/utils/cache';
+import { logger } from '@/lib/monitoring/simple-logger';
 import { 
   withRateLimit,
   getClientIP 
@@ -52,7 +52,7 @@ async function handleHealthCheck(request: NextRequest) {
     // Get comprehensive health information
     const systemHealth = enhancedTutor.getSystemHealth();
     
-    const healthData = {
+    const healthData: any = {
       timestamp: new Date().toISOString(),
       overall: {
         status: systemHealth.overall.healthyServices > 0 ? 'healthy' : 'degraded',
@@ -114,7 +114,7 @@ async function handleHealthCheck(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error('Health check error:', error);
+    logger.error('Health check error', error as Error);
     
     return NextResponse.json({
       success: false,
@@ -211,7 +211,7 @@ async function handleHealthRefresh(request: NextRequest) {
     const serviceName = searchParams.get('service');
     
     // Force health check
-    await enhancedTutor.checkServiceHealth(serviceName || undefined);
+    await enhancedTutor.checkServiceHealth();
     
     // Clear health cache
     // Note: This would clear all health-related cache entries
@@ -233,13 +233,19 @@ async function handleHealthRefresh(request: NextRequest) {
 
 // Apply rate limiting to endpoints
 export const GET = withRateLimit(
-  handleHealthCheck,
+  async (request: Request) => {
+    const nextRequest = request as NextRequest;
+    return handleHealthCheck(nextRequest);
+  },
   'quick',
   (request: Request) => getClientIP(request)
 );
 
 export const POST = withRateLimit(
-  handleHealthRefresh,
+  async (request: Request) => {
+    const nextRequest = request as NextRequest;
+    return handleHealthRefresh(nextRequest);
+  },
   'quick',
   (request: Request) => getClientIP(request)
 );

@@ -4,7 +4,7 @@
 
 import { z } from 'zod';
 import { SchemaRegistry } from './schema-types';
-import { ApiErrorCode, HttpStatus } from './types';
+;
 
 // OpenAPI specification types
 interface OpenAPISpec {
@@ -502,9 +502,30 @@ export class ApiDocumentationGenerator {
             }
           }
         },
-        '401': { $ref: '#/components/responses/UnauthorizedError' },
-        '422': { $ref: '#/components/responses/ValidationError' },
-        '429': { $ref: '#/components/responses/RateLimitError' }
+        '401': { 
+          description: 'Authentication required',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+            }
+          }
+        },
+        '422': { 
+          description: 'Validation error',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/ValidationErrorResponse' }
+            }
+          }
+        },
+        '429': { 
+          description: 'Rate limit exceeded',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/RateLimitErrorResponse' }
+            }
+          }
+        }
       },
       security: []
     });
@@ -551,8 +572,22 @@ export class ApiDocumentationGenerator {
             }
           }
         },
-        '422': { $ref: '#/components/responses/ValidationError' },
-        '429': { $ref: '#/components/responses/RateLimitError' }
+        '422': { 
+          description: 'Validation error',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/ValidationErrorResponse' }
+            }
+          }
+        },
+        '429': { 
+          description: 'Rate limit exceeded',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/RateLimitErrorResponse' }
+            }
+          }
+        }
       },
       security: []
     });

@@ -305,9 +305,9 @@ export function ProfileSection({
               <div className="flex items-center space-x-2">
                 <p className="text-white">{profile.email}</p>
                 {profile.emailVerified ? (
-                  <Check className="w-4 h-4 text-green-400" title="Verified" />
+                  <Check className="w-4 h-4 text-green-400" />
                 ) : (
-                  <AlertCircle className="w-4 h-4 text-yellow-400" title="Not verified" />
+                  <AlertCircle className="w-4 h-4 text-yellow-400" />
                 )}
               </div>
             )}

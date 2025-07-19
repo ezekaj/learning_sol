@@ -1,10 +1,9 @@
 'use client';
 
-import React from 'react';
+;
 import { motion } from 'framer-motion';
-import { Mail, Send, User, MessageSquare, AlertCircle } from 'lucide-react';
+import { Mail, User, MessageSquare, AlertCircle } from 'lucide-react';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { AsyncSubmitButton } from '@/components/ui/EnhancedButton';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -193,7 +192,7 @@ export function ContactForm({ onSuccess, className = '' }: ContactFormProps) {
                 onSuccess: () => {
                   form.resetForm();
                 },
-                onError: (error) => {
+                onError: (error: Error) => {
                   console.error('Contact form submission failed:', error);
                 }
               }}

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, AlertTriangle, Info, CheckCircle, XCircle, AlertCircle, Zap, RefreshCw } from 'lucide-react';
+import { X, AlertTriangle, Info, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AppError } from '@/lib/errors/types';
 import { EnhancedButton } from './EnhancedButton';

@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -91,7 +92,7 @@ export async function POST(_request: NextRequest) {
       xpGained: amount,
     });
   } catch (error) {
-    console.error('Error updating XP:', error);
+    logger.error('Error updating XP', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

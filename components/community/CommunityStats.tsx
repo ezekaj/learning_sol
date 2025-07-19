@@ -2,31 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Users,
-  BookOpen,
-  Clock,
-  TrendingUp,
-  TrendingDown,
-  Activity,
-  Award,
-  Target,
-  Download,
-  RefreshCw,
-  Calendar,
-  Filter,
-  BarChart3,
-  PieChart,
-  LineChart,
-  Eye,
-  MessageSquare,
-  Star,
-  Zap
-} from 'lucide-react';
+import { Users, BookOpen, Clock, TrendingUp, TrendingDown, Activity, Award, Target, Download, RefreshCw, Filter, MessageSquare } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
-import {
+import type {
   CommunityStats,
   StatsFilters,
   TrendingTopic,

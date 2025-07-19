@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { PasswordUtils, registrationSchema } from '@/lib/auth/password';
 import { logger } from '@/lib/monitoring/simple-logger';

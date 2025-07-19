@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { errorTracker, captureError, captureWarning, captureInfo, useErrorTracking } from '@/lib/monitoring/error-tracking';
-import { ErrorEvent, ErrorMetrics } from '@/lib/monitoring/error-tracking';
+;
 
 // Mock external dependencies
 jest.mock('@sentry/nextjs', () => ({

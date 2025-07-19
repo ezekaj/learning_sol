@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+;
 import { motion } from 'framer-motion';
 import { Trophy, Star, Target, Zap, Crown, Calendar } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -9,7 +9,6 @@ import { AchievementNotificationManager } from '@/components/achievements/Achiev
 import { GlassCard } from '@/components/ui/Glassmorphism';
 import { SmartBreadcrumbs } from '@/components/navigation/SmartNavigation';
 import { useAchievements, useGamificationStats } from '@/lib/hooks/useAchievements';
-import { Achievement } from '@/lib/achievements/types';
 
 export default function AchievementsPage() {
   const { 
@@ -28,15 +27,13 @@ export default function AchievementsPage() {
     completionPercentage 
   } = useGamificationStats();
 
-  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
-
-  const handleAchievementClick = (achievement: Achievement) => {
-    setSelectedAchievement(achievement);
+  const handleAchievementClick = () => {
+    // Future implementation for achievement details modal
   };
 
   if (isLoading) {
     return (
-      <ProtectedRoute requireAuth>
+      <ProtectedRoute permission={{ requireAuth: true }}>
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
           <div className="text-center">
             <motion.div
@@ -55,7 +52,7 @@ export default function AchievementsPage() {
 
   if (error) {
     return (
-      <ProtectedRoute requireAuth>
+      <ProtectedRoute permission={{ requireAuth: true }}>
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
           <div className="text-center">
             <Trophy className="w-16 h-16 text-red-400 mx-auto mb-4" />
@@ -68,7 +65,7 @@ export default function AchievementsPage() {
   }
 
   return (
-    <ProtectedRoute requireAuth>
+    <ProtectedRoute permission={{ requireAuth: true }}>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
         <div className="max-w-7xl mx-auto">
           {/* Breadcrumbs */}

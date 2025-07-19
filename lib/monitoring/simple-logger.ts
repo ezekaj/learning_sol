@@ -16,10 +16,19 @@ interface LogContext {
   duration?: number;
   statusCode?: number;
   error?: Error;
+  componentStack?: string;
+  errorInfo?: any;
+  count?: number;
   metadata?: Record<string, any>;
   service?: string;
   operation?: string;
   tokens?: number;
+  queryId?: string;
+  threshold?: number;
+  status?: string;
+  measurementId?: string;
+  name?: string;
+  environment?: string;
   success?: boolean;
   event?: string;
 }

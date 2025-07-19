@@ -75,7 +75,7 @@ export const RealTimeCodeEditor: React.FC<RealTimeCodeEditorProps> = ({
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Session analytics and tracking using sessionId and socket
-  const trackSessionEvent = useCallback((event: string, data?: any) => {
+  const trackSessionEvent = useCallback((event: string, data?: Record<string, unknown>) => {
     const eventData = {
       sessionId,
       event,

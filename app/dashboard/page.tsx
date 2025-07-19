@@ -2,20 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  BookOpen, 
-  TrendingUp, 
-  Map, 
-  Settings,
-  Bell,
-  Search,
-  Filter
-} from 'lucide-react';
+import { BookOpen, TrendingUp, Map, Settings, Bell } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useLearning } from '@/lib/context/LearningContext';
 import { useRealTimeXP } from '@/lib/hooks/useRealTimeXP';
 import { CurriculumManager } from '@/lib/curriculum/manager';
-import { SOLIDITY_MODULES, LEARNING_PATHS, getModulesForPath } from '@/lib/curriculum/data';
+import { SOLIDITY_MODULES, LEARNING_PATHS, getModulesForPath, checkPrerequisites as checkPrerequisitesSync } from '@/lib/curriculum/data';
 import { UserCurriculumProgress } from '@/lib/curriculum/types';
 import { CurriculumDashboard } from '@/components/curriculum/CurriculumDashboard';
 import { LearningAnalytics } from '@/components/curriculum/LearningAnalytics';
@@ -30,8 +22,8 @@ type DashboardView = 'overview' | 'modules' | 'path' | 'analytics';
 
 function DashboardContent() {
   const { user } = useAuth();
-  const { state: learningState } = useLearning();
-  const { currentXP, levelInfo, sessionXP } = useRealTimeXP();
+  const { state: _learningState } = useLearning();
+  const { currentXP, levelInfo, sessionXP: _sessionXP } = useRealTimeXP();
   
   const [activeView, setActiveView] = useState<DashboardView>('overview');
   const [userProgress, setUserProgress] = useState<UserCurriculumProgress | null>(null);
@@ -111,10 +103,10 @@ function DashboardContent() {
 
   const checkPrerequisites = (itemId: string): boolean => {
     if (!user?.id || !userProgress) return false;
-    return curriculumManager.checkPrerequisites(user.id, itemId);
+    return checkPrerequisitesSync(itemId, userProgress);
   };
 
-  const getUnmetPrerequisites = (itemId: string): string[] => {
+  const getUnmetPrerequisites = (_itemId: string): string[] => {
     if (!user?.id || !userProgress) return [];
     // This would be async in real implementation
     return [];
@@ -297,7 +289,7 @@ function DashboardContent() {
 
 function DashboardPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute permission={{ requireAuth: true }}>
       <DashboardContent />
     </ProtectedRoute>
   );

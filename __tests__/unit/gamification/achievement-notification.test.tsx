@@ -1,6 +1,6 @@
-import React from 'react';
+;
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { AchievementNotification } from '@/components/achievements/AchievementNotification';
 import { Achievement, AchievementNotification as NotificationType } from '@/lib/achievements/types';
 

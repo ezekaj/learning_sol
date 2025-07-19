@@ -379,7 +379,7 @@ class AIHealthChecker {
     }
   }
 
-  private getRecommendation(service: string, details: string): string {
+  private getRecommendation(service: string, _details: string): string {
     if (service.includes('Local LLM')) {
       return 'Check if LM Studio is running on localhost:1234 with CodeLlama model loaded';
     } else if (service.includes('Gemini')) {

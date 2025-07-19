@@ -30,7 +30,7 @@ export interface UseDebuggerOptions {
  * Hook for managing Solidity debugging sessions
  */
 export function useSolidityDebugger(options: UseDebuggerOptions = {}) {
-  const { autoInitialize = true, onBreakpointHit, onExecutionComplete, onError } = options;
+  const { autoInitialize = true, onBreakpointHit: _onBreakpointHit, onExecutionComplete, onError } = options;
   
   const debuggerRef = useRef<SolidityDebugger | null>(null);
   const { showSuccess, showError, showInfo, showWarning } = useNotifications();

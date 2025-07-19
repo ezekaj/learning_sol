@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Zap, 
   Gauge, 
-  Image, 
+ 
   Code, 
   Wifi, 
   CheckCircle, 
@@ -36,7 +36,7 @@ interface OptimizationSuggestion {
 }
 
 export const LighthouseOptimizer: React.FC = () => {
-  const [metrics, setMetrics] = useState<LighthouseMetrics>({
+  const [metrics, _setMetrics] = useState<LighthouseMetrics>({
     performance: 92,
     accessibility: 95,
     bestPractices: 88,

@@ -3,22 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import {
-  BookOpen,
-  Search,
-  Plus,
-  RefreshCw,
-  AlertCircle,
-  Wifi,
-  WifiOff,
-  Clock,
-  Users,
-  Star,
-  Play,
-  FileText,
-  Settings,
-  ChevronRight
-} from 'lucide-react';
+import { BookOpen, Search, RefreshCw, AlertCircle, Clock, Users, Star, Play, FileText, Settings } from 'lucide-react';
 import { GlassContainer } from '@/components/ui/Glassmorphism';
 import { cn } from '@/lib/utils';
 
@@ -48,8 +33,50 @@ export function EmptyState({
   secondaryAction,
   className
 }: EmptyStateProps) {
-  const ActionButton = action?.href ? Link : 'button';
-  const SecondaryButton = secondaryAction?.href ? Link : 'button';
+  const renderActionButton = () => {
+    if (!action) return null;
+    
+    const buttonClasses = cn(
+      'inline-flex items-center justify-center px-6 py-3 rounded-lg font-medium transition-all duration-200',
+      action.variant === 'secondary'
+        ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+        : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl'
+    );
+    
+    if (action.href) {
+      return (
+        <Link href={action.href} className={buttonClasses}>
+          {action.label}
+        </Link>
+      );
+    }
+    
+    return (
+      <button onClick={action.onClick} className={buttonClasses}>
+        {action.label}
+      </button>
+    );
+  };
+  
+  const renderSecondaryButton = () => {
+    if (!secondaryAction) return null;
+    
+    const buttonClasses = "text-purple-400 hover:text-purple-300 transition-colors text-sm";
+    
+    if (secondaryAction.href) {
+      return (
+        <Link href={secondaryAction.href} className={buttonClasses}>
+          {secondaryAction.label}
+        </Link>
+      );
+    }
+    
+    return (
+      <button onClick={secondaryAction.onClick} className={buttonClasses}>
+        {secondaryAction.label}
+      </button>
+    );
+  };
 
   return (
     <GlassContainer intensity="medium" className={cn('p-12 text-center', className)}>
@@ -71,28 +98,10 @@ export function EmptyState({
 
         {/* Actions */}
         <div className="space-y-3">
-          {action && (
-            <ActionButton
-              {...(action.href ? { href: action.href } : { onClick: action.onClick })}
-              className={cn(
-                'inline-flex items-center justify-center px-6 py-3 rounded-lg font-medium transition-all duration-200',
-                action.variant === 'secondary'
-                  ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-                  : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl'
-              )}
-            >
-              {action.label}
-            </ActionButton>
-          )}
-
+          {renderActionButton()}
           {secondaryAction && (
             <div>
-              <SecondaryButton
-                {...(secondaryAction.href ? { href: secondaryAction.href } : { onClick: secondaryAction.onClick })}
-                className="text-purple-400 hover:text-purple-300 transition-colors text-sm"
-              >
-                {secondaryAction.label}
-              </SecondaryButton>
+              {renderSecondaryButton()}
             </div>
           )}
         </div>

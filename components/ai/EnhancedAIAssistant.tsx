@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import type { SpeechRecognition, SpeechRecognitionEvent } from '../types/speech';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Send, Mic, MicOff, Volume2, VolumeX,
@@ -64,7 +65,7 @@ const EnhancedAIAssistantComponent: React.FC<EnhancedAIAssistantProps> = ({
   const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
 
   useEffect(() => {
@@ -79,26 +80,28 @@ const EnhancedAIAssistantComponent: React.FC<EnhancedAIAssistantProps> = ({
 
     // Initialize speech recognition
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      const SpeechRecognition = (window as Window & { webkitSpeechRecognition?: any; SpeechRecognition?: any }).webkitSpeechRecognition || (window as Window & { webkitSpeechRecognition?: any; SpeechRecognition?: any }).SpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = 'en-US';
+      if (recognitionRef.current) {
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+        recognitionRef.current.lang = 'en-US';
 
-      recognitionRef.current.onresult = (event: any) => {
+        recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
         const transcript = event.results[0][0].transcript;
         setInputMessage(transcript);
         setIsListening(false);
       };
 
-      recognitionRef.current.onerror = () => {
-        setIsListening(false);
-        showToastMessage('Speech recognition error. Please try again.', 'error');
-      };
+        recognitionRef.current.onerror = () => {
+          setIsListening(false);
+          showToastMessage('Speech recognition error. Please try again.', 'error');
+        };
 
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-      };
+        recognitionRef.current.onend = () => {
+          setIsListening(false);
+        };
+      }
     }
   }, []);
 

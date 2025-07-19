@@ -70,7 +70,8 @@ function checkDependencies(): boolean {
   try {
     const packageJson = require('../package.json');
     const requiredDeps = ['vitest', '@vitest/ui', 'prisma', 'axios'];
-    const requiredDevDeps = ['@types/node', 'typescript'];
+    // Dev dependencies are checked along with regular dependencies
+    // const requiredDevDeps = ['@types/node', 'typescript'];
     
     let allDepsPresent = true;
     

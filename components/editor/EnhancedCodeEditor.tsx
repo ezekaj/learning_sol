@@ -38,7 +38,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
   enableRealtime = true
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
-  const [editor, setEditor] = useState<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const [editorInstance, setEditorInstance] = useState<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [activePanel, setActivePanel] = useState<'security' | 'gas' | 'both'>('both');
   const [code, setCode] = useState(initialCode);
 
@@ -49,7 +49,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
     performAnalysis: performSecurityAnalysis,
     autoFixIssue,
     jumpToIssue
-  } = useSecurityAnalysis(editor, userId, {
+  } = useSecurityAnalysis(editorInstance, userId, {
     enableRealtime,
     enableAIAnalysis: true,
     enablePatternMatching: true,
@@ -65,7 +65,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
     applyOptimization,
     jumpToOptimization,
     getGasMetrics
-  } = useGasAnalysis(editor, userId, {
+  } = useGasAnalysis(editorInstance, userId, {
     enableRealtime,
     enableHeatmap: false,
     autoAnalyze: true
@@ -116,7 +116,8 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
     });
 
     // Create editor instance
-    const editorInstance = monaco.editor.create(editorRef.current, {
+    if (!editorRef.current) return;
+    const newEditorInstance = monaco.editor.create(editorRef.current, {
       value: initialCode,
       language: 'solidity',
       theme,
@@ -139,17 +140,17 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
     });
 
     // Setup change listener
-    const disposable = editorInstance.onDidChangeModelContent(() => {
-      const newCode = editorInstance.getValue();
+    const disposable = newEditorInstance.onDidChangeModelContent(() => {
+      const newCode = newEditorInstance.getValue();
       setCode(newCode);
       onCodeChange?.(newCode);
     });
 
-    setEditor(editorInstance);
+    setEditorInstance(newEditorInstance);
 
     return () => {
       disposable.dispose();
-      editorInstance.dispose();
+      newEditorInstance.dispose();
     };
   }, [initialCode, theme, onCodeChange]);
 

@@ -16,8 +16,10 @@ export async function GET(request: NextRequest) {
   
   if (process.env.NODE_ENV === 'development') {
     logger.info('WebSocket connection attempt', {
-      url: request.url,
-      headers: Object.fromEntries(request.headers.entries()),
+      metadata: {
+        url: request.url,
+        headers: Object.fromEntries(request.headers.entries()),
+      }
     });
 
     return new Response(JSON.stringify({
@@ -48,14 +50,14 @@ export async function GET(request: NextRequest) {
 }
 
 // Export other methods to prevent 405 errors
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   return new Response('Method not allowed', { status: 405 });
 }
 
-export async function PUT(request: NextRequest) {
+export async function PUT(_request: NextRequest) {
   return new Response('Method not allowed', { status: 405 });
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(_request: NextRequest) {
   return new Response('Method not allowed', { status: 405 });
 }

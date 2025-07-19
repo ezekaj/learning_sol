@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
+;
 import InteractiveCodeEditor from '@/components/learning/InteractiveCodeEditor';
 import { CollaborationProvider } from '@/lib/context/CollaborationContext';
 import { LearningProvider } from '@/lib/context/LearningContext';

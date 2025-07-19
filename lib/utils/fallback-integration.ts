@@ -27,7 +27,7 @@ export function applyAccessibilitySettings(settings: UserSettings['accessibility
   }
 
   // Apply reduced motion
-  if (settings.reduceMotion) {
+  if (settings.reducedMotion) {
     root.style.setProperty('--fallback-animation-duration', '0.01ms');
     root.classList.add('reduce-motion');
   } else {
@@ -61,7 +61,7 @@ export function getFallbackContent(
     userRole?: 'student' | 'instructor' | 'admin';
   }
 ) {
-  const { userSettings, featureState, userRole } = context;
+  const { userSettings, featureState: _featureState, userRole } = context;
 
   // Adjust content based on accessibility settings
   const useSimpleLanguage = userSettings?.accessibility?.simpleLanguage;
@@ -185,7 +185,7 @@ export function generateContextualHelp(
     settings?: UserSettings;
   }
 ) {
-  const { currentPage, userRole, recentActions, settings } = userContext;
+  const { currentPage, userRole, recentActions: _recentActions, settings } = userContext;
   const useSimpleLanguage = settings?.accessibility?.simpleLanguage;
 
   const helpItems = [];

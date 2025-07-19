@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+;
 import { motion } from 'framer-motion';
 import { 
   Lock, 
@@ -105,7 +105,7 @@ export function PrerequisiteDisplay({
         )}
         
         <div className="space-y-1">
-          {prerequisites.slice(0, 3).map((prereq, index) => {
+          {prerequisites.slice(0, 3).map((prereq) => {
             const isMet = !unmetPrerequisites.some(unmet => unmet.id === prereq.id);
             const Icon = getPrerequisiteIcon(prereq.type);
             

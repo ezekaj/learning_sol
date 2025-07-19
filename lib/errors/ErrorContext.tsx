@@ -114,7 +114,7 @@ interface ErrorContextValue {
   showApiError: (message: string, options?: any) => void;
   showFormError: (field: string, message: string, options?: any) => void;
   showNetworkError: (isOffline?: boolean) => void;
-  showAuthError: (type: 'login' | 'permission', message?: string) => void;
+  showAuthError: (type: 'login' | 'register' | 'permission' | 'refresh', message?: string) => void;
   showUploadError: (fileName: string, reason: string, options?: any) => void;
 }
 
@@ -257,7 +257,7 @@ export function ErrorProvider({ children }: { children: React.ReactNode }) {
     addError(error);
   }, [addError]);
 
-  const showAuthError = useCallback((type: 'login' | 'permission', message?: string) => {
+  const showAuthError = useCallback((type: 'login' | 'register' | 'permission' | 'refresh', message?: string) => {
     const error = ErrorFactory.createAuthError({
       authType: type,
       message: message || `Authentication ${type} error`

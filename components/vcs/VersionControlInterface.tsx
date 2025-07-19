@@ -2,23 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  GitBranch,
-  GitCommit,
-  GitMerge,
-  GitPullRequest,
-  Plus,
-  Check,
-  X,
-  Clock,
-  User,
-  FileText,
-  ChevronDown,
-  ChevronRight,
-  Eye,
-  MessageSquare,
-  Settings
-} from 'lucide-react';
+import { GitBranch, GitCommit, GitPullRequest, Plus, X, Clock, User, FileText, ChevronDown, ChevronRight, Eye, MessageSquare } from 'lucide-react';
 import { useSolidityVersionControl } from '@/lib/hooks/useSolidityVersionControl';
 import { GlassContainer } from '@/components/ui/Glassmorphism';
 import { cn } from '@/lib/utils';
@@ -44,13 +28,13 @@ export function VersionControlInterface({
     canCommit,
     isLoading,
     error,
-    stageFiles,
-    unstageFiles,
+    stageFiles: _stageFiles,
+    unstageFiles: _unstageFiles,
     createCommit,
     createBranch,
     switchBranch,
-    createMergeRequest,
-    getFileDiff,
+    createMergeRequest: _createMergeRequest,
+    getFileDiff: _getFileDiff,
     openMergeRequests
   } = useSolidityVersionControl({
     repositoryId,
@@ -124,7 +108,7 @@ export function VersionControlInterface({
     <div className={cn('flex flex-col h-full', className)}>
       {/* Header */}
       <GlassContainer
-        intensity="low"
+        intensity="light"
         tint="neutral"
         border
         className="flex items-center justify-between p-4 mb-4"
@@ -208,7 +192,7 @@ export function VersionControlInterface({
                   commits.map((commit) => (
                     <GlassContainer
                       key={commit.id}
-                      intensity="low"
+                      intensity="light"
                       tint="neutral"
                       border
                       className="p-4"
@@ -286,7 +270,7 @@ export function VersionControlInterface({
                 {branches.map((branch) => (
                   <GlassContainer
                     key={branch.name}
-                    intensity="low"
+                    intensity="light"
                     tint="neutral"
                     border
                     className="p-4"
@@ -342,7 +326,7 @@ export function VersionControlInterface({
                   mergeRequests.map((mr) => (
                     <GlassContainer
                       key={mr.id}
-                      intensity="low"
+                      intensity="light"
                       tint="neutral"
                       border
                       className="p-4"

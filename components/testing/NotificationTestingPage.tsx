@@ -1,25 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import {
-  Bell,
-  CheckCircle,
-  AlertCircle,
-  Info,
-  Trophy,
-  Star,
-  Zap,
-  Users,
-  Settings,
-  Shield,
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  History,
-  TestTube
-} from 'lucide-react';
+;
+import { Bell, CheckCircle, AlertCircle, Info, Trophy, Star, Zap, Users, Settings, Play, Pause, Volume2, VolumeX, History, TestTube } from 'lucide-react';
 import { GlassContainer } from '@/components/ui/Glassmorphism';
 import { useNotifications } from '@/components/ui/NotificationSystem';
 import { useManualNotificationTriggers } from '@/components/notifications/NotificationIntegrations';

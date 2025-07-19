@@ -207,13 +207,13 @@ export function useLessonProgress(lessonId: string): LessonProgressHookReturn {
     // Add XP to learning context
     addXP(step.xpReward);
 
-    // Trigger achievement events
+    // Trigger achievement events - using xp_gain for step completion
     await triggerAchievementEvent({
-      type: 'step_complete',
+      type: 'xp_gain',
       data: {
         lessonId,
         stepId,
-        xpReward: step.xpReward,
+        xpAmount: step.xpReward,
         difficulty: step.difficulty,
         timeSpent: updatedProgress.timeSpent
       }

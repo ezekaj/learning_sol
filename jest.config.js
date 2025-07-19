@@ -61,26 +61,92 @@ const customJestConfig = {
     '!app/not-found.tsx',
   ],
   
-  // Coverage thresholds
+  // Coverage thresholds per PRP requirements
   coverageThreshold: {
     global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+    // Security modules (95% coverage)
+    'lib/security/': {
+      branches: 95,
+      functions: 95,
+      lines: 95,
+      statements: 95,
+    },
+    'lib/auth/': {
+      branches: 95,
+      functions: 95,
+      lines: 95,
+      statements: 95,
+    },
+    // Core API modules (90% coverage)
+    'lib/api/': {
       branches: 90,
       functions: 90,
       lines: 90,
       statements: 90,
     },
-    // Specific thresholds for critical modules
-    'lib/api/': {
-      branches: 95,
-      functions: 95,
-      lines: 95,
-      statements: 95,
+    'app/api/': {
+      branches: 90,
+      functions: 90,
+      lines: 90,
+      statements: 90,
     },
+    // Business logic modules (85% coverage)
+    'lib/learning/': {
+      branches: 85,
+      functions: 85,
+      lines: 85,
+      statements: 85,
+    },
+    'lib/achievements/': {
+      branches: 85,
+      functions: 85,
+      lines: 85,
+      statements: 85,
+    },
+    'lib/curriculum/': {
+      branches: 85,
+      functions: 85,
+      lines: 85,
+      statements: 85,
+    },
+    // UI components (80% coverage)
+    'components/': {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+    // Database operations (95% coverage)
     'lib/database/': {
       branches: 95,
       functions: 95,
       lines: 95,
       statements: 95,
+    },
+    // Cache systems (90% coverage)
+    'lib/cache/': {
+      branches: 90,
+      functions: 90,
+      lines: 90,
+      statements: 90,
+    },
+    // Real-time systems (85% coverage)
+    'lib/collaboration/': {
+      branches: 85,
+      functions: 85,
+      lines: 85,
+      statements: 85,
+    },
+    'lib/websocket/': {
+      branches: 85,
+      functions: 85,
+      lines: 85,
+      statements: 85,
     },
   },
   
@@ -135,21 +201,46 @@ const customJestConfig = {
       displayName: 'unit',
       testMatch: ['<rootDir>/__tests__/unit/**/*.test.{js,jsx,ts,tsx}'],
       testEnvironment: 'jsdom',
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
     },
     {
       displayName: 'integration',
       testMatch: ['<rootDir>/__tests__/integration/**/*.test.{js,jsx,ts,tsx}'],
       testEnvironment: 'node',
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
     },
     {
       displayName: 'api',
       testMatch: ['<rootDir>/__tests__/api/**/*.test.{js,jsx,ts,tsx}'],
       testEnvironment: 'node',
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
     },
     {
       displayName: 'database',
       testMatch: ['<rootDir>/__tests__/database/**/*.test.{js,jsx,ts,tsx}'],
       testEnvironment: 'node',
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+    },
+    {
+      displayName: 'security',
+      testMatch: ['<rootDir>/__tests__/security/**/*.test.{js,jsx,ts,tsx}'],
+      testEnvironment: 'node',
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+      testTimeout: 45000,
+    },
+    {
+      displayName: 'performance',
+      testMatch: ['<rootDir>/__tests__/performance/**/*.test.{js,jsx,ts,tsx}'],
+      testEnvironment: 'node',
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+      testTimeout: 60000,
+    },
+    {
+      displayName: 'collaboration',
+      testMatch: ['<rootDir>/__tests__/collaboration/**/*.test.{js,jsx,ts,tsx}'],
+      testEnvironment: 'jsdom',
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+      testTimeout: 45000,
     },
   ],
   

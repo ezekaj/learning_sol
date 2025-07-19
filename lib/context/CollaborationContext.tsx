@@ -8,9 +8,24 @@ import { useUserPresence, useUserColors } from '@/hooks/useUserPresence';
 import { useChatMessages } from '@/components/collaboration/CollaborationChat';
 import { useSessionRecovery } from '@/components/collaboration/SessionRecovery';
 
+interface CollaborationSession {
+  id: string;
+  code: string;
+  title: string;
+  language: string;
+  participants: {
+    id: string;
+    name: string;
+    image?: string;
+    cursor?: any;
+  }[];
+  createdAt: Date;
+}
+
 interface CollaborationState {
   isEnabled: boolean;
   sessionId: string | null;
+  currentSession: CollaborationSession | null;
   currentUser: CollaborationUser | null;
   users: CollaborationUser[];
   isConnected: boolean;
@@ -27,7 +42,7 @@ interface CollaborationState {
   recoveryProgress?: {
     current: number;
     total: number;
-    stage: string;
+    stage: 'connecting' | 'syncing' | 'resolving' | 'complete';
     message: string;
   };
 }
@@ -74,6 +89,14 @@ interface CollaborationActions {
 interface CollaborationContextType {
   state: CollaborationState;
   actions: CollaborationActions;
+  // Direct property access for convenience
+  currentSession: CollaborationSession | null;
+  isConnected: boolean;
+  updateCode: (code: string) => void;
+  updateCursor: (cursor: any) => void;
+  sendChatMessage: (content: string, type?: 'text' | 'code' | 'file') => void;
+  chatMessages: any[];
+  leaveSession: () => void;
 }
 
 const CollaborationContext = createContext<CollaborationContextType | null>(null);
@@ -241,8 +264,8 @@ export function CollaborationProvider({
   // Chat message management
   const chatMessages = useChatMessages(state.sessionId || '');
 
-  // Session recovery
-  const sessionRecovery = useSessionRecovery();
+  // Session recovery - kept for future session recovery implementation
+  // const sessionRecovery = useSessionRecovery();
 
   // Update session duration
   useEffect(() => {
@@ -257,7 +280,7 @@ export function CollaborationProvider({
   // Actions implementation
   const actions: CollaborationActions = {
     // Session management
-    startCollaboration: async (sessionId: string, lessonId?: string) => {
+    startCollaboration: async (sessionId: string, _lessonId?: string) => {
       dispatch({ type: 'SET_SESSION', payload: sessionId });
 
       // Create current user
@@ -418,5 +441,16 @@ export function useCollaboration() {
   if (!context) {
     throw new Error('useCollaboration must be used within a CollaborationProvider');
   }
-  return context;
+  
+  // Return the context with convenient property access
+  return {
+    ...context,
+    currentSession: context.state.currentSession,
+    isConnected: context.state.isConnected,
+    updateCode: (code: string) => context.actions.sendCodeOperation({ type: 'insert', payload: code } as any),
+    updateCursor: context.actions.sendCursorUpdate,
+    sendChatMessage: context.actions.sendChatMessage,
+    chatMessages: context.state.chatMessages,
+    leaveSession: context.actions.leaveSession
+  };
 }

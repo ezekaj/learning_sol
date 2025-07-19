@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/monitoring/simple-logger';
+import { AchievementWithProgress } from '../types';
 
 // Configure for dynamic API routes
 export const dynamic = 'force-dynamic';
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     
@@ -25,7 +27,7 @@ export async function GET(_request: NextRequest) {
       orderBy: { createdAt: 'asc' },
     });
 
-    const achievementsWithProgress = achievements.map((achievement: any) => ({
+    const achievementsWithProgress = achievements.map((achievement): AchievementWithProgress => ({
       id: achievement.id,
       title: achievement.title,
       description: achievement.description,
@@ -33,7 +35,7 @@ export async function GET(_request: NextRequest) {
       category: achievement.category,
       xpReward: achievement.xpReward,
       badgeUrl: achievement.badgeUrl,
-      requirement: achievement.requirement,
+      requirement: achievement.requirement as Record<string, unknown>,
       userProgress: achievement.userAchievements[0] || null,
       isUnlocked: achievement.userAchievements.length > 0,
       isCompleted: achievement.userAchievements[0]?.isCompleted || false,
@@ -43,12 +45,12 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json({ achievements: achievementsWithProgress });
   } catch (error) {
-    console.error('Error fetching achievements:', error);
+    logger.error('Error fetching achievements', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -117,7 +119,7 @@ export async function POST(_request: NextRequest) {
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (error) {
-    console.error('Error processing achievement:', error);
+    logger.error('Error processing achievement', error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

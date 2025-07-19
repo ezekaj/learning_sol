@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
-import { NextRequest } from 'next/server';
+;
 
 // Test configuration
 const API_BASE_URL = process.env.TEST_API_URL || 'http://localhost:3000/api/v1';

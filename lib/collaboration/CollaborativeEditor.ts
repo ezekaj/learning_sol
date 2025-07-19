@@ -151,7 +151,7 @@ export class CollaborativeEditor {
   }
 
   // Handle local text changes
-  private handleLocalChange(event: any): void {
+  private handleLocalChange(_event: any): void {
     const newText = this.editor.getValue();
     const operation = OperationalTransform.fromTextChange(
       this.currentText,
@@ -246,7 +246,7 @@ export class CollaborativeEditor {
   }
 
   // Transform cursor position based on operation
-  private transformCursorPosition(position: any, operation: TextOperation): any {
+  private transformCursorPosition(position: any, _operation: TextOperation): any {
     // Simplified cursor transformation - in production, this would be more sophisticated
     const line = position.lineNumber;
     const column = position.column;

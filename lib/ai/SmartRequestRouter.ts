@@ -160,7 +160,7 @@ export class SmartRequestRouter {
     request: RoutingRequest,
     strategy: string = 'specialty'
   ): Promise<RoutingResponse> {
-    const startTime = Date.now();
+    // Response time is calculated in executeRequest
     let retryCount = 0;
     const maxRetries = request.retryAttempts || 2;
     let lastError: Error | null = null;

@@ -110,7 +110,7 @@ const REDIRECT_RULES: RedirectRule[] = [
   // Case sensitivity fixes
   {
     pattern: /^\/([A-Z].*)$/,
-    replacement: (match, p1) => `/${p1.toLowerCase()}`,
+    replacement: (_match, p1) => `/${p1.toLowerCase()}`,
     priority: 3,
     description: 'Lowercase URL fix'
   }

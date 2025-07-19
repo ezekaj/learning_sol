@@ -4,25 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import {
-  Search,
-  Home,
-  BookOpen,
-  ArrowLeft,
-  AlertTriangle,
-  ExternalLink,
-  Clock,
-  TrendingUp,
-  Users,
-  ChevronRight,
-  MapPin,
-  RefreshCw,
-  Compass,
-  Target
-} from 'lucide-react';
+import { Home, BookOpen, ArrowLeft, AlertTriangle, Clock, TrendingUp, Users, ChevronRight, MapPin, RefreshCw, Compass, Target } from 'lucide-react';
 import { GlassContainer } from '@/components/ui/Glassmorphism';
 import { SmartSearch } from '@/components/ui/SmartSearch';
-import { generateRedirectSuggestions, getContextualSuggestions } from '@/lib/utils/redirects';
+import { getContextualSuggestions } from '@/lib/utils/redirects';
 import { cn } from '@/lib/utils';
 
 interface PopularCourse {
@@ -93,7 +78,8 @@ const recentLessons: RecentLesson[] = [
 export function NotFoundPage() {
   const router = useRouter();
   const pathname = usePathname();
-  const [searchQuery, setSearchQuery] = useState('');
+  // Search functionality moved to navigation bar
+  // const [searchQuery, setSearchQuery] = useState('');
   const [breadcrumbs, setBreadcrumbs] = useState<string[]>([]);
   const [suggestedRedirects, setSuggestedRedirects] = useState<string[]>([]);
 
@@ -148,12 +134,13 @@ export function NotFoundPage() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
+  // Search handling moved to navigation bar
+  // const handleSearch = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (searchQuery.trim()) {
+  //     router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+  //   }
+  // };
 
   const handleReportBrokenLink = () => {
     // Open feedback form or email

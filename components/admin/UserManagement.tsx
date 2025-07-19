@@ -1,31 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Users,
-  Search,
-  Filter,
-  MoreVertical,
-  Edit,
-  Trash2,
-  Ban,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Mail,
-  Shield,
-  Eye,
-  Download,
-  Upload,
-  UserPlus,
-  Settings,
-  AlertTriangle,
-  Calendar,
-  Activity,
-  Award,
-  BookOpen
-} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Search, Filter, MoreVertical, Edit, Trash2, Ban, CheckCircle, XCircle, Clock, Shield, Eye, Download, Upload, UserPlus, Settings, AlertTriangle, Calendar, Activity, Award, BookOpen } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
@@ -265,8 +242,8 @@ export function UserManagement({ className }: UserManagementProps) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState<AdminFilter[]>([]);
-  const [sort, setSort] = useState<AdminSort>({ field: 'createdAt', direction: 'desc' });
+  const [filters] = useState<AdminFilter[]>([]);
+  const [sort] = useState<AdminSort>({ field: 'createdAt', direction: 'desc' });
   const [pagination, setPagination] = useState<AdminPagination>({
     page: 1,
     limit: 10,

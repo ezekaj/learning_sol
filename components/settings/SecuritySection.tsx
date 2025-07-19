@@ -1,27 +1,8 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Shield,
-  Key,
-  Smartphone,
-  Eye,
-  EyeOff,
-  AlertTriangle,
-  Check,
-  X,
-  Clock,
-  Monitor,
-  MapPin,
-  Trash2,
-  QrCode,
-  Copy,
-  RefreshCw,
-  Lock,
-  Unlock,
-  Globe
-} from 'lucide-react';
+import { Shield, Key, Smartphone, Eye, EyeOff, Check, X, Clock, Monitor, MapPin, Trash2, RefreshCw, Globe } from 'lucide-react';
 import { SecuritySettings, ActiveSession, TwoFactorSetup, PasswordRequirements } from '@/types/settings';
 import { GlassContainer } from '@/components/ui/Glassmorphism';
 import { cn } from '@/lib/utils';
@@ -63,7 +44,7 @@ export function SecuritySection({
 }: SecuritySectionProps) {
   const [activeTab, setActiveTab] = useState<'password' | 'twoFactor' | 'sessions' | 'settings'>('password');
   const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [showTwoFactorSetup, setShowTwoFactorSetup] = useState(false);
+  const [_showTwoFactorSetup, setShowTwoFactorSetup] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
@@ -74,7 +55,7 @@ export function SecuritySection({
     new: false,
     confirm: false
   });
-  const [twoFactorSetup, setTwoFactorSetup] = useState<TwoFactorSetup | null>(null);
+  const [_twoFactorSetup, setTwoFactorSetup] = useState<TwoFactorSetup | null>(null);
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -154,46 +135,46 @@ export function SecuritySection({
     }
   }, [onSetupTwoFactor]);
 
-  // Handle 2FA enable
-  const handleEnableTwoFactor = useCallback(async () => {
-    if (!twoFactorCode.trim()) return;
-
-    setIsLoading(true);
-    try {
-      const success = await onEnableTwoFactor(twoFactorCode);
-      if (success) {
-        setShowTwoFactorSetup(false);
-        setTwoFactorSetup(null);
-        setTwoFactorCode('');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [twoFactorCode, onEnableTwoFactor]);
-
-  // Handle 2FA disable
-  const handleDisableTwoFactor = useCallback(async () => {
-    if (!twoFactorCode.trim()) return;
-
-    setIsLoading(true);
-    try {
-      const success = await onDisableTwoFactor(twoFactorCode);
-      if (success) {
-        setTwoFactorCode('');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [twoFactorCode, onDisableTwoFactor]);
-
-  // Copy to clipboard
-  const copyToClipboard = useCallback(async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
-    }
-  }, []);
+  // 2FA handling moved to modal components
+  // const _handleEnableTwoFactor = useCallback(async () => {
+  //   if (!twoFactorCode.trim()) return;
+  //
+  //   setIsLoading(true);
+  //   try {
+  //     const success = await onEnableTwoFactor(twoFactorCode);
+  //     if (success) {
+  //       setShowTwoFactorSetup(false);
+  //       setTwoFactorSetup(null);
+  //       setTwoFactorCode('');
+  //     }
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }, [twoFactorCode, onEnableTwoFactor]);
+  //
+  // // Handle 2FA disable
+  // const _handleDisableTwoFactor = useCallback(async () => {
+  //   if (!twoFactorCode.trim()) return;
+  //
+  //   setIsLoading(true);
+  //   try {
+  //     const success = await onDisableTwoFactor(twoFactorCode);
+  //     if (success) {
+  //       setTwoFactorCode('');
+  //     }
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }, [twoFactorCode, onDisableTwoFactor]);
+  //
+  // // Copy to clipboard
+  // const _copyToClipboard = useCallback(async (text: string) => {
+  //   try {
+  //     await navigator.clipboard.writeText(text);
+  //   } catch (error) {
+  //     console.error('Failed to copy to clipboard:', error);
+  //   }
+  // }, []);
 
   return (
     <GlassContainer

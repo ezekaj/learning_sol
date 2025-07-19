@@ -97,7 +97,7 @@ export class SecurityMiddleware {
    */
   applyCors(request: NextRequest, response: NextResponse): NextResponse {
     const origin = request.headers.get('origin');
-    const corsHeaders = createCorsHeaders(origin);
+    const corsHeaders = createCorsHeaders(origin || undefined);
     
     // Validate origin if required
     if (this.config.validation.validateOrigin && origin) {
